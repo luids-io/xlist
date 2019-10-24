@@ -1,0 +1,41 @@
+[
+  {
+    "id": "my-whitelist",
+    "class": "file",
+    "resources": [
+      "ip4",
+      "ip6",
+      "domain"
+    ],
+    "source": "my-whitelist.xlist"
+  },
+  {
+    "id": "my-blacklist",
+    "class": "file",
+    "resources": [
+      "ip4",
+      "ip6",
+      "domain"
+    ],
+    "source": "my-blacklist.xlist",
+    "opts": {
+      "reason": "found in my-blacklist"
+    }
+  },
+  {
+    "id": "root",
+    "class": "wbefore",
+    "resources": [
+      "ip4",
+      "ip6",
+      "domain"
+    ],
+    "contains": [
+      { "id": "my-whitelist" },
+      { "id": "my-blacklist" }
+    ],
+    "wrappers": [
+      { "class": "logger" }
+    ]
+  }
+]

@@ -1,0 +1,9 @@
+[xlist]
+files    = [ "/etc/xlist/service.json" ]
+
+[grpc-server]
+listenuri  = "tcp://0.0.0.0:5801"
+
+[build]
+sourcesdir = "/var/lib/xlist"
+

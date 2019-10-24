@@ -1,0 +1,4 @@
+# Fichero de pruebas con errores
+ip4,plain,11.22.33.44
+## error:
+ip4,cidr,-10.5.0.0/16

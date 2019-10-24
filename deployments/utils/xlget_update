@@ -1,0 +1,15 @@
+#!/bin/bash
+
+XLGET=/usr/local/bin/xlget
+EXECUSER=xlistd
+CONFIG=/etc/xlist/xlget.toml
+
+die() { echo "error: $@" 1>&2 ; exit 1; }
+
+# some checks...
+[[ $EUID -eq 0 ]] || die "This script must be run as root"
+[ -f $XLGET ] || die "$XLGET doesn't exists!"
+getent passwd $EXECUSER >/dev/null
+[ $? -eq 0 ] || die "User $EXECUSER doesn't exist!" 
+
+su $EXECUSER -p -c "$XLGET --config=$CONFIG" 

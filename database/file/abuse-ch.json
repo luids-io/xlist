@@ -1,0 +1,57 @@
+[
+    {
+        "disabled": true,
+        "id": "abuse.ch-feodo",
+        "class": "file",
+        "name": "Feodo Tracker C&C Abuse.ch",
+        "web": "https://feodotracker.abuse.ch/",
+        "category": "blacklist",
+        "tags": [
+            "malware"
+        ],
+        "resources": [
+            "ip4"
+        ],
+        "opts": {
+            "autoreload": true,
+            "reason": "found in 'abuse.ch-feodo'"
+        }
+    },
+    {
+        "disabled": true,
+        "id": "abuse.ch-ransomware",
+        "class": "file",
+        "name": "Ransomware Tracker Abuse.ch",
+        "web": "https://ransomwaretracker.abuse.ch/",
+        "category": "blacklist",
+        "tags": [
+            "malware"
+        ],
+        "resources": [
+            "ip4",
+            "domain"
+        ],
+        "opts": {
+            "autoreload": true,
+            "reason": "found in 'abuse.ch-ransomware'"
+        }
+    },
+    {
+        "disabled": true,
+        "id": "abuse.ch-ssl",
+        "class": "file",
+        "name": "SSL blacklist Abuse.ch",
+        "web": "https://sslbl.abuse.ch",
+        "category": "blacklist",
+        "tags": [
+            "malware"
+        ],
+        "resources": [
+            "ip4"
+        ],
+        "opts": {
+            "autoreload": true,
+            "reason": "found in 'abuse.ch-ssl'"
+        }
+    }
+]

@@ -1,0 +1,174 @@
+// Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
+
+package wbeforexl_test
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/xlist/pkg/components/mockxl"
+	"github.com/luids-io/xlist/pkg/components/wbeforexl"
+)
+
+func TestList_Check(t *testing.T) {
+	ip4 := []xlist.Resource{xlist.IPv4}
+
+	rblFalse := &mockxl.List{ResourceList: ip4}
+	rblTrue := &mockxl.List{ResourceList: ip4, Results: []bool{true}}
+	rblFail := &mockxl.List{ResourceList: ip4, Fail: true}
+
+	var tests = []struct {
+		resources []xlist.Resource
+		white     xlist.Checker
+		black     xlist.Checker
+		want      bool
+		wantErr   bool
+	}{
+		{ip4, rblFalse, rblFalse, false, false},
+		{ip4, rblTrue, rblFalse, false, false},
+		{ip4, rblFalse, rblTrue, true, false},
+		{ip4, rblTrue, rblTrue, false, false},
+		// errors
+		{[]xlist.Resource{xlist.Domain}, rblFalse, rblFalse, false, true},
+		{ip4, rblFail, rblFalse, false, true},
+		{ip4, rblTrue, rblFail, false, false},
+		{ip4, rblFalse, rblFail, false, true},
+	}
+	for idx, test := range tests {
+		wblist := wbeforexl.New(test.resources)
+		wblist.SetWhitelist(test.white)
+		wblist.SetBlacklist(test.black)
+		resp, err := wblist.Check(context.Background(), "10.10.10.10", xlist.IPv4)
+		if test.wantErr && err == nil {
+			t.Errorf("wbefore.Check idx[%v] expected error", idx)
+		} else if !test.wantErr && err != nil {
+			t.Errorf("wbefore.Check idx[%v] unexpected error: %v", idx, err)
+		}
+		if test.want != resp.Result {
+			t.Errorf("wbefore.Check idx[%v] want=%v got=%v", idx, test.want, resp.Result)
+		}
+	}
+}
+
+func TestList_CheckCancel(t *testing.T) {
+	resIP4 := []xlist.Resource{xlist.IPv4}
+
+	wrbl := &mockxl.List{ResourceList: resIP4, Sleep: 100 * time.Millisecond}
+	brbl := &mockxl.List{ResourceList: resIP4, Results: []bool{true}}
+
+	wblist := wbeforexl.New(resIP4)
+	wblist.SetWhitelist(wrbl)
+	wblist.SetBlacklist(brbl)
+	resp, err := wblist.Check(context.Background(), "10.10.10.10", xlist.IPv4)
+	if err != nil {
+		t.Errorf("wbefore.Check unexpected error: %v", err)
+	}
+	if !resp.Result {
+		t.Errorf("wbefore.Check want=%v got=%v", true, resp.Result)
+	}
+
+	ctxtimeout, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+	resp, err = wblist.Check(ctxtimeout, "10.10.10.10", xlist.IPv4)
+	if err == nil {
+		t.Error("wbefore.Check expected error")
+	}
+	if !strings.Contains(err.Error(), "deadline exceeded") {
+		t.Errorf("wbefore.Check unexpected error: %v", err)
+	}
+}
+
+func TestList_Ping(t *testing.T) {
+	rblOk := &mockxl.List{ResourceList: onlyIPv4, Fail: false}
+	rblFail := &mockxl.List{ResourceList: onlyIPv4, Fail: true}
+
+	var tests = []struct {
+		white   xlist.Checker
+		black   xlist.Checker
+		wantErr bool
+	}{
+		{rblOk, rblOk, false},    //0
+		{rblOk, rblFail, true},   //1
+		{rblFail, rblOk, true},   //2
+		{rblFail, rblFail, true}, //3
+	}
+	for idx, test := range tests {
+		wblist := wbeforexl.New(onlyIPv4)
+		wblist.SetWhitelist(test.white)
+		wblist.SetBlacklist(test.black)
+		err := wblist.Ping()
+		switch {
+		case test.wantErr && err == nil:
+			t.Errorf("wbefore.Ping idx[%v] expected error", idx)
+		case !test.wantErr && err != nil:
+			t.Errorf("wbefore.Ping idx[%v] unexpected error: %v", idx, err)
+		}
+	}
+}
+
+func TestList_Resources(t *testing.T) {
+	var tests = []struct {
+		in   []xlist.Resource
+		want []xlist.Resource
+	}{
+		{[]xlist.Resource{}, []xlist.Resource{}},
+		{[]xlist.Resource{xlist.Domain}, onlyDomain},
+		{[]xlist.Resource{xlist.IPv4, xlist.IPv4}, onlyIPv4},
+		{[]xlist.Resource{xlist.IPv4, xlist.IPv6, xlist.IPv6}, onlyIP},
+		{xlist.Resources, xlist.Resources},
+	}
+	for idx, test := range tests {
+		wblist := wbeforexl.New(test.in)
+		got := wblist.Resources()
+		if !cmpResourceSlice(got, test.want) {
+			t.Errorf("idx[%v] wbefore.Resources() got=%v want=%v", idx, got, test.want)
+		}
+	}
+}
+
+func cmpResourceSlice(a, b []xlist.Resource) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func ExampleList() {
+	ip4 := []xlist.Resource{xlist.IPv4}
+	whitelist := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}}
+	blacklist := &mockxl.List{ResourceList: ip4, Results: []bool{true}}
+
+	//constructs wbefore rbl
+	rbl := wbeforexl.New(ip4, wbeforexl.Reason("hello"))
+	rbl.SetWhitelist(whitelist)
+	rbl.SetBlacklist(blacklist)
+
+	//in the first check, whitelist returns true -> return false
+	resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)
+	if err != nil && resp.Result {
+		log.Fatalln("this should not happen")
+	}
+	fmt.Println("check 1:", resp.Result)
+
+	//in the second check, whitelist returns false -> blacklist is checked
+	// and blacklist allways returns true -> return true
+	resp, err = rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)
+	if err != nil && !resp.Result {
+		log.Fatalln("this should not happen")
+	}
+	fmt.Println("check 2:", resp.Result, resp.Reason)
+
+	// Output:
+	//check 1: false
+	//check 2: true hello
+}

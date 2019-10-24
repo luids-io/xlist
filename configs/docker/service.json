@@ -1,0 +1,12 @@
+[
+    {
+        "id": "root",
+        "class": "mock",
+        "resources": [
+            "ip4",
+            "ip6",
+            "domain"
+        ],
+        "source": "false"
+    }
+]

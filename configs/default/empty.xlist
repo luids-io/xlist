@@ -1,0 +1,10 @@
+## This is an xlist file format
+#
+# Syntax:  type,value
+# Allowed: ip4,ip6,cidr4,domain,subdomain
+# Example:
+#    ip4,12.34.34.34
+#    cidr4,14.34.34.0/24
+#    domain,www.infected.com
+#    subdomain,alldomaininfected.com
+

@@ -1,0 +1,36 @@
+FROM golang:alpine as build-env
+ARG arch=amd64
+
+# Install git and certificates
+RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certificates
+
+WORKDIR /app
+## dependences
+COPY go.mod .
+COPY go.sum .
+RUN go mod download
+
+## build
+COPY . .
+RUN make binaries SYSTEM="GOOS=linux GOARCH=${arch}"
+
+## create docker
+FROM alpine
+
+LABEL maintainer="Luis Guillén Civera <luisguillenc@gmail.com>"
+
+RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
+
+# create user for service
+RUN adduser -D -g '' xlist && \
+	mkdir -p /var/lib/xlist && \
+	chown xlist /var/lib/xlist
+
+COPY --from=build-env /app/bin/xlget /bin/
+COPY --from=build-env /app/configs/empty.json /etc/xlist/sources.d/
+
+USER xlist
+
+VOLUME [ "/etc/xlist/sources.d", "/var/lib/xlist" ]
+
+CMD [ "/bin/xlget", "--auto", "-S", "/etc/xlist/sources.d", "--xlget.output", "/var/lib/xlist", "--xlget.cache", "/var/lib/xlist/.cache" ]

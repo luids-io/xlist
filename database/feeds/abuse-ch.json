@@ -1,0 +1,51 @@
+[
+    {
+        "disabled": true,
+        "id": "abuse.ch-feodo",
+        "sources": [
+            {
+                "format": "flat",
+                "resources": [
+                    "ip4"
+                ],
+                "uri": "https://feodotracker.abuse.ch/downloads/ipblocklist.txt"
+            }
+        ],
+        "update": "12h"
+    },
+    {
+        "disabled": true,
+        "id": "abuse.ch-ransomware",
+        "sources": [
+            {
+                "format": "flat",
+                "resources": [
+                    "domain"
+                ],
+                "uri": "https://ransomwaretracker.abuse.ch/downloads/RW_DOMBL.txt"
+            },
+            {
+                "format": "flat",
+                "resources": [
+                    "ip4"
+                ],
+                "uri": "https://ransomwaretracker.abuse.ch/downloads/RW_IPBL.txt"
+            }
+        ],
+        "update": "1h"
+    },
+    {
+        "disabled": true,
+        "id": "abuse.ch-ssl",
+        "sources": [
+            {
+                "format": "flat",
+                "resources": [
+                    "ip4"
+                ],
+                "uri": "https://sslbl.abuse.ch/blacklist/sslipblacklist.txt"
+            }
+        ],
+        "update": "12h"
+    }
+]

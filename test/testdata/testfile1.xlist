@@ -1,0 +1,13 @@
+# Fichero de pruebas, admite comentarios
+ip4,plain,11.22.33.44
+## admite cidrs
+ip4,cidr,10.5.0.0/16
+ip6,cidr,2001:d00::/24
+domain,sub,sucasa.com
+ip4,plain,54.37.157.73
+ip4,plain,192.168.10.10
+domain,plain,www.micasa.com
+
+#1.1.1.1
+ip4,plain,1.2.3.4
+ip6,plain,fe80::3289:ad8e:8259:c878
