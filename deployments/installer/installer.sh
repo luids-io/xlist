@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Configuration variables. 
-RELEASE="v0.0.1-alpha1"
+RELEASE="v0.0.1"
 ARCH="amd64"
 SVC_USER=xlistd
 ETC_DIR=/etc/xlist
@@ -9,9 +9,8 @@ BIN_DIR=/usr/local/bin
 VAR_DIR=/var/lib/xlist
 CACHE_DIR=/var/cache/xlist
 SYSTEMD_DIR=/etc/systemd/system
-#DOWNLOAD_BASE="https://github.com/luids-io/xlist/releases/download"
-#DOWNLOAD_URI="${DOWNLOAD_BASE}/${RELEASE}/luxlist_${RELEASE}_linux_${ARCH}.tgz"
-DOWNLOAD_URI=/home/luis/go/src/github.com/luids-io/xlist/release/luxlist__linux_amd64.tgz
+DOWNLOAD_BASE="https://github.com/luids-io/xlist/releases/download"
+DOWNLOAD_URI="${DOWNLOAD_BASE}/${RELEASE}/luxlist_${RELEASE}_linux_${ARCH}.tgz"
 ##
 
 die() { echo "error: $@" 1>&2 ; exit 1 ; }
