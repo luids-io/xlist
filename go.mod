@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb
-	github.com/luids-io/core v0.0.0-20191023161317-fe2adaea7295
+	github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259
 	github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6
 	github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98
 	github.com/luisguillenc/httphealth v0.0.0-20190715082354-ea83997a7f0a // indirect
@@ -19,6 +19,7 @@ require (
 	github.com/oschwald/maxminddb-golang v1.5.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.2.1
+	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.4.0
 	github.com/yl2chen/cidranger v0.0.0-20190806234802-fed7223fd934

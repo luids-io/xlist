@@ -23,6 +23,7 @@ github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3Ee
 github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e/go.mod h1:F5haX7vjVVG0kc13fIWeqUViNPyEJxv/OmvnBo0Yme4=
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
@@ -73,6 +74,12 @@ github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb h1:JEzcFv81KXcTJS1
 github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/core v0.0.0-20191023161317-fe2adaea7295 h1:XpXkgF44eQE3A9tVz612HQk2F4t8t61S1prRiD0VGWU=
 github.com/luids-io/core v0.0.0-20191023161317-fe2adaea7295/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20191024114105-f8de484427d8 h1:Stz79zVt/QguR6D+duvl5BjIzyWH70TkGtUvHQzXbmc=
+github.com/luids-io/core v0.0.0-20191024114105-f8de484427d8/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20191030174504-3cab4fe1b5ea h1:bUNV/wlRGGouiI+HCHEsEjYRBhPx7MUENdDwP82yn4Q=
+github.com/luids-io/core v0.0.0-20191030174504-3cab4fe1b5ea/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259 h1:HUnNmtiRi9WoWOrHyBQIMlt96A28u9GGInw2jyWoOY0=
+github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6 h1:/rapm+jySYEgeGoc7aSwv6I4OX2SnMFOTEUopPljTcg=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6/go.mod h1:o21iQEIR0tO05yULoeoIX9tl3X/XXCsEGoP0tlRSVEE=
 github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98 h1:2X0TEwBSjZgrA4hWByj4lzmSwQOl62+Vb96rhE4OCuE=
@@ -109,6 +116,7 @@ github.com/pelletier/go-toml v1.2.0 h1:T5zMGML61Wp+FlcbWjRDT7yAxhJNAiPPLOFECq181
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=
 github.com/prometheus/client_golang v0.9.3/go.mod h1:/TN21ttK/J9q6uSwhBd54HahCDft0ttaMvbicHlPoso=
@@ -150,6 +158,7 @@ github.com/spf13/viper v1.4.0/go.mod h1:PTJ7Z/lr49W6bUbkmS1V3by4uWynFiR9p7+dSq/y
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=

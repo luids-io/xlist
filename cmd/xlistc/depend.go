@@ -8,7 +8,7 @@ import (
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/core/xlist/check"
+	"github.com/luids-io/core/xlist/services/check"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
