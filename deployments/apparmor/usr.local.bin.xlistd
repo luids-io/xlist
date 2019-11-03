@@ -19,8 +19,8 @@
   /proc/sys/net/core/somaxconn r,
 
   # Configuration
-  /etc/xlist/** r,
+  /etc/luids/xlist/** r,
 
   # Lists in sources
-  /var/lib/xlist/** r,
+  /var/lib/luids/xlist/** r,
 }

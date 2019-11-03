@@ -1,8 +1,8 @@
 #!/bin/bash
 
 XLGET=/usr/local/bin/xlget
-EXECUSER=xlistd
-CONFIG=/etc/xlist/xlget.toml
+EXECUSER=luxlist
+CONFIG=/etc/luids/xlist/xlget.toml
 
 die() { echo "error: $@" 1>&2 ; exit 1; }
 
