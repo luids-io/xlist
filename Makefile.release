@@ -1,4 +1,4 @@
-# Makefile for release xlist
+# Makefile for release
 
 EMPTY:=
 SPACE:=$(EMPTY) $(EMPTY)
@@ -9,7 +9,7 @@ ifeq (, $(shell which curl))
 endif
 
 
-NAME:=luxlist
+NAME:=xlist
 COMMANDS=xlistd xlistc xlget
 VERSION=$(shell git describe --match 'v[0-9]*' --dirty='.m' --always)
 LINUX_ARCH:=amd64 arm arm64 ppc64le s390x
