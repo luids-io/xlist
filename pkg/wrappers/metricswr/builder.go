@@ -11,12 +11,12 @@ import (
 const BuildClass = "metrics"
 
 // Builder returns a builder for the component
-func Builder(opt ...Option) listbuilder.WrapperBuilder {
+func Builder(opt ...Option) listbuilder.BuildWrapperFn {
 	return func(b *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
 		return New(listID, bl), nil
 	}
 }
 
 func init() {
-	listbuilder.RegisterWrapper(BuildClass, Builder())
+	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
 }

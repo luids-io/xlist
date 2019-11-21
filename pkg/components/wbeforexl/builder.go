@@ -15,7 +15,7 @@ import (
 const BuildClass = "wbefore"
 
 // Builder returns a builder for "white before" List component
-func Builder(opt ...Option) listbuilder.ListBuilder {
+func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		if len(list.Contains) != 2 {
 			return nil, errors.New("number of childs must be 2")
@@ -68,5 +68,5 @@ func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) 
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder())
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
 }

@@ -14,7 +14,7 @@ import (
 const BuildClass = "score"
 
 // Builder returns a builder for the component
-func Builder(opt ...Option) listbuilder.WrapperBuilder {
+func Builder(opt ...Option) listbuilder.BuildWrapperFn {
 	return func(b *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)
@@ -64,5 +64,5 @@ func addExprFromOpts(w *Wrapper, opts map[string]interface{}) error {
 }
 
 func init() {
-	listbuilder.RegisterWrapper(BuildClass, Builder())
+	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
 }

@@ -15,7 +15,7 @@ import (
 const BuildClass = "file"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.ListBuilder {
+func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		if list.Source == "" {
 			list.Source = fmt.Sprintf("%s.xlist", list.ID)
@@ -99,5 +99,5 @@ func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) 
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder())
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
 }

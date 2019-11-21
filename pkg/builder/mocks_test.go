@@ -108,7 +108,7 @@ func (w mockWrapper) Resources() []xlist.Resource {
 	return w.Resources()
 }
 
-func testBuilderList() listbuilder.ListBuilder {
+func testBuilderList() listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		response := xlist.Response{}
 		if list.Source != "" {
@@ -146,7 +146,7 @@ func testBuilderList() listbuilder.ListBuilder {
 	}
 }
 
-func testBuilderCompo() listbuilder.ListBuilder {
+func testBuilderCompo() listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		if list.Contains == nil || len(list.Contains) == 0 {
 			return nil, fmt.Errorf("no containers defined for %s list", list.ID)
@@ -179,7 +179,7 @@ func testBuilderCompo() listbuilder.ListBuilder {
 	}
 }
 
-func testBuilderWrap() listbuilder.WrapperBuilder {
+func testBuilderWrap() listbuilder.BuildWrapperFn {
 	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
 		preffix := ""
 		if def.Opts != nil {

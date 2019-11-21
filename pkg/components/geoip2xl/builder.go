@@ -16,7 +16,7 @@ import (
 const BuildClass = "geoip2"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.ListBuilder {
+func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		if list.Source == "" {
 			return nil, errors.New("'source' is required")
@@ -107,5 +107,5 @@ func getRulesFromOpts(opts map[string]interface{}) (Rules, error) {
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder())
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
 }

@@ -64,6 +64,6 @@ func setupDNSxL(cfg config.DNSxLCfg) error {
 	if cfg.TimeoutMSecs > 0 {
 		dnsclient.Timeout = time.Duration(cfg.TimeoutMSecs) * time.Millisecond
 	}
-	builder.Register(dnsxl.BuildClass, dnsxl.Builder(dnsclient))
+	builder.RegisterCheckerBuilder(dnsxl.BuildClass, dnsxl.Builder(dnsclient))
 	return nil
 }

@@ -76,6 +76,8 @@ github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb h1:JEzcFv81KXcTJS1
 github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/common v0.0.0-20191031164549-d405b1ee09f2 h1:CKeLFv0SsFVj4s/LcYBc8SqJx6GhLHuZ5XxQi6F45h0=
 github.com/luids-io/common v0.0.0-20191031164549-d405b1ee09f2/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
+github.com/luids-io/common v0.0.0-20191121175931-c4528d0c1353 h1:cYP4+hSFDhrpf5SqZ21cWoXlOB2Jl7/BoPxH1gPtTSM=
+github.com/luids-io/common v0.0.0-20191121175931-c4528d0c1353/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/core v0.0.0-20191023161317-fe2adaea7295 h1:XpXkgF44eQE3A9tVz612HQk2F4t8t61S1prRiD0VGWU=
 github.com/luids-io/core v0.0.0-20191023161317-fe2adaea7295/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20191024114105-f8de484427d8 h1:Stz79zVt/QguR6D+duvl5BjIzyWH70TkGtUvHQzXbmc=
@@ -84,7 +86,10 @@ github.com/luids-io/core v0.0.0-20191030174504-3cab4fe1b5ea h1:bUNV/wlRGGouiI+HC
 github.com/luids-io/core v0.0.0-20191030174504-3cab4fe1b5ea/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259 h1:HUnNmtiRi9WoWOrHyBQIMlt96A28u9GGInw2jyWoOY0=
 github.com/luids-io/core v0.0.0-20191030182026-2c3b032dc259/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20191031132042-fb88da9205cc h1:yDAShZRv3hZ7qdxKfa/QcsxyIc+DRe7MSmWezHMQ34w=
 github.com/luids-io/core v0.0.0-20191031132042-fb88da9205cc/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20191121175900-484df933d773 h1:SDfgi3zZmI6ITV3Z2sBNx2Kinp6wELrPqKuqiN9/liE=
+github.com/luids-io/core v0.0.0-20191121175900-484df933d773/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6 h1:/rapm+jySYEgeGoc7aSwv6I4OX2SnMFOTEUopPljTcg=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6/go.mod h1:o21iQEIR0tO05yULoeoIX9tl3X/XXCsEGoP0tlRSVEE=
 github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98 h1:2X0TEwBSjZgrA4hWByj4lzmSwQOl62+Vb96rhE4OCuE=

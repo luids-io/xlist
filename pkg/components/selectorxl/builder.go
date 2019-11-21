@@ -15,7 +15,7 @@ import (
 const BuildClass = "selector"
 
 // Builder returns a builder for selector List component
-func Builder(opt ...Option) listbuilder.ListBuilder {
+func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		if len(list.Resources) != len(list.Contains) {
 			return nil, errors.New("number of resources doesn't match with members")
@@ -57,5 +57,5 @@ func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) 
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder())
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
 }

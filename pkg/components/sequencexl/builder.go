@@ -12,7 +12,7 @@ import (
 const BuildClass = "sequence"
 
 // Builder returns a builder for sequence List component
-func Builder(opt ...Option) listbuilder.ListBuilder {
+func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)
@@ -69,5 +69,5 @@ func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) 
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder())
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
 }

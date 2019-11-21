@@ -17,7 +17,7 @@ import (
 const BuildClass = "grpc"
 
 // Builder resturns a rpcxl builder
-func Builder(opt ...check.ClientOption) listbuilder.ListBuilder {
+func Builder(opt ...check.ClientOption) listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		if list.Source == "" {
 			return nil, errors.New("source is empty")
@@ -54,5 +54,5 @@ func Builder(opt ...check.ClientOption) listbuilder.ListBuilder {
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder())
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
 }

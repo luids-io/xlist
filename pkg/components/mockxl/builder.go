@@ -17,7 +17,7 @@ import (
 const BuildClass = "mock"
 
 // Builder returns a list builder function that constructs mockups
-func Builder() listbuilder.ListBuilder {
+func Builder() listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		//create mockup and sets source
 		mockup := &List{ResourceList: xlist.ClearResourceDups(list.Resources)}
@@ -92,5 +92,5 @@ func configMockupFromOpts(mockup *List, opts map[string]interface{}) error {
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder())
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
 }

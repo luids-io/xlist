@@ -26,12 +26,12 @@ type Builder struct {
 	shutdown []func() error
 }
 
-// ListBuilder defines a function that constructs a checker
-type ListBuilder func(builder *Builder, parents []string, def ListDef) (xlist.Checker, error)
+// BuildCheckerFn defines a function that constructs a checker
+type BuildCheckerFn func(builder *Builder, parents []string, def ListDef) (xlist.Checker, error)
 
-// WrapperBuilder defines a function that constructs a wrapper and returns
+// BuildWrapperFn defines a function that constructs a wrapper and returns
 // the checker wrapped
-type WrapperBuilder func(builder *Builder, listID string, def WrapperDef, list xlist.Checker) (xlist.Checker, error)
+type BuildWrapperFn func(builder *Builder, listID string, def WrapperDef, list xlist.Checker) (xlist.Checker, error)
 
 // Option is used for builder configuration
 type Option func(*options)
@@ -129,7 +129,7 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (xlist.Checker, erro
 		}
 	}
 	//get builder for related class and construct new list
-	customb, ok := regListBuilder[def.Class]
+	customb, ok := regCheckerBuilder[def.Class]
 	if !ok {
 		return nil, fmt.Errorf("building '%s': can't find a builder for '%s'", def.ID, def.Class)
 	}
@@ -176,7 +176,7 @@ func (b *Builder) OnShutdown(f func() error) {
 
 // Start executes all registered functions.
 func (b *Builder) Start() error {
-	b.logger.Infof("starting registered services")
+	b.logger.Infof("starting xlist-builder registered services")
 	var ret error
 	for _, f := range b.startup {
 		err := f()
@@ -189,7 +189,7 @@ func (b *Builder) Start() error {
 
 // Shutdown executes all registered functions.
 func (b *Builder) Shutdown() error {
-	b.logger.Infof("shutting down registered services")
+	b.logger.Infof("shutting down xlist-builder registered services")
 	var ret error
 	for _, f := range b.shutdown {
 		err := f()
@@ -229,21 +229,21 @@ func (b Builder) Logger() yalogi.Logger {
 	return b.logger
 }
 
-// Register registers a list builder for a class name
-func Register(class string, builder ListBuilder) {
-	regListBuilder[class] = builder
+// RegisterCheckerBuilder registers a list builder for a class name
+func RegisterCheckerBuilder(class string, builder BuildCheckerFn) {
+	regCheckerBuilder[class] = builder
 }
 
-// RegisterWrapper registers a wrapper builder for a class name
-func RegisterWrapper(class string, builder WrapperBuilder) {
+// RegisterWrapperBuilder registers a wrapper builder for a class name
+func RegisterWrapperBuilder(class string, builder BuildWrapperFn) {
 	regWrapperBuilder[class] = builder
 }
 
 // Package level registry builders
-var regListBuilder map[string]ListBuilder
-var regWrapperBuilder map[string]WrapperBuilder
+var regCheckerBuilder map[string]BuildCheckerFn
+var regWrapperBuilder map[string]BuildWrapperFn
 
 func init() {
-	regListBuilder = make(map[string]ListBuilder)
-	regWrapperBuilder = make(map[string]WrapperBuilder)
+	regCheckerBuilder = make(map[string]BuildCheckerFn)
+	regWrapperBuilder = make(map[string]BuildWrapperFn)
 }

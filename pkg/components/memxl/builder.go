@@ -16,7 +16,7 @@ import (
 const BuildClass = "mem"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.ListBuilder {
+func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		source := ""
 		if list.Source != "" {
@@ -123,5 +123,5 @@ func getData(opts map[string]interface{}) ([]Data, error) {
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder())
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
 }

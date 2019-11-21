@@ -15,7 +15,7 @@ import (
 const BuildClass = "policy"
 
 // Builder returns a builder for the component
-func Builder(opt ...Option) listbuilder.WrapperBuilder {
+func Builder(opt ...Option) listbuilder.BuildWrapperFn {
 	return func(b *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)
@@ -61,5 +61,5 @@ func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) 
 }
 
 func init() {
-	listbuilder.RegisterWrapper(BuildClass, Builder())
+	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
 }

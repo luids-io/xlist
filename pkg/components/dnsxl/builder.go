@@ -17,7 +17,7 @@ import (
 const BuildClass = "dnsxl"
 
 // Builder returns a builder for component dnsxl
-func Builder(client *dns.Client, opt ...Option) listbuilder.ListBuilder {
+func Builder(client *dns.Client, opt ...Option) listbuilder.BuildCheckerFn {
 	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
 		if list.Source == "" {
 			list.Source = list.ID
@@ -147,5 +147,5 @@ func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) 
 }
 
 func init() {
-	listbuilder.Register(BuildClass, Builder(&dns.Client{}))
+	listbuilder.RegisterCheckerBuilder(BuildClass, Builder(&dns.Client{}))
 }
