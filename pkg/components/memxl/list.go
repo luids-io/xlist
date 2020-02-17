@@ -19,8 +19,9 @@ type List struct {
 	//lock
 	mu sync.RWMutex
 	//resource lists
-	iplist  *ipList
-	domlist *domainList
+	iplist   *ipList
+	domlist  *domainList
+	hashlist *hashList
 	//resource types
 	provides []bool
 }
@@ -74,6 +75,9 @@ func (l *List) init() {
 	if l.checks(xlist.Domain) {
 		l.domlist = newDomainList()
 	}
+	if l.checks(xlist.MD5) || l.checks(xlist.SHA1) || l.checks(xlist.SHA256) {
+		l.hashlist = newHashList()
+	}
 }
 
 // Check implements xlist.Checker interface
@@ -96,6 +100,8 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 		result = l.iplist.checkIP6(name)
 	case xlist.Domain:
 		result = l.domlist.checkDomain(name)
+	case xlist.MD5, xlist.SHA1, xlist.SHA256:
+		result = l.hashlist.check(name)
 	}
 	reason := ""
 	if result {
@@ -159,6 +165,27 @@ func (l *List) add(r xlist.Resource, f xlist.Format, s string) error {
 			err = l.domlist.addDomain(s)
 		case xlist.Sub:
 			err = l.domlist.addSubdomain(s)
+		default:
+			err = xlist.ErrBadResourceFormat
+		}
+	case xlist.MD5:
+		switch f {
+		case xlist.Plain:
+			err = l.hashlist.addMD5(s)
+		default:
+			err = xlist.ErrBadResourceFormat
+		}
+	case xlist.SHA1:
+		switch f {
+		case xlist.Plain:
+			err = l.hashlist.addSHA1(s)
+		default:
+			err = xlist.ErrBadResourceFormat
+		}
+	case xlist.SHA256:
+		switch f {
+		case xlist.Plain:
+			err = l.hashlist.addSHA256(s)
 		default:
 			err = xlist.ErrBadResourceFormat
 		}
@@ -292,6 +319,69 @@ func (l *List) AddSubdomains(subdomains []string) error {
 	return nil
 }
 
+// AddMD5 add md5 hash
+func (l *List) AddMD5(hash string) error {
+	return l.AddMD5s([]string{hash})
+}
+
+// AddMD5s add a list of md5
+func (l *List) AddMD5s(hashes []string) error {
+	if !l.checks(xlist.MD5) {
+		return xlist.ErrResourceNotSupported
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	for _, hash := range hashes {
+		err := l.hashlist.addMD5(hash)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AddSHA1 add sha1 hash
+func (l *List) AddSHA1(hash string) error {
+	return l.AddSHA1s([]string{hash})
+}
+
+// AddSHA1s add a list of sha1 hashes
+func (l *List) AddSHA1s(hashes []string) error {
+	if !l.checks(xlist.SHA1) {
+		return xlist.ErrResourceNotSupported
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	for _, hash := range hashes {
+		err := l.hashlist.addSHA1(hash)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AddSHA256 add sha256 hash
+func (l *List) AddSHA256(hash string) error {
+	return l.AddSHA256s([]string{hash})
+}
+
+// AddSHA256s add a list of sha256 hashes
+func (l *List) AddSHA256s(hashes []string) error {
+	if !l.checks(xlist.SHA256) {
+		return xlist.ErrResourceNotSupported
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	for _, hash := range hashes {
+		err := l.hashlist.addSHA256(hash)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Clear internal data
 func (l *List) Clear() {
 	l.mu.Lock()
@@ -303,10 +393,13 @@ func (l *List) Clear() {
 	if l.domlist != nil {
 		l.domlist.clear()
 	}
+	if l.hashlist != nil {
+		l.hashlist.clear()
+	}
 }
 
 func (l *List) checks(r xlist.Resource) bool {
-	if r >= xlist.IPv4 && r <= xlist.Domain {
+	if r >= xlist.IPv4 && r <= xlist.SHA256 {
 		return l.provides[int(r)]
 	}
 	return false
