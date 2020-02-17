@@ -47,7 +47,9 @@
             "malware"
         ],
         "resources": [
-            "ip4"
+            "ip4",
+            "md5",
+            "sha1"
         ],
         "opts": {
             "autoreload": true,

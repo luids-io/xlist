@@ -1373,18 +1373,11 @@ link:./summary-file.csv[download csv]
 |ip4 domain
 |link:https://ransomwaretracker.abuse.ch/[web]
 
-|link:./file/abuse-ch.json[abuse.ch-zeus]
-|Zeus Tracker Abuse.ch
-|blacklist
-|malware
-|ip4 domain
-|link:https://zeustracker.abuse.ch/[web]
-
 |link:./file/abuse-ch.json[abuse.ch-ssl]
 |SSL blacklist Abuse.ch
 |blacklist
 |malware
-|ip4
+|ip4 md5 sha1
 |link:https://sslbl.abuse.ch[web]
 
 |link:./file/alienvault-com.json[alienvault.com]
@@ -1967,9 +1960,6 @@ link:./summary-file.csv[download csv]
 |link:./feeds/abuse-ch.json[abuse.ch-ransomware]
 |1h
 
-|link:./feeds/abuse-ch.json[abuse.ch-zeus]
-|8h
-
 |link:./feeds/abuse-ch.json[abuse.ch-ssl]
 |12h
 
@@ -2145,6 +2135,9 @@ link:./summary-file.csv[download csv]
 |1h
 
 |link:./feeds/majestic-com.json[majestic.com]
+|48h
+
+|link:./feeds/majestic-com.json[majestic.com-1000]
 |48h
 
 |link:./feeds/malc0de-com.json[malc0de.com]
