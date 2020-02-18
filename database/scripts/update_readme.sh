@@ -9,7 +9,7 @@ cat > $OUTPUT <<EOF
 = XList Database
 
 This is a database of data sources ready to be used on an
-link:https://github.com/luisguillenc/xlist[xlist server].
+link:https://github.com/luids-io/xlist[xlist server].
 The database has been classified according to the _class_ used in its
 configuration.
 
@@ -20,9 +20,8 @@ before using it.
 * <<xlist-class-file>>
 
 In order to use the data sources of the class \`file\` it is necessary to
-download and keep the data synchronized. For this purpose the
-link:https://github.com/luisguillenc/xlist-get[xlget tool] must be used and
-this tool needs the configuration of the feeds.
+download and keep the data synchronized. For this purpose the _xlget_ tool must
+be used and this tool needs the configuration of the feeds.
 
 * <<xlget-feeds>>
 
