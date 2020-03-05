@@ -10,32 +10,32 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // BuildClass defines default class for component builder
 const BuildClass = "mock"
 
 // Builder returns a list builder function that constructs mockups
-func Builder() listbuilder.BuildCheckerFn {
-	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
+func Builder() listbuilder.BuildListFn {
+	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		//create mockup and sets source
-		mockup := &List{ResourceList: xlist.ClearResourceDups(list.Resources)}
-		if list.Source != "" {
-			results, err := sourceToResults(list.Source)
+		bl := &List{ResourceList: xlist.ClearResourceDups(def.Resources)}
+		if def.Source != "" {
+			results, err := sourceToResults(def.Source)
 			if err != nil {
 				return nil, errors.New("invalid 'source'")
 			}
-			mockup.Results = results
+			bl.Results = results
 		}
 		//config mockup
-		if list.Opts != nil {
-			err := configMockupFromOpts(mockup, list.Opts)
+		if def.Opts != nil {
+			err := configMockupFromOpts(bl, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		return mockup, nil
+		return bl, nil
 	}
 }
 
@@ -92,5 +92,5 @@ func configMockupFromOpts(mockup *List, opts map[string]interface{}) error {
 }
 
 func init() {
-	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder())
 }

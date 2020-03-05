@@ -93,7 +93,7 @@ func (l *List) LoadReader(ctx context.Context, in io.Reader) error {
 // LoadFromData loads a hashmem list from a data array
 func LoadFromData(list *List, data []Data, clearBefore bool) error {
 	if clearBefore {
-		list.Clear()
+		list.Clear(context.Background())
 	}
 	return list.LoadData(context.Background(), data)
 }
@@ -107,7 +107,7 @@ func LoadFromFile(list *List, filename string, clearBefore bool) error {
 	defer file.Close()
 
 	if clearBefore {
-		list.Clear()
+		list.Clear(context.Background())
 	}
 	return list.LoadReader(context.Background(), file)
 }

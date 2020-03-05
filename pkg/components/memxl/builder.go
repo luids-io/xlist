@@ -9,18 +9,18 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // BuildClass defines default class for component builder
 const BuildClass = "mem"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.BuildCheckerFn {
-	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
+func Builder(opt ...Option) listbuilder.BuildListFn {
+	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		source := ""
-		if list.Source != "" {
-			source = builder.SourcePath(list.Source)
+		if def.Source != "" {
+			source = builder.SourcePath(def.Source)
 			if !fileExists(source) {
 				return nil, fmt.Errorf("file '%s' doesn't exists", source)
 			}
@@ -28,22 +28,22 @@ func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 		var data []Data
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)
-		if list.Opts != nil {
+		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, list.Opts)
+			bopt, err = parseOptions(bopt, def.Opts)
 			if err != nil {
 				return nil, err
 			}
-			data, err = getData(list.Opts)
+			data, err = getData(def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		bl := New(list.Resources, bopt...)
+		bl := New(def.Resources, bopt...)
 
 		//register startup
 		builder.OnStartup(func() error {
-			builder.Logger().Debugf("starting '%s'", list.ID)
+			builder.Logger().Debugf("starting '%s'", def.ID)
 			if source != "" {
 				err := LoadFromFile(bl, source, false)
 				if err != nil {
@@ -123,5 +123,5 @@ func getData(opts map[string]interface{}) ([]Data, error) {
 }
 
 func init() {
-	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder())
 }

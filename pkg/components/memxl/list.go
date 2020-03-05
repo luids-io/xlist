@@ -83,7 +83,7 @@ func (l *List) init() {
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	name, _, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
@@ -126,18 +126,10 @@ func (l *List) Ping() error {
 	return nil
 }
 
-// Add is a generic function for add a resource
-func (l *List) Add(r xlist.Resource, f xlist.Format, s string) error {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-
-	return l.add(r, f, s)
-}
-
 // generic funcion add resource, warning! no lock
 func (l *List) add(r xlist.Resource, f xlist.Format, s string) error {
 	if !l.checks(r) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	var err error
 	switch r {
@@ -148,7 +140,7 @@ func (l *List) add(r xlist.Resource, f xlist.Format, s string) error {
 		case xlist.CIDR:
 			err = l.iplist.addCIDR4(s)
 		default:
-			err = xlist.ErrBadResourceFormat
+			err = xlist.ErrBadRequest
 		}
 	case xlist.IPv6:
 		switch f {
@@ -157,7 +149,7 @@ func (l *List) add(r xlist.Resource, f xlist.Format, s string) error {
 		case xlist.CIDR:
 			err = l.iplist.addCIDR6(s)
 		default:
-			err = xlist.ErrBadResourceFormat
+			err = xlist.ErrBadRequest
 		}
 	case xlist.Domain:
 		switch f {
@@ -166,28 +158,87 @@ func (l *List) add(r xlist.Resource, f xlist.Format, s string) error {
 		case xlist.Sub:
 			err = l.domlist.addSubdomain(s)
 		default:
-			err = xlist.ErrBadResourceFormat
+			err = xlist.ErrBadRequest
 		}
 	case xlist.MD5:
 		switch f {
 		case xlist.Plain:
 			err = l.hashlist.addMD5(s)
 		default:
-			err = xlist.ErrBadResourceFormat
+			err = xlist.ErrBadRequest
 		}
 	case xlist.SHA1:
 		switch f {
 		case xlist.Plain:
 			err = l.hashlist.addSHA1(s)
 		default:
-			err = xlist.ErrBadResourceFormat
+			err = xlist.ErrBadRequest
 		}
 	case xlist.SHA256:
 		switch f {
 		case xlist.Plain:
 			err = l.hashlist.addSHA256(s)
 		default:
-			err = xlist.ErrBadResourceFormat
+			err = xlist.ErrBadRequest
+		}
+	}
+	return err
+}
+
+// generic funcion add resource, warning! no lock
+func (l *List) remove(r xlist.Resource, f xlist.Format, s string) error {
+	if !l.checks(r) {
+		return xlist.ErrNotImplemented
+	}
+	var err error
+	switch r {
+	case xlist.IPv4:
+		switch f {
+		case xlist.Plain:
+			err = l.iplist.removeIP4(s)
+		case xlist.CIDR:
+			err = l.iplist.removeCIDR4(s)
+		default:
+			err = xlist.ErrBadRequest
+		}
+	case xlist.IPv6:
+		switch f {
+		case xlist.Plain:
+			err = l.iplist.removeIP6(s)
+		case xlist.CIDR:
+			err = l.iplist.removeCIDR6(s)
+		default:
+			err = xlist.ErrBadRequest
+		}
+	case xlist.Domain:
+		switch f {
+		case xlist.Plain:
+			err = l.domlist.removeDomain(s)
+		case xlist.Sub:
+			err = l.domlist.removeSubdomain(s)
+		default:
+			err = xlist.ErrBadRequest
+		}
+	case xlist.MD5:
+		switch f {
+		case xlist.Plain:
+			err = l.hashlist.removeMD5(s)
+		default:
+			err = xlist.ErrBadRequest
+		}
+	case xlist.SHA1:
+		switch f {
+		case xlist.Plain:
+			err = l.hashlist.removeSHA1(s)
+		default:
+			err = xlist.ErrBadRequest
+		}
+	case xlist.SHA256:
+		switch f {
+		case xlist.Plain:
+			err = l.hashlist.removeSHA256(s)
+		default:
+			err = xlist.ErrBadRequest
 		}
 	}
 	return err
@@ -201,7 +252,7 @@ func (l *List) AddIP4(ip string) error {
 // AddIP4s add a list of ip4
 func (l *List) AddIP4s(ips []string) error {
 	if !l.checks(xlist.IPv4) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -222,7 +273,7 @@ func (l *List) AddIP6(ip string) error {
 // AddIP6s add a list of ip6
 func (l *List) AddIP6s(ips []string) error {
 	if !l.checks(xlist.IPv6) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -243,7 +294,7 @@ func (l *List) AddCIDR4(cidr string) error {
 // AddCIDR4s add a list of cidrs
 func (l *List) AddCIDR4s(cidrs []string) error {
 	if !l.checks(xlist.IPv4) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -264,7 +315,7 @@ func (l *List) AddCIDR6(cidr string) error {
 // AddCIDR6s add a list of cidrs
 func (l *List) AddCIDR6s(cidrs []string) error {
 	if !l.checks(xlist.IPv6) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -285,7 +336,7 @@ func (l *List) AddDomain(domain string) error {
 // AddDomains add a list of domains
 func (l *List) AddDomains(domains []string) error {
 	if !l.checks(xlist.Domain) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -306,7 +357,7 @@ func (l *List) AddSubdomain(subdomain string) error {
 // AddSubdomains add a list of subdomains
 func (l *List) AddSubdomains(subdomains []string) error {
 	if !l.checks(xlist.Domain) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -327,7 +378,7 @@ func (l *List) AddMD5(hash string) error {
 // AddMD5s add a list of md5
 func (l *List) AddMD5s(hashes []string) error {
 	if !l.checks(xlist.MD5) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -348,7 +399,7 @@ func (l *List) AddSHA1(hash string) error {
 // AddSHA1s add a list of sha1 hashes
 func (l *List) AddSHA1s(hashes []string) error {
 	if !l.checks(xlist.SHA1) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -369,7 +420,7 @@ func (l *List) AddSHA256(hash string) error {
 // AddSHA256s add a list of sha256 hashes
 func (l *List) AddSHA256s(hashes []string) error {
 	if !l.checks(xlist.SHA256) {
-		return xlist.ErrResourceNotSupported
+		return xlist.ErrNotImplemented
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -382,8 +433,31 @@ func (l *List) AddSHA256s(hashes []string) error {
 	return nil
 }
 
-// Clear internal data
-func (l *List) Clear() {
+func (l *List) checks(r xlist.Resource) bool {
+	if r >= xlist.IPv4 && r <= xlist.SHA256 {
+		return l.provides[int(r)]
+	}
+	return false
+}
+
+// Append implements xlist.Writer interface
+func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	return l.add(r, f, name)
+}
+
+// Remove implements xlist.Writer interface
+func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	return l.remove(r, f, name)
+}
+
+// Clear implements xlist.Writer interface
+func (l *List) Clear(ctx context.Context) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -396,11 +470,10 @@ func (l *List) Clear() {
 	if l.hashlist != nil {
 		l.hashlist.clear()
 	}
+	return nil
 }
 
-func (l *List) checks(r xlist.Resource) bool {
-	if r >= xlist.IPv4 && r <= xlist.SHA256 {
-		return l.provides[int(r)]
-	}
-	return false
+// ReadOnly implements xlist.Writer interface
+func (l *List) ReadOnly() (bool, error) {
+	return false, nil
 }

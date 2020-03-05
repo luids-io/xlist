@@ -1,9 +1,9 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-// Package builder allows to create xlist services using definitions.
+// Package listbuilder allows to create xlist services using definitions.
 //
 // This package is a work in progress and makes no API stability promises.
-package builder
+package listbuilder
 
 import (
 	"errors"
@@ -18,20 +18,20 @@ import (
 
 // Builder constructs RBL services
 type Builder struct {
-	opts     options
-	logger   yalogi.Logger
-	checkers map[string]xlist.Checker
+	opts   options
+	logger yalogi.Logger
+	lists  map[string]xlist.List
 
 	startup  []func() error
 	shutdown []func() error
 }
 
-// BuildCheckerFn defines a function that constructs a checker
-type BuildCheckerFn func(builder *Builder, parents []string, def ListDef) (xlist.Checker, error)
+// BuildListFn defines a function that constructs a checker
+type BuildListFn func(builder *Builder, parents []string, def ListDef) (xlist.List, error)
 
 // BuildWrapperFn defines a function that constructs a wrapper and returns
 // the checker wrapped
-type BuildWrapperFn func(builder *Builder, listID string, def WrapperDef, list xlist.Checker) (xlist.Checker, error)
+type BuildWrapperFn func(builder *Builder, listID string, def WrapperDef, list xlist.List) (xlist.List, error)
 
 // Option is used for builder configuration
 type Option func(*options)
@@ -74,33 +74,33 @@ func New(opt ...Option) *Builder {
 	return &Builder{
 		opts:     opts,
 		logger:   opts.logger,
-		checkers: make(map[string]xlist.Checker),
+		lists:    make(map[string]xlist.List),
 		startup:  make([]func() error, 0),
 		shutdown: make([]func() error, 0),
 	}
 }
 
 // List returns the RBL created by builder with the id passed as param
-func (b *Builder) List(id string) (xlist.Checker, bool) {
-	bl, ok := b.checkers[id]
+func (b *Builder) List(id string) (xlist.List, bool) {
+	bl, ok := b.lists[id]
 	return bl, ok
 }
 
 // Build creates a RBL using the metadata passed as param
-func (b *Builder) Build(def ListDef) (xlist.Checker, error) {
+func (b *Builder) Build(def ListDef) (xlist.List, error) {
 	return b.BuildChild(make([]string, 0), def)
 }
 
 // BuildChild allows to create child list for composed RBL.
 // Parameter parents is an array with the parents ID and is used for looping
 // detection.
-func (b *Builder) BuildChild(parents []string, def ListDef) (xlist.Checker, error) {
+func (b *Builder) BuildChild(parents []string, def ListDef) (xlist.List, error) {
 	b.logger.Debugf("building '%s' class '%s'", def.ID, def.Class)
 	if def.ID == "" {
 		return nil, errors.New("id field is required")
 	}
 	//check if is a reused list
-	bl, ok := b.checkers[def.ID]
+	bl, ok := b.lists[def.ID]
 	if ok {
 		if def.Class != "" {
 			return nil, fmt.Errorf("'%s' already exists", def.ID)
@@ -129,7 +129,7 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (xlist.Checker, erro
 		}
 	}
 	//get builder for related class and construct new list
-	customb, ok := regCheckerBuilder[def.Class]
+	customb, ok := regListBuilder[def.Class]
 	if !ok {
 		return nil, fmt.Errorf("building '%s': can't find a builder for '%s'", def.ID, def.Class)
 	}
@@ -147,11 +147,11 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (xlist.Checker, erro
 		}
 	}
 	//register new created list
-	b.checkers[def.ID] = bl
+	b.lists[def.ID] = bl
 	return bl, nil
 }
 
-func (b *Builder) buildWrapper(listID string, def WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
+func (b *Builder) buildWrapper(listID string, def WrapperDef, bl xlist.List) (xlist.List, error) {
 	b.logger.Debugf("building '%s' wrapper '%s'", listID, def.Class)
 	customb, ok := regWrapperBuilder[def.Class] //get a builder for related class
 	if !ok {
@@ -229,9 +229,9 @@ func (b Builder) Logger() yalogi.Logger {
 	return b.logger
 }
 
-// RegisterCheckerBuilder registers a list builder for a class name
-func RegisterCheckerBuilder(class string, builder BuildCheckerFn) {
-	regCheckerBuilder[class] = builder
+// RegisterListBuilder registers a list builder for a class name
+func RegisterListBuilder(class string, builder BuildListFn) {
+	regListBuilder[class] = builder
 }
 
 // RegisterWrapperBuilder registers a wrapper builder for a class name
@@ -240,10 +240,10 @@ func RegisterWrapperBuilder(class string, builder BuildWrapperFn) {
 }
 
 // Package level registry builders
-var regCheckerBuilder map[string]BuildCheckerFn
+var regListBuilder map[string]BuildListFn
 var regWrapperBuilder map[string]BuildWrapperFn
 
 func init() {
-	regCheckerBuilder = make(map[string]BuildCheckerFn)
+	regListBuilder = make(map[string]BuildListFn)
 	regWrapperBuilder = make(map[string]BuildWrapperFn)
 }

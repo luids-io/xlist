@@ -44,8 +44,9 @@ func Reason(s string) Option {
 // List is a composite list that redirects requests to RBLs based on the
 // resource type.
 type List struct {
+	xlist.List
 	opts     options
-	checkers map[xlist.Resource]xlist.Checker
+	checkers map[xlist.Resource]xlist.List
 }
 
 // New returns a new selector component
@@ -56,13 +57,13 @@ func New(opt ...Option) *List {
 	}
 	s := &List{
 		opts:     opts,
-		checkers: make(map[xlist.Resource]xlist.Checker),
+		checkers: make(map[xlist.Resource]xlist.List),
 	}
 	return s
 }
 
 //SetService sets a blacklist interface for a resource type and enables it
-func (s *List) SetService(resource xlist.Resource, list xlist.Checker) *List {
+func (s *List) SetService(resource xlist.Resource, list xlist.List) *List {
 	if !resource.IsValid() {
 		return s //do noting
 	}
@@ -74,7 +75,7 @@ func (s *List) SetService(resource xlist.Resource, list xlist.Checker) *List {
 func (s *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	list, ok := s.checkers[resource]
 	if !ok {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, s.opts.forceValidation)
 	if err != nil {
@@ -146,4 +147,24 @@ func workerPing(wg *sync.WaitGroup, list xlist.Checker, listKey string,
 		listKey: listKey,
 		err:     err,
 	}
+}
+
+// Append implements xlist.Writer interface
+func (s *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// Remove implements xlist.Writer interface
+func (s *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// Clear implements xlist.Writer interface
+func (s *List) Clear(ctx context.Context) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// ReadOnly implements xlist.Writer interface
+func (s *List) ReadOnly() (bool, error) {
+	return true, nil
 }

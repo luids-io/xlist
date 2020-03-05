@@ -16,7 +16,7 @@ import (
 func TestList_Check(t *testing.T) {
 	selector := selectorxl.New()
 	resp, err := selector.Check(context.Background(), "10.10.10.10", xlist.IPv4)
-	if err != xlist.ErrResourceNotSupported {
+	if err != xlist.ErrNotImplemented {
 		t.Fatal("selector.Check unexpected error")
 	}
 	rblip := &mockxl.List{
@@ -25,7 +25,7 @@ func TestList_Check(t *testing.T) {
 	}
 	selector.SetService(xlist.IPv6, rblip)
 	resp, err = selector.Check(context.Background(), "10.10.10.10", xlist.IPv4)
-	if err != xlist.ErrResourceNotSupported {
+	if err != xlist.ErrNotImplemented {
 		t.Fatal("selector.Check unexpected error")
 	}
 
@@ -71,7 +71,7 @@ func TestList_Ping(t *testing.T) {
 	rblFail := &mockxl.List{ResourceList: xlist.Resources, Fail: true}
 	type item struct {
 		resource xlist.Resource
-		checker  xlist.Checker
+		list     xlist.List
 	}
 	var tests = []struct {
 		checkers []item
@@ -79,28 +79,28 @@ func TestList_Ping(t *testing.T) {
 	}{
 		{[]item{}, false}, //0
 		{[]item{
-			{resource: xlist.IPv4, checker: rblOk},
+			{resource: xlist.IPv4, list: rblOk},
 		}, false}, //1
 		{[]item{
-			{resource: xlist.IPv4, checker: rblOk},
-			{resource: xlist.Domain, checker: rblOk},
+			{resource: xlist.IPv4, list: rblOk},
+			{resource: xlist.Domain, list: rblOk},
 		}, false}, //2
 		{[]item{
-			{resource: xlist.IPv4, checker: rblFail},
+			{resource: xlist.IPv4, list: rblFail},
 		}, true}, //3
 		{[]item{
-			{resource: xlist.IPv4, checker: rblOk},
-			{resource: xlist.Domain, checker: rblFail},
+			{resource: xlist.IPv4, list: rblOk},
+			{resource: xlist.Domain, list: rblFail},
 		}, true}, //4
 		{[]item{
-			{resource: xlist.IPv4, checker: rblFail},
-			{resource: xlist.Domain, checker: rblOk},
+			{resource: xlist.IPv4, list: rblFail},
+			{resource: xlist.Domain, list: rblOk},
 		}, true}, //5
 	}
 	for idx, test := range tests {
 		slist := selectorxl.New()
 		for _, c := range test.checkers {
-			slist.SetService(c.resource, c.checker)
+			slist.SetService(c.resource, c.list)
 		}
 		err := slist.Ping()
 		switch {
@@ -116,7 +116,7 @@ func TestList_Resources(t *testing.T) {
 	rblOk := &mockxl.List{ResourceList: xlist.Resources}
 	type item struct {
 		resource xlist.Resource
-		checker  xlist.Checker
+		list     xlist.List
 	}
 	var tests = []struct {
 		checkers []item
@@ -124,25 +124,25 @@ func TestList_Resources(t *testing.T) {
 	}{
 		{[]item{}, []xlist.Resource{}}, //0
 		{[]item{
-			{resource: xlist.IPv4, checker: rblOk},
+			{resource: xlist.IPv4, list: rblOk},
 		}, onlyIPv4}, //1
 		{[]item{
-			{resource: xlist.IPv4, checker: rblOk},
-			{resource: xlist.Domain, checker: rblOk},
+			{resource: xlist.IPv4, list: rblOk},
+			{resource: xlist.Domain, list: rblOk},
 		}, []xlist.Resource{xlist.IPv4, xlist.Domain}}, //2
 		{[]item{
-			{resource: xlist.IPv4, checker: rblOk},
-			{resource: xlist.IPv4, checker: rblOk},
+			{resource: xlist.IPv4, list: rblOk},
+			{resource: xlist.IPv4, list: rblOk},
 		}, onlyIPv4}, //3
 		{[]item{
-			{resource: xlist.IPv6, checker: rblOk},
-			{resource: xlist.IPv4, checker: rblOk},
+			{resource: xlist.IPv6, list: rblOk},
+			{resource: xlist.IPv4, list: rblOk},
 		}, onlyIP}, //4
 	}
 	for idx, test := range tests {
 		slist := selectorxl.New()
 		for _, c := range test.checkers {
-			slist.SetService(c.resource, c.checker)
+			slist.SetService(c.resource, c.list)
 		}
 		got := slist.Resources()
 		if !cmpResourceSlice(got, test.want) {

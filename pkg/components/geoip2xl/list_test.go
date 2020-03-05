@@ -25,11 +25,11 @@ func TestList_New(t *testing.T) {
 	})
 	//test before start
 	err = geoip.Ping()
-	if err != xlist.ErrListNotAvailable {
+	if err != xlist.ErrNotAvailable {
 		t.Errorf("geoip.Ping(): err=%v", err)
 	}
 	_, err = geoip.Check(context.Background(), "10.10.10.10", xlist.IPv4)
-	if err != xlist.ErrListNotAvailable {
+	if err != xlist.ErrNotAvailable {
 		t.Errorf("geoip.Check(): err=%v", err)
 	}
 	// test start
@@ -45,7 +45,7 @@ func TestList_New(t *testing.T) {
 	}
 	//test unsupported checks
 	_, err = geoip.Check(context.Background(), "www.google.com", xlist.Domain)
-	if err != xlist.ErrResourceNotSupported {
+	if err != xlist.ErrNotImplemented {
 		t.Errorf("geoip.Check(): err=%v", err)
 	}
 }

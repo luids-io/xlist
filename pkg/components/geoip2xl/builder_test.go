@@ -9,7 +9,7 @@ import (
 	"github.com/luids-io/xlist/pkg/components/geoip2xl"
 
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 var testdatabase1 = []listbuilder.ListDef{

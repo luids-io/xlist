@@ -51,7 +51,7 @@ func TestList_Check(t *testing.T) {
 	for idx, test := range tests {
 		wseq := sequencexl.New(test.resources, sequencexl.SkipErrors(!test.stoOnErr), sequencexl.FirstResponse(true))
 		for _, rbl := range test.sequence {
-			wseq.Append(rbl)
+			wseq.AddChecker(rbl)
 		}
 		//create context with timeout
 		ctx := context.Background()
@@ -94,10 +94,10 @@ func ExampleList() {
 
 	//constructs sequence rbl
 	rbl := sequencexl.New(ip4, sequencexl.SkipErrors(true), sequencexl.FirstResponse(true))
-	rbl.Append(rbl1)
-	rbl.Append(rbl2) //rbl2 allways fails, but with skiperrors ignores it
-	rbl.Append(rbl3)
-	rbl.Append(rbl4)
+	rbl.AddChecker(rbl1)
+	rbl.AddChecker(rbl2) //rbl2 allways fails, but with skiperrors ignores it
+	rbl.AddChecker(rbl3)
+	rbl.AddChecker(rbl4)
 
 	for i := 1; i < 5; i++ {
 		resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)

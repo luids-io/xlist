@@ -7,7 +7,7 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // DefaultTimeout sets default timeout in construction
@@ -18,7 +18,7 @@ const BuildClass = "timeout"
 
 // Builder returns a builder for the component
 func Builder(timeout time.Duration, opt ...Option) listbuilder.BuildWrapperFn {
-	return func(b *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
+	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
 		setTimeout := timeout
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)

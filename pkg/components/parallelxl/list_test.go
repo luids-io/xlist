@@ -55,7 +55,7 @@ func TestList_Check(t *testing.T) {
 	for idx, test := range tests {
 		wpar := parallelxl.New(test.resources, parallelxl.SkipErrors(!test.stoOnErr), parallelxl.FirstResponse(true))
 		for _, rbl := range test.parallel {
-			wpar.Append(rbl)
+			wpar.AddChecker(rbl)
 		}
 		//create context with timeout
 		ctx := context.Background()
@@ -88,10 +88,10 @@ func ExampleList() {
 
 	//constructs parallel rbl
 	rbl := parallelxl.New(ip4, parallelxl.SkipErrors(true), parallelxl.FirstResponse(true))
-	rbl.Append(rbl1)
-	rbl.Append(rbl2)
-	rbl.Append(rbl3)
-	rbl.Append(rbl4) //rbl4 allways fails, but with skiperrors ignores this fail
+	rbl.AddChecker(rbl1)
+	rbl.AddChecker(rbl2)
+	rbl.AddChecker(rbl3)
+	rbl.AddChecker(rbl4) //rbl4 allways fails, but with skiperrors ignores this fail
 
 	for i := 0; i < 4; i++ {
 		resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)

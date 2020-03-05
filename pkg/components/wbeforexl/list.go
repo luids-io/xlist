@@ -44,8 +44,9 @@ func Reason(s string) Option {
 // whitelist, then it returns immediately with a negative result. If not
 // in the whitelist, then returns the response of the blacklist.
 type List struct {
-	opts options
+	xlist.List
 
+	opts options
 	//resource types that list provides
 	provides  []bool
 	whitelist xlist.Checker
@@ -85,7 +86,7 @@ func (w *List) SetBlacklist(c xlist.Checker) {
 // Check implements xlist.Checker interface
 func (w *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !w.checks(resource) {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, w.opts.forceValidation)
 	if err != nil {
@@ -153,4 +154,24 @@ func (w *List) checks(r xlist.Resource) bool {
 		return w.provides[int(r)]
 	}
 	return false
+}
+
+// Append implements xlist.Writer interface
+func (w *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// Remove implements xlist.Writer interface
+func (w *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// Clear implements xlist.Writer interface
+func (w *List) Clear(ctx context.Context) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// ReadOnly implements xlist.Writer interface
+func (w *List) ReadOnly() (bool, error) {
+	return true, nil
 }

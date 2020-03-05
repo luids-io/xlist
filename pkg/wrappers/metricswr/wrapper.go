@@ -16,8 +16,10 @@ import (
 
 // Wrapper implements an xlist.Checker wrapper for metrics
 type Wrapper struct {
-	listID  string
-	checker xlist.Checker
+	xlist.List
+
+	listID string
+	list   xlist.List
 }
 
 // Option is used for component configuration
@@ -33,10 +35,10 @@ var stats struct {
 type options struct{}
 
 // New returns a Wrapper, it recevies the listID used for the metrics
-func New(listID string, list xlist.Checker, opt ...Option) *Wrapper {
+func New(listID string, list xlist.List, opt ...Option) *Wrapper {
 	return &Wrapper{
-		listID:  listID,
-		checker: list,
+		listID: listID,
+		list:   list,
 	}
 }
 
@@ -48,7 +50,7 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 	}))
 	defer timer.ObserveDuration()
 
-	resp, err := w.checker.Check(ctx, name, resource)
+	resp, err := w.list.Check(ctx, name, resource)
 	if err != nil {
 		stats.requests.WithLabelValues(w.listID, resource.String(), "fail").Inc()
 	} else {
@@ -63,7 +65,7 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 
 // Ping implements xlist.Checker interface
 func (w *Wrapper) Ping() error {
-	err := w.checker.Ping()
+	err := w.list.Ping()
 	if err != nil {
 		stats.pings.WithLabelValues(w.listID, "fail").Inc()
 	} else {
@@ -74,7 +76,27 @@ func (w *Wrapper) Ping() error {
 
 // Resources implements xlist.Checker interface
 func (w *Wrapper) Resources() []xlist.Resource {
-	return w.checker.Resources()
+	return w.list.Resources()
+}
+
+// Append implements xlist.Writer interface
+func (w *Wrapper) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return w.list.Append(ctx, name, r, f)
+}
+
+// Remove implements xlist.Writer interface
+func (w *Wrapper) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return w.list.Remove(ctx, name, r, f)
+}
+
+// Clear implements xlist.Writer interface
+func (w *Wrapper) Clear(ctx context.Context) error {
+	return w.list.Clear(ctx)
+}
+
+// ReadOnly implements xlist.Writer interface
+func (w *Wrapper) ReadOnly() (bool, error) {
+	return w.list.ReadOnly()
 }
 
 func init() {

@@ -7,7 +7,7 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // BuildClass defines default class name of component builder
@@ -15,7 +15,7 @@ const BuildClass = "score"
 
 // Builder returns a builder for the component
 func Builder(opt ...Option) listbuilder.BuildWrapperFn {
-	return func(b *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
+	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)
 		score := 0
@@ -28,14 +28,14 @@ func Builder(opt ...Option) listbuilder.BuildWrapperFn {
 				score = v
 			}
 		}
-		blc := New(bl, score, bopt...)
+		w := New(bl, score, bopt...)
 		if def.Opts != nil {
-			err := addExprFromOpts(blc, def.Opts)
+			err := addExprFromOpts(w, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		return blc, nil
+		return w, nil
 	}
 }
 

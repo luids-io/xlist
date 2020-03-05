@@ -27,27 +27,54 @@ func (l *hashList) check(name string) bool {
 func (l *hashList) addMD5(s string) error {
 	k, ok := xlist.Canonicalize(s, xlist.MD5)
 	if !ok {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	l.hashmap[k] = true
+	return nil
+}
+
+func (l *hashList) removeMD5(s string) error {
+	k, ok := xlist.Canonicalize(s, xlist.MD5)
+	if !ok {
+		return xlist.ErrBadRequest
+	}
+	delete(l.hashmap, k)
 	return nil
 }
 
 func (l *hashList) addSHA1(s string) error {
 	k, ok := xlist.Canonicalize(s, xlist.SHA1)
 	if !ok {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	l.hashmap[k] = true
+	return nil
+}
+
+func (l *hashList) removeSHA1(s string) error {
+	k, ok := xlist.Canonicalize(s, xlist.SHA1)
+	if !ok {
+		return xlist.ErrBadRequest
+	}
+	delete(l.hashmap, k)
 	return nil
 }
 
 func (l *hashList) addSHA256(s string) error {
 	k, ok := xlist.Canonicalize(s, xlist.SHA256)
 	if !ok {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	l.hashmap[k] = true
+	return nil
+}
+
+func (l *hashList) removeSHA256(s string) error {
+	k, ok := xlist.Canonicalize(s, xlist.SHA256)
+	if !ok {
+		return xlist.ErrBadRequest
+	}
+	delete(l.hashmap, k)
 	return nil
 }
 

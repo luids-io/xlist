@@ -52,44 +52,88 @@ func (l *ipList) checkIP6(name string) bool {
 func (l *ipList) addIP4(s string) error {
 	k, ok := xlist.Canonicalize(s, xlist.IPv4)
 	if !ok {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	key := fmt.Sprintf("ip4,%s", k)
 	l.hashmap[key] = false
 	return nil
 }
 
+func (l *ipList) removeIP4(s string) error {
+	k, ok := xlist.Canonicalize(s, xlist.IPv4)
+	if !ok {
+		return xlist.ErrBadRequest
+	}
+	key := fmt.Sprintf("ip4,%s", k)
+	delete(l.hashmap, key)
+	return nil
+}
+
 func (l *ipList) addIP6(s string) error {
 	k, ok := xlist.Canonicalize(s, xlist.IPv6)
 	if !ok {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	key := fmt.Sprintf("ip6,%s", k)
 	l.hashmap[key] = false
 	return nil
 }
 
+func (l *ipList) removeIP6(s string) error {
+	k, ok := xlist.Canonicalize(s, xlist.IPv6)
+	if !ok {
+		return xlist.ErrBadRequest
+	}
+	key := fmt.Sprintf("ip6,%s", k)
+	delete(l.hashmap, key)
+	return nil
+}
+
 func (l *ipList) addCIDR4(s string) error {
 	ip, ipnet, err := net.ParseCIDR(s)
 	if err != nil {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	if ip.To4() == nil {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	l.ranger4.Insert(cidranger.NewBasicRangerEntry(*ipnet))
+	return nil
+}
+
+func (l *ipList) removeCIDR4(s string) error {
+	ip, ipnet, err := net.ParseCIDR(s)
+	if err != nil {
+		return xlist.ErrBadRequest
+	}
+	if ip.To4() == nil {
+		return xlist.ErrBadRequest
+	}
+	l.ranger4.Remove(*ipnet)
 	return nil
 }
 
 func (l *ipList) addCIDR6(s string) error {
 	ip, ipnet, err := net.ParseCIDR(s)
 	if err != nil {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	if ip.To4() != nil {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	l.ranger6.Insert(cidranger.NewBasicRangerEntry(*ipnet))
+	return nil
+}
+
+func (l *ipList) removeCIDR6(s string) error {
+	ip, ipnet, err := net.ParseCIDR(s)
+	if err != nil {
+		return xlist.ErrBadRequest
+	}
+	if ip.To4() != nil {
+		return xlist.ErrBadRequest
+	}
+	l.ranger6.Remove(*ipnet)
 	return nil
 }
 

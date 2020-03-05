@@ -58,6 +58,8 @@ func SkipErrors(b bool) Option {
 // List implements a composite RBL that checks a group of lists in
 // the order in which they were added
 type List struct {
+	xlist.List
+
 	opts     options
 	childs   []xlist.Checker
 	provides []bool //slice with resources available
@@ -82,16 +84,16 @@ func New(resources []xlist.Resource, opt ...Option) *List {
 	return s
 }
 
-// Append adds a RBL to the sequence, if stopOnError then the checks and pings will
+// AddChecker adds a RBL to the sequence, if stopOnError then the checks and pings will
 // return an error if something goes wrong.
-func (s *List) Append(list xlist.Checker) {
+func (s *List) AddChecker(list xlist.Checker) {
 	s.childs = append(s.childs, list)
 }
 
 // Check implements xlist.Checker interface
 func (s *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !s.checks(resource) {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, s.opts.forceValidation)
 	if err != nil {
@@ -183,4 +185,24 @@ func (s *List) checks(r xlist.Resource) bool {
 		return s.provides[int(r)]
 	}
 	return false
+}
+
+// Append implements xlist.Writer interface
+func (s *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// Remove implements xlist.Writer interface
+func (s *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// Clear implements xlist.Writer interface
+func (s *List) Clear(ctx context.Context) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// ReadOnly implements xlist.Writer interface
+func (s *List) ReadOnly() (bool, error) {
+	return true, nil
 }

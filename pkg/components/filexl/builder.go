@@ -8,19 +8,19 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // BuildClass defines default class for component builder
 const BuildClass = "file"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.BuildCheckerFn {
-	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
-		if list.Source == "" {
-			list.Source = fmt.Sprintf("%s.xlist", list.ID)
+func Builder(opt ...Option) listbuilder.BuildListFn {
+	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+		if def.Source == "" {
+			def.Source = fmt.Sprintf("%s.xlist", def.ID)
 		}
-		source := builder.SourcePath(list.Source)
+		source := builder.SourcePath(def.Source)
 		if !fileExists(source) {
 			return nil, fmt.Errorf("file '%s' doesn't exists", source)
 		}
@@ -28,24 +28,24 @@ func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 		bopt := make([]Option, 0)
 		bopt = append(bopt, SetLogger(builder.Logger()))
 		bopt = append(bopt, opt...)
-		if list.Opts != nil {
+		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, list.Opts)
+			bopt, err = parseOptions(bopt, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		bl := New(source, list.Resources, bopt...)
+		bl := New(source, def.Resources, bopt...)
 
 		//register startup
 		builder.OnStartup(func() error {
-			builder.Logger().Debugf("starting '%s'", list.ID)
+			builder.Logger().Debugf("starting '%s'", def.ID)
 			return bl.Start()
 		})
 
 		//register shutdown
 		builder.OnShutdown(func() error {
-			builder.Logger().Debugf("shutting down '%s'", list.ID)
+			builder.Logger().Debugf("shutting down '%s'", def.ID)
 			bl.Shutdown()
 			return nil
 		})
@@ -99,5 +99,5 @@ func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) 
 }
 
 func init() {
-	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder())
 }

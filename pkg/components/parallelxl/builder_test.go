@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
 	"github.com/luids-io/xlist/pkg/components/parallelxl"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 var (

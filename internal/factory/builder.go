@@ -9,8 +9,8 @@ import (
 	"github.com/luisguillenc/yalogi"
 
 	"github.com/luids-io/xlist/internal/config"
-	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/dnsxl"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 //some defaults
@@ -20,15 +20,16 @@ var (
 )
 
 // Builder is a factory for an xlist builder
-func Builder(cfg *config.BuilderCfg, logger yalogi.Logger) (*builder.Builder, error) {
+func Builder(cfg *config.BuilderCfg, logger yalogi.Logger) (*listbuilder.Builder, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
 	}
-	b := builder.New(
-		builder.SourcesDir(cfg.SourcesDir),
-		builder.CertsDir(cfg.CertsDir),
-		builder.SetLogger(logger))
+	b := listbuilder.New(
+		listbuilder.SourcesDir(cfg.SourcesDir),
+		listbuilder.CertsDir(cfg.CertsDir),
+		listbuilder.SetLogger(logger),
+	)
 
 	if !cfg.DNSxL.Empty() {
 		err := setupDNSxL(cfg.DNSxL)
@@ -64,6 +65,6 @@ func setupDNSxL(cfg config.DNSxLCfg) error {
 	if cfg.TimeoutMSecs > 0 {
 		dnsclient.Timeout = time.Duration(cfg.TimeoutMSecs) * time.Millisecond
 	}
-	builder.RegisterCheckerBuilder(dnsxl.BuildClass, dnsxl.Builder(dnsclient))
+	listbuilder.RegisterListBuilder(dnsxl.BuildClass, dnsxl.Builder(dnsclient))
 	return nil
 }

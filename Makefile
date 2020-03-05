@@ -59,7 +59,7 @@ test: test-core test-plugin
 
 test-core:
 	@echo "$(WHALE) $@"
-	( cd pkg/builder ; GO111MODULE=on go test -v -race ./...)
+	( cd pkg/listbuilder ; GO111MODULE=on go test -v -race ./...)
 
 
 test-plugin:

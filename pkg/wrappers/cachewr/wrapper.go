@@ -19,9 +19,11 @@ import (
 
 // Wrapper implements a cache for list checkers
 type Wrapper struct {
-	opts    options
-	checker xlist.Checker
-	cache   *cacheimpl.Cache
+	xlist.List
+
+	opts  options
+	list  xlist.List
+	cache *cacheimpl.Cache
 }
 
 // Option is used for component configuration
@@ -81,7 +83,7 @@ func ForceValidation(b bool) Option {
 }
 
 // New returns a new wrapper
-func New(checker xlist.Checker, opt ...Option) *Wrapper {
+func New(list xlist.List, opt ...Option) *Wrapper {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
@@ -89,9 +91,9 @@ func New(checker xlist.Checker, opt ...Option) *Wrapper {
 	//randomize cache cleanups
 	rands := time.Duration(rand.Intn(opts.randomSeconds)) * time.Second
 	c := &Wrapper{
-		opts:    opts,
-		cache:   cacheimpl.New(time.Duration(opts.ttl)*time.Second, opts.cleanups+rands),
-		checker: checker,
+		opts:  opts,
+		cache: cacheimpl.New(time.Duration(opts.ttl)*time.Second, opts.cleanups+rands),
+		list:  list,
 	}
 	return c
 }
@@ -106,7 +108,7 @@ func (c *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 	if ok {
 		return resp, nil
 	}
-	resp, err = c.checker.Check(ctx, name, resource)
+	resp, err = c.list.Check(ctx, name, resource)
 	if err == nil {
 		resp = c.set(name, resource, resp)
 	}
@@ -115,12 +117,44 @@ func (c *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 
 // Resources implements xlist.Checker interface
 func (c *Wrapper) Resources() []xlist.Resource {
-	return c.checker.Resources()
+	return c.list.Resources()
 }
 
 // Ping implements xlist.Checker interface
 func (c *Wrapper) Ping() error {
-	return c.checker.Ping()
+	return c.list.Ping()
+}
+
+// Append implements xlist.Writer interface
+func (c *Wrapper) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	err := c.list.Append(ctx, name, r, f)
+	if err != nil {
+		c.cache.Flush()
+	}
+	return err
+}
+
+// Remove implements xlist.Writer interface
+func (c *Wrapper) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	err := c.list.Remove(ctx, name, r, f)
+	if err != nil {
+		c.cache.Flush()
+	}
+	return err
+}
+
+// Clear implements xlist.Writer interface
+func (c *Wrapper) Clear(ctx context.Context) error {
+	err := c.list.Clear(ctx)
+	if err != nil {
+		c.cache.Flush()
+	}
+	return err
+}
+
+// ReadOnly implements xlist.Writer interface
+func (c *Wrapper) ReadOnly() (bool, error) {
+	return c.list.ReadOnly()
 }
 
 // Flush deletes all items from cache

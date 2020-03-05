@@ -8,7 +8,7 @@ import (
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/core/xlist/reason"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // BuildClass defines class name for component builder
@@ -16,7 +16,7 @@ const BuildClass = "policy"
 
 // Builder returns a builder for the component
 func Builder(opt ...Option) listbuilder.BuildWrapperFn {
-	return func(b *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
+	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)
 		policy := reason.NewPolicy()
@@ -36,8 +36,8 @@ func Builder(opt ...Option) listbuilder.BuildWrapperFn {
 				}
 			}
 		}
-		blc := New(bl, policy, bopt...)
-		return blc, nil
+		w := New(bl, policy, bopt...)
+		return w, nil
 	}
 }
 

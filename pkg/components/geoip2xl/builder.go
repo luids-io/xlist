@@ -9,23 +9,23 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // BuildClass defines class name for component builder
 const BuildClass = "geoip2"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.BuildCheckerFn {
-	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
-		if list.Source == "" {
+func Builder(opt ...Option) listbuilder.BuildListFn {
+	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+		if def.Source == "" {
 			return nil, errors.New("'source' is required")
 		}
-		source := builder.SourcePath(list.Source)
+		source := builder.SourcePath(def.Source)
 		if !fileExists(source) {
 			return nil, fmt.Errorf("geoip2 database file '%s' doesn't exists", source)
 		}
-		resources := xlist.ClearResourceDups(list.Resources)
+		resources := xlist.ClearResourceDups(def.Resources)
 		if len(resources) != 1 || resources[0] != xlist.IPv4 {
 			return nil, errors.New("invalid 'resources': geoip2 only supports ip4")
 		}
@@ -33,13 +33,13 @@ func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 		var rules Rules
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)
-		if list.Opts != nil {
+		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, list.Opts)
+			bopt, err = parseOptions(bopt, def.Opts)
 			if err != nil {
 				return nil, err
 			}
-			rules, err = getRulesFromOpts(list.Opts)
+			rules, err = getRulesFromOpts(def.Opts)
 			if err != nil {
 				return nil, err
 			}
@@ -50,13 +50,13 @@ func Builder(opt ...Option) listbuilder.BuildCheckerFn {
 
 		//register startup
 		builder.OnStartup(func() error {
-			builder.Logger().Debugf("starting '%s'", list.ID)
+			builder.Logger().Debugf("starting '%s'", def.ID)
 			return bl.Start()
 		})
 
 		//register shutdown
 		builder.OnShutdown(func() error {
-			builder.Logger().Debugf("shutting down '%s'", list.ID)
+			builder.Logger().Debugf("shutting down '%s'", def.ID)
 			bl.Shutdown()
 			return nil
 		})
@@ -107,5 +107,5 @@ func getRulesFromOpts(opts map[string]interface{}) (Rules, error) {
 }
 
 func init() {
-	listbuilder.RegisterCheckerBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder())
 }

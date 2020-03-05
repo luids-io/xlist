@@ -90,6 +90,10 @@ github.com/luids-io/api v0.0.0-20200212133704-bd7b9929bab6 h1:KrombPbR+JQyIueLa2
 github.com/luids-io/api v0.0.0-20200212133704-bd7b9929bab6/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
 github.com/luids-io/api v0.0.0-20200217111155-4c5bc0aa3659 h1:b7rlXgbGgWSYRxg4wuxGGVQ9tXD64mwW80DbVrsPTYI=
 github.com/luids-io/api v0.0.0-20200217111155-4c5bc0aa3659/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
+github.com/luids-io/api v0.0.0-20200228121542-0ac53a4f06b8 h1:vWFVWMLrHAkeOqlt/or7Xkl6RO8kWG9UOpn8y4gnBvY=
+github.com/luids-io/api v0.0.0-20200228121542-0ac53a4f06b8/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
+github.com/luids-io/api v0.0.0-20200305080354-a33827fafd06 h1:2ZTjt9G/iCr73sBk+yOFL51b/E8apux8oNAYolY6vuI=
+github.com/luids-io/api v0.0.0-20200305080354-a33827fafd06/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
 github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb h1:JEzcFv81KXcTJS1utb6wnom6JnNWXF44DQDXpt2u+AI=
 github.com/luids-io/common v0.0.0-20191024080137-0797e9b9ebcb/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/common v0.0.0-20191031164549-d405b1ee09f2 h1:CKeLFv0SsFVj4s/LcYBc8SqJx6GhLHuZ5XxQi6F45h0=
@@ -114,6 +118,10 @@ github.com/luids-io/core v0.0.0-20200212133836-591349240d3f h1:dPWyfMTxWd69RbcEh
 github.com/luids-io/core v0.0.0-20200212133836-591349240d3f/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luids-io/core v0.0.0-20200217104011-2c7d4bb44da1 h1:uRREcroNqky8iwA+ZZtkrhmPNfYm7Z/CbUUfM8YVC+w=
 github.com/luids-io/core v0.0.0-20200217104011-2c7d4bb44da1/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20200304085141-1a2ca19edca5 h1:+hyk5zD8YO0CIKgTtbqAjSlmEoRrZFW6slENI1Lq3co=
+github.com/luids-io/core v0.0.0-20200304085141-1a2ca19edca5/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
+github.com/luids-io/core v0.0.0-20200305080141-88614f277515 h1:SSG0IZKa5ye9G5Rx1pv89Y8/9bqqurME78/rh1QkTN4=
+github.com/luids-io/core v0.0.0-20200305080141-88614f277515/go.mod h1:QqS7yBlbHWAE1CYL+o/TH0ojoV7Xvb2CnHGUPT5THqA=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6 h1:/rapm+jySYEgeGoc7aSwv6I4OX2SnMFOTEUopPljTcg=
 github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6/go.mod h1:o21iQEIR0tO05yULoeoIX9tl3X/XXCsEGoP0tlRSVEE=
 github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98 h1:2X0TEwBSjZgrA4hWByj4lzmSwQOl62+Vb96rhE4OCuE=

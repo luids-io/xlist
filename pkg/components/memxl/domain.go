@@ -62,7 +62,7 @@ func (l *domainList) checkDomain(name string) bool {
 func (l *domainList) addDomain(s string) error {
 	k, ok := xlist.Canonicalize(s, xlist.Domain)
 	if !ok {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	//check if inserted
 	_, ok = l.hashmap[k]
@@ -74,10 +74,27 @@ func (l *domainList) addDomain(s string) error {
 	return nil
 }
 
+func (l *domainList) removeDomain(s string) error {
+	k, ok := xlist.Canonicalize(s, xlist.Domain)
+	if !ok {
+		return xlist.ErrBadRequest
+	}
+	//check if inserted
+	value, ok := l.hashmap[k]
+	if ok {
+		if value {
+			//don't remove, its a subdomain
+			return nil
+		}
+		delete(l.hashmap, k)
+	}
+	return nil
+}
+
 func (l *domainList) addSubdomain(s string) error {
 	k, ok := xlist.Canonicalize(s, xlist.Domain)
 	if !ok {
-		return xlist.ErrBadResourceFormat
+		return xlist.ErrBadRequest
 	}
 	depth := getDepth(k)
 	if l.maxDepth == 0 {
@@ -92,6 +109,23 @@ func (l *domainList) addSubdomain(s string) error {
 		}
 	}
 	l.hashmap[k] = true
+	return nil
+}
+
+func (l *domainList) removeSubdomain(s string) error {
+	k, ok := xlist.Canonicalize(s, xlist.Domain)
+	if !ok {
+		return xlist.ErrBadRequest
+	}
+	//check if inserted
+	value, ok := l.hashmap[k]
+	if ok {
+		if !value {
+			//don't remove, its a domain
+			return nil
+		}
+		delete(l.hashmap, k)
+	}
 	return nil
 }
 

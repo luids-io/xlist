@@ -8,7 +8,7 @@ import (
 	"github.com/luids-io/common/util"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/xlist/internal/config"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // RootXList is a factory for an xlist service

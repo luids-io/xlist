@@ -47,7 +47,7 @@ func TestList_Check(t *testing.T) {
 
 func TestList_Clear(t *testing.T) {
 	list := getFilledList(t)
-	list.Clear()
+	list.Clear(context.Background())
 
 	var tests = []struct {
 		name     string

@@ -1,13 +1,13 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package builder_test
+package listbuilder_test
 
 import (
 	"sort"
 	"testing"
 
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 func TestCategoryIsValid(t *testing.T) {

@@ -60,7 +60,7 @@ func TestList_New(t *testing.T) {
 	}
 	list = filexl.New(testfile1, []xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6})
 	err = list.Ping()
-	if err != xlist.ErrListNotAvailable {
+	if err != xlist.ErrNotAvailable {
 		t.Errorf("filexl.Ping(): err=%v", err)
 	}
 	err = list.Start()

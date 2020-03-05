@@ -1,13 +1,13 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package builder_test
+package listbuilder_test
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 type mockList struct {
@@ -23,10 +23,10 @@ func (l mockList) Check(ctx context.Context, name string, res xlist.Resource) (x
 		return xlist.Response{}, err
 	}
 	if !res.InArray(l.resources) {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	if l.fail {
-		return xlist.Response{}, xlist.ErrListNotAvailable
+		return xlist.Response{}, xlist.ErrNotAvailable
 	}
 	// if l.lazy > 0 {
 	// 	time.Sleep(l.lazy)
@@ -36,7 +36,7 @@ func (l mockList) Check(ctx context.Context, name string, res xlist.Resource) (x
 
 func (l mockList) Ping() error {
 	if l.fail {
-		return xlist.ErrListNotAvailable
+		return xlist.ErrNotAvailable
 	}
 	return nil
 }
@@ -47,10 +47,38 @@ func (l mockList) Resources() []xlist.Resource {
 	return ret
 }
 
+func (l mockList) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	if l.fail {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+func (l mockList) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	if l.fail {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+func (l mockList) Clear(ctx context.Context) error {
+	if l.fail {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+func (l mockList) ReadOnly() (bool, error) {
+	if l.fail {
+		return false, xlist.ErrNotAvailable
+	}
+	return true, nil
+}
+
 type mockContainer struct {
 	stopOnError bool
 	resources   []xlist.Resource
-	lists       []xlist.Checker
+	lists       []xlist.List
 }
 
 func (c mockContainer) Check(ctx context.Context, name string, res xlist.Resource) (xlist.Response, error) {
@@ -59,7 +87,7 @@ func (c mockContainer) Check(ctx context.Context, name string, res xlist.Resourc
 		return xlist.Response{}, err
 	}
 	if !res.InArray(c.resources) {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	for _, checker := range c.lists {
 		resp, err := checker.Check(ctx, name, res)
@@ -89,27 +117,59 @@ func (c mockContainer) Resources() []xlist.Resource {
 	return ret
 }
 
+func (l mockContainer) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+func (l mockContainer) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+func (l mockContainer) Clear(ctx context.Context) error {
+	return xlist.ErrReadOnlyMode
+}
+
+func (l mockContainer) ReadOnly() (bool, error) {
+	return true, nil
+}
+
 type mockWrapper struct {
 	preffix string
-	checker xlist.Checker
+	list    xlist.List
 }
 
 func (w mockWrapper) Check(ctx context.Context, name string, res xlist.Resource) (xlist.Response, error) {
-	resp, err := w.checker.Check(ctx, name, res)
+	resp, err := w.list.Check(ctx, name, res)
 	resp.Reason = fmt.Sprintf("%s: %s", w.preffix, resp.Reason)
 	return resp, err
 }
 
 func (w mockWrapper) Ping() error {
-	return w.checker.Ping()
+	return w.list.Ping()
 }
 
 func (w mockWrapper) Resources() []xlist.Resource {
-	return w.Resources()
+	return w.list.Resources()
 }
 
-func testBuilderList() listbuilder.BuildCheckerFn {
-	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
+func (w mockWrapper) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return w.list.Append(ctx, name, r, f)
+}
+
+func (w mockWrapper) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return w.list.Remove(ctx, name, r, f)
+}
+
+func (w mockWrapper) Clear(ctx context.Context) error {
+	return w.list.Clear(ctx)
+}
+
+func (w mockWrapper) ReadOnly() (bool, error) {
+	return w.list.ReadOnly()
+}
+
+func testBuilderList() listbuilder.BuildListFn {
+	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.List, error) {
 		response := xlist.Response{}
 		if list.Source != "" {
 			response.Result = true
@@ -146,8 +206,8 @@ func testBuilderList() listbuilder.BuildCheckerFn {
 	}
 }
 
-func testBuilderCompo() listbuilder.BuildCheckerFn {
-	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.Checker, error) {
+func testBuilderCompo() listbuilder.BuildListFn {
+	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.List, error) {
 		if list.Contains == nil || len(list.Contains) == 0 {
 			return nil, fmt.Errorf("no containers defined for %s list", list.ID)
 		}
@@ -180,7 +240,7 @@ func testBuilderCompo() listbuilder.BuildCheckerFn {
 }
 
 func testBuilderWrap() listbuilder.BuildWrapperFn {
-	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
+	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
 		preffix := ""
 		if def.Opts != nil {
 			preffixs, ok := def.Opts["preffix"]
@@ -192,6 +252,6 @@ func testBuilderWrap() listbuilder.BuildWrapperFn {
 				preffix = preffixs
 			}
 		}
-		return &mockWrapper{preffix: preffix, checker: bl}, nil
+		return &mockWrapper{preffix: preffix, list: bl}, nil
 	}
 }

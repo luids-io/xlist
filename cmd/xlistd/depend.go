@@ -13,7 +13,7 @@ import (
 	"github.com/luids-io/core/xlist"
 	iconfig "github.com/luids-io/xlist/internal/config"
 	ifactory "github.com/luids-io/xlist/internal/factory"
-	"github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 
 	//components
 	_ "github.com/luids-io/xlist/pkg/components/dnsxl"
@@ -43,7 +43,7 @@ func createLogger(debug bool) (yalogi.Logger, error) {
 	return cfactory.Logger(cfgLog, debug)
 }
 
-func createBuilder(srv *serverd.Manager, logger yalogi.Logger) (*builder.Builder, error) {
+func createBuilder(srv *serverd.Manager, logger yalogi.Logger) (*listbuilder.Builder, error) {
 	cfgBuild := cfg.Data("build").(*iconfig.BuilderCfg)
 	builder, err := ifactory.Builder(cfgBuild, logger)
 	if err != nil {
@@ -57,7 +57,7 @@ func createBuilder(srv *serverd.Manager, logger yalogi.Logger) (*builder.Builder
 	return builder, nil
 }
 
-func createRootXList(builder *builder.Builder, srv *serverd.Manager) (xlist.Checker, error) {
+func createRootXList(builder *listbuilder.Builder, srv *serverd.Manager) (xlist.Checker, error) {
 	cfgXList := cfg.Data("xlist").(*iconfig.XListCfg)
 	root, err := ifactory.RootXList(cfgXList, builder)
 	if err != nil {

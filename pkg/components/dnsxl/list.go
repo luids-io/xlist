@@ -20,8 +20,10 @@ import (
 // It's an miekg/dns.Client alias.
 type Client = dns.Client
 
-//List implements an xlist.Checker that checks against DNS blacklists
+//List implements an xlist.List that checks against DNS blacklists
 type List struct {
+	xlist.List
+
 	opts     options
 	client   *Client
 	resolver Resolver
@@ -163,7 +165,7 @@ func (l *List) AddErrCode(ip string, msgerr string) {
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
@@ -222,6 +224,26 @@ func (l *List) Ping() error {
 		}
 	}
 	return nil
+}
+
+// Append implements xlist.Writer interface
+func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// Remove implements xlist.Writer interface
+func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// Clear implements xlist.Writer interface
+func (l *List) Clear(ctx context.Context) error {
+	return xlist.ErrReadOnlyMode
+}
+
+// ReadOnly implements xlist.Writer interface
+func (l *List) ReadOnly() (bool, error) {
+	return true, nil
 }
 
 //getResponse get response from A records
@@ -333,7 +355,7 @@ func (l *List) pingRFC5782(r xlist.Resource, server string) error {
 	case xlist.Domain:
 		return l.pingDomain(server)
 	}
-	return xlist.ErrResourceNotSupported
+	return xlist.ErrNotImplemented
 }
 
 //implementation of RFC5782 checks

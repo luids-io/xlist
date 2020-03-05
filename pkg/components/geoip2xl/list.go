@@ -20,6 +20,7 @@ import (
 
 // List implements an RBL that uses a geoip database for checks
 type List struct {
+	xlist.List
 	opts     options
 	started  bool
 	rules    Rules
@@ -80,10 +81,10 @@ func New(dbpath string, rules Rules, opt ...Option) *List {
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.started {
-		return xlist.Response{}, xlist.ErrListNotAvailable
+		return xlist.Response{}, xlist.ErrNotAvailable
 	}
 	if resource != xlist.IPv4 {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	name, _, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
@@ -104,9 +105,41 @@ func (l *List) Resources() []xlist.Resource {
 // Ping implements xlist.Checker interface
 func (l *List) Ping() error {
 	if !l.started {
-		return xlist.ErrListNotAvailable
+		return xlist.ErrNotAvailable
 	}
 	return nil
+}
+
+// Append implements xlist.Writer interface
+func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	if !l.started {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+// Remove implements xlist.Writer interface
+func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	if !l.started {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+// Clear implements xlist.Writer interface
+func (l *List) Clear(ctx context.Context) error {
+	if !l.started {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+// ReadOnly implements xlist.Writer interface
+func (l *List) ReadOnly() (bool, error) {
+	if !l.started {
+		return false, xlist.ErrNotAvailable
+	}
+	return true, nil
 }
 
 // Start opens database file

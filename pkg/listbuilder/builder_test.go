@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package builder_test
+package listbuilder_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 var testbuilder1 = []listbuilder.ListDef{
@@ -34,7 +34,7 @@ var testbuilder1 = []listbuilder.ListDef{
 
 func TestBuilderBasic(t *testing.T) {
 	//register builders
-	listbuilder.RegisterCheckerBuilder("list1", testBuilderList())
+	listbuilder.RegisterListBuilder("list1", testBuilderList())
 
 	builder := listbuilder.New()
 
@@ -68,7 +68,7 @@ func TestBuilderBasic(t *testing.T) {
 		t.Errorf("non error building non existing component")
 	}
 	//register builder
-	listbuilder.RegisterCheckerBuilder("list2", testBuilderList())
+	listbuilder.RegisterListBuilder("list2", testBuilderList())
 
 	bl, err = builder.Build(testbuilder1[1])
 	if err != nil {
@@ -173,8 +173,8 @@ var testbuilder2 = []listbuilder.ListDef{
 
 func TestBuilderComp(t *testing.T) {
 	//register builders
-	listbuilder.RegisterCheckerBuilder("list", testBuilderList())
-	listbuilder.RegisterCheckerBuilder("comp", testBuilderCompo())
+	listbuilder.RegisterListBuilder("list", testBuilderList())
+	listbuilder.RegisterListBuilder("comp", testBuilderCompo())
 
 	builder := listbuilder.New()
 	for _, def := range testbuilder2 {
@@ -247,8 +247,8 @@ var testbuilderbad1 = []listbuilder.ListDef{
 
 func TestBuilderRecursion(t *testing.T) {
 	//register builders
-	listbuilder.RegisterCheckerBuilder("list", testBuilderList())
-	listbuilder.RegisterCheckerBuilder("comp", testBuilderCompo())
+	listbuilder.RegisterListBuilder("list", testBuilderList())
+	listbuilder.RegisterListBuilder("comp", testBuilderCompo())
 
 	builder := listbuilder.New()
 
@@ -300,8 +300,8 @@ var testbuilder3 = []listbuilder.ListDef{
 
 func TestBuilderWrapper(t *testing.T) {
 	//register builders
-	listbuilder.RegisterCheckerBuilder("list", testBuilderList())
-	listbuilder.RegisterCheckerBuilder("comp", testBuilderCompo())
+	listbuilder.RegisterListBuilder("list", testBuilderList())
+	listbuilder.RegisterListBuilder("comp", testBuilderCompo())
 	listbuilder.RegisterWrapperBuilder("wrap", testBuilderWrap())
 
 	builder := listbuilder.New()
@@ -312,8 +312,8 @@ func TestBuilderWrapper(t *testing.T) {
 	}
 
 	//register builders
-	listbuilder.RegisterCheckerBuilder("list", testBuilderList())
-	listbuilder.RegisterCheckerBuilder("comp", testBuilderCompo())
+	listbuilder.RegisterListBuilder("list", testBuilderList())
+	listbuilder.RegisterListBuilder("comp", testBuilderCompo())
 	listbuilder.RegisterWrapperBuilder("wrap", testBuilderWrap())
 	listbuilder.RegisterWrapperBuilder("wrapx", testBuilderWrap())
 

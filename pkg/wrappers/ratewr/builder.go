@@ -10,7 +10,7 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/core/xlist"
-	listbuilder "github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 // BuildClass defines class name for component builder
@@ -18,7 +18,7 @@ const BuildClass = "rate"
 
 // Builder returns a builder
 func Builder(mode string, opt ...Option) listbuilder.BuildWrapperFn {
-	return func(b *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.Checker) (xlist.Checker, error) {
+	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
 		bopt := make([]Option, 0)
 		bopt = append(bopt, opt...)
 
@@ -37,8 +37,8 @@ func Builder(mode string, opt ...Option) listbuilder.BuildWrapperFn {
 			if err != nil {
 				return nil, fmt.Errorf("can't construct 'naive': %v", err)
 			}
-			b.OnStartup(bucket.Start)
-			b.OnShutdown(bucket.Shutdown)
+			builder.OnStartup(bucket.Start)
+			builder.OnShutdown(bucket.Shutdown)
 
 			limiter = bucket
 		//TODO: implement build for limiter "golang.org/x/time/rate"

@@ -18,6 +18,8 @@ var defaultReason = "The resource is on the mockup list"
 
 // List is a mockup list that implements xlist.Checker, see examples.
 type List struct {
+	xlist.List
+
 	// ResourceList that this list checks
 	ResourceList []xlist.Resource
 	// Results is the sequence of results that the list returns on checks
@@ -42,14 +44,14 @@ type List struct {
 // Check implements xlist.Checker
 func (l *List) Check(ctx context.Context, name string, res xlist.Resource) (xlist.Response, error) {
 	if l.Fail {
-		return xlist.Response{}, xlist.ErrListNotAvailable
+		return xlist.Response{}, xlist.ErrNotAvailable
 	}
 	name, ctx, err := xlist.DoValidation(ctx, name, res, l.ForceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
 	if !res.InArray(l.ResourceList) {
-		return xlist.Response{}, xlist.ErrResourceNotSupported
+		return xlist.Response{}, xlist.ErrNotImplemented
 	}
 	if l.Lazy > 0 {
 		select {
@@ -88,7 +90,7 @@ func (l *List) Check(ctx context.Context, name string, res xlist.Resource) (xlis
 // Ping implements xlist.Checker
 func (l *List) Ping() error {
 	if l.Fail {
-		return xlist.ErrListNotAvailable
+		return xlist.ErrNotAvailable
 	}
 	return nil
 }
@@ -98,4 +100,36 @@ func (l *List) Resources() []xlist.Resource {
 	ret := make([]xlist.Resource, len(l.ResourceList), len(l.ResourceList))
 	copy(ret, l.ResourceList)
 	return ret
+}
+
+// Append implements xlist.Writer interface
+func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	if l.Fail {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+// Remove implements xlist.Writer interface
+func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	if l.Fail {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+// Clear implements xlist.Writer interface
+func (l *List) Clear(ctx context.Context) error {
+	if l.Fail {
+		return xlist.ErrNotAvailable
+	}
+	return xlist.ErrReadOnlyMode
+}
+
+// ReadOnly implements xlist.Writer interface
+func (l *List) ReadOnly() (bool, error) {
+	if l.Fail {
+		return false, xlist.ErrNotAvailable
+	}
+	return true, nil
 }
