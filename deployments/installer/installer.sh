@@ -415,6 +415,14 @@ create_service_config() {
 [xlist]
 files      = [ "${ETC_DIR}/${NAME}/service.json" ]
 dirs       = [ "${ETC_DIR}/${NAME}/services.d" ]
+certsdir   = "${ETC_DIR}/ssl"
+sourcesdir = "${VAR_DIR}/${NAME}"
+
+#[xlist.dnsxl]
+#resolvers  = [ "8.8.8.8", "8.8.4.4" ]
+#resolvconf = false
+
+#[api-check]
 #rootid     = "root"
 #disclosure = false
 #exposeping = false
@@ -448,24 +456,6 @@ dirs       = [ "${ETC_DIR}/${NAME}/services.d" ]
 #[log]
 #format  = "text"
 #level   = "info"
-
-
-#########################
-## build xlist options ##
-#########################
-[build]
-certsdir   = "${ETC_DIR}/ssl"
-sourcesdir = "${VAR_DIR}/${NAME}"
-
-
-##########################
-## build custom modules ##
-##########################
-
-#[build.dnsxl]
-#resolvers  = [ "8.8.8.8", "8.8.4.4" ]
-#resolvconf = false
-
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1

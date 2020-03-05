@@ -50,14 +50,14 @@ func TestBuilderBasic(t *testing.T) {
 	if !resp.Result {
 		t.Errorf("unexpected result in check on list %v: %v", testbuilder1[0].ID, err)
 	}
-	list1, ok := builder.List(testbuilder1[0].ID)
+	list1, ok := builder.FindListByID(testbuilder1[0].ID)
 	if !ok {
 		t.Fatalf("returning list %v from builder", testbuilder1[0].ID)
 	}
 	if bl != list1 {
 		t.Fatalf("references mismatch returning list %v", testbuilder1[0].ID)
 	}
-	_, ok = builder.List("noexists")
+	_, ok = builder.FindListByID("noexists")
 	if ok {
 		t.Error("returned ok for non existing list")
 	}
@@ -81,7 +81,7 @@ func TestBuilderBasic(t *testing.T) {
 	if resp.Result {
 		t.Errorf("unexpected result in check on list %v: %v", testbuilder1[1].ID, err)
 	}
-	list2, ok := builder.List(testbuilder1[1].ID)
+	list2, ok := builder.FindListByID(testbuilder1[1].ID)
 	if !ok {
 		t.Fatalf("returning list %v from builder", testbuilder1[1].ID)
 	}
@@ -185,7 +185,7 @@ func TestBuilderComp(t *testing.T) {
 	}
 	for i := 1; i <= 7; i++ {
 		listID := fmt.Sprintf("id-list%v", i)
-		_, ok := builder.List(listID)
+		_, ok := builder.FindListByID(listID)
 		if !ok {
 			t.Fatalf("can't get list %s", listID)
 		}
@@ -203,7 +203,7 @@ func TestBuilderComp(t *testing.T) {
 		{"id-list7", "source list7"},
 	}
 	for _, test := range tests {
-		list, ok := builder.List(test.input)
+		list, ok := builder.FindListByID(test.input)
 		if !ok {
 			t.Fatalf("can't get list %s", test.input)
 		}
@@ -324,7 +324,7 @@ func TestBuilderWrapper(t *testing.T) {
 	}
 	for i := 1; i <= 3; i++ {
 		listID := fmt.Sprintf("id-list%v", i)
-		_, ok := builder.List(listID)
+		_, ok := builder.FindListByID(listID)
 		if !ok {
 			t.Fatalf("can't get list %s", listID)
 		}
@@ -340,7 +340,7 @@ func TestBuilderWrapper(t *testing.T) {
 		{"id-list3", "wrapp3: source list3"},
 	}
 	for _, test := range tests {
-		list, ok := builder.List(test.input)
+		list, ok := builder.FindListByID(test.input)
 		if !ok {
 			t.Fatalf("can't get list %s", test.input)
 		}

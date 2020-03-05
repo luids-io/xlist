@@ -72,18 +72,12 @@ func main() {
 	}
 
 	// creates main server manager
-	srv := serverd.New(serverd.SetLogger(logger))
+	msrv := serverd.New(serverd.SetLogger(logger))
 
-	//constructs xlist builder
-	builder, err := createBuilder(srv, logger)
+	// create lists
+	lists, err := createLists(msrv, logger)
 	if err != nil {
-		logger.Fatalf("couldn't create builder: %v", err)
-	}
-
-	//creates root list using builder
-	rootList, err := createRootXList(builder, srv)
-	if err != nil {
-		logger.Fatalf("couldn't create root list: %v", err)
+		logger.Fatalf("couldn't create lists: %v", err)
 	}
 
 	if dryRun {
@@ -91,20 +85,26 @@ func main() {
 		os.Exit(0)
 	}
 
-	//creates grpc server with rootlist service
-	err = createXListSrv(rootList, srv)
+	// create grpc check server
+	gsrv, err := createCheckSrv(msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create grpc server: %v", err)
 	}
 
+	// create grpc service
+	err = createCheckAPIService(gsrv, lists, msrv, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create checkapi service: %v", err)
+	}
+
 	// creates health server
-	err = createHealthSrv(srv, logger)
+	err = createHealthSrv(msrv, logger)
 	if err != nil {
 		logger.Fatalf("creating health server: %v", err)
 	}
 
 	//run server
-	err = srv.Run()
+	err = msrv.Run()
 	if err != nil {
 		logger.Errorf("running server: %v", err)
 	}

@@ -19,8 +19,8 @@ var (
 	DefaultRateLimiter = "naive"
 )
 
-// Builder is a factory for an xlist builder
-func Builder(cfg *config.BuilderCfg, logger yalogi.Logger) (*listbuilder.Builder, error) {
+// ListBuilder is a factory for an xlist builder
+func ListBuilder(cfg *config.XListCfg, logger yalogi.Logger) (*listbuilder.Builder, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func Builder(cfg *config.BuilderCfg, logger yalogi.Logger) (*listbuilder.Builder
 		listbuilder.CertsDir(cfg.CertsDir),
 		listbuilder.SetLogger(logger),
 	)
-
+	//modules default options
 	if !cfg.DNSxL.Empty() {
 		err := setupDNSxL(cfg.DNSxL)
 		if err != nil {

@@ -6,39 +6,35 @@ import (
 	"fmt"
 
 	"github.com/luids-io/common/util"
-	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/xlist/internal/config"
 	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luisguillenc/yalogi"
 )
 
-// RootXList is a factory for an xlist service
-func RootXList(cfg *config.XListCfg, builder *listbuilder.Builder) (xlist.Checker, error) {
+//Lists creates lists from configuration files
+func Lists(cfg *config.XListCfg, builder *listbuilder.Builder, logger yalogi.Logger) error {
 	err := cfg.Validate()
 	if err != nil {
-		return nil, fmt.Errorf("bad config: %v", err)
+		return fmt.Errorf("bad config: %v", err)
 	}
 	dbfiles, err := util.GetFilesDB("json", cfg.ConfigFiles, cfg.ConfigDirs)
 	if err != nil {
-		return nil, fmt.Errorf("loading dbfiles: %v", err)
+		return fmt.Errorf("loading dbfiles: %v", err)
 	}
-	listDefs, err := loadListDefs(dbfiles)
+	defs, err := loadListDefs(dbfiles)
 	if err != nil {
-		return nil, fmt.Errorf("loading dbfiles: %v", err)
+		return fmt.Errorf("loading dbfiles: %v", err)
 	}
-	for _, def := range listDefs {
+	for _, def := range defs {
 		if def.Disabled {
 			continue
 		}
 		_, err := builder.Build(def)
 		if err != nil {
-			return nil, fmt.Errorf("creating list '%s': %v", def.ID, err)
+			return fmt.Errorf("creating '%s': %v", def.ID, err)
 		}
 	}
-	rootList, ok := builder.List(cfg.RootListID)
-	if !ok {
-		return nil, fmt.Errorf("couldn't get root list '%s'", cfg.RootListID)
-	}
-	return rootList, nil
+	return nil
 }
 
 func loadListDefs(dbFiles []string) ([]listbuilder.ListDef, error) {

@@ -4,12 +4,11 @@ go 1.13
 
 require (
 	github.com/cavaliercoder/grab v2.0.0+incompatible
-	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/luids-io/api v0.0.0-20200305080354-a33827fafd06
 	github.com/luids-io/common v0.0.0-20200210131732-cafa5e19caa9
-	github.com/luids-io/core v0.0.0-20200305080141-88614f277515
+	github.com/luids-io/core v0.0.0-20200305090819-a2f4e7e284a8
 	github.com/luisguillenc/goconfig v0.0.0-20191024075953-57413864b1d6
 	github.com/luisguillenc/grpctls v0.0.0-20191021152419-e99d6682ee98
 	github.com/luisguillenc/httphealth v0.0.0-20200210131312-e37786300489 // indirect

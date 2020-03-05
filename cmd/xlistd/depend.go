@@ -2,99 +2,28 @@
 
 package main
 
+// dependency injection functions
+
 import (
+	"fmt"
+
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/luisguillenc/serverd"
 	"github.com/luisguillenc/yalogi"
+	"google.golang.org/grpc"
 
-	"github.com/luids-io/api/xlist/check"
+	checkapi "github.com/luids-io/api/xlist/check"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
 	"github.com/luids-io/core/xlist"
 	iconfig "github.com/luids-io/xlist/internal/config"
 	ifactory "github.com/luids-io/xlist/internal/factory"
 	"github.com/luids-io/xlist/pkg/listbuilder"
-
-	//components
-	_ "github.com/luids-io/xlist/pkg/components/dnsxl"
-	_ "github.com/luids-io/xlist/pkg/components/filexl"
-	_ "github.com/luids-io/xlist/pkg/components/geoip2xl"
-	_ "github.com/luids-io/xlist/pkg/components/grpcxl"
-	_ "github.com/luids-io/xlist/pkg/components/memxl"
-	_ "github.com/luids-io/xlist/pkg/components/mockxl"
-	_ "github.com/luids-io/xlist/pkg/components/parallelxl"
-	_ "github.com/luids-io/xlist/pkg/components/selectorxl"
-	_ "github.com/luids-io/xlist/pkg/components/sequencexl"
-	_ "github.com/luids-io/xlist/pkg/components/wbeforexl"
-
-	//wrappers
-	_ "github.com/luids-io/xlist/pkg/wrappers/cachewr"
-	_ "github.com/luids-io/xlist/pkg/wrappers/loggerwr"
-	_ "github.com/luids-io/xlist/pkg/wrappers/metricswr"
-	_ "github.com/luids-io/xlist/pkg/wrappers/policywr"
-	_ "github.com/luids-io/xlist/pkg/wrappers/ratewr"
-	_ "github.com/luids-io/xlist/pkg/wrappers/responsewr"
-	_ "github.com/luids-io/xlist/pkg/wrappers/scorewr"
-	_ "github.com/luids-io/xlist/pkg/wrappers/timeoutwr"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
 	cfgLog := cfg.Data("log").(*cconfig.LoggerCfg)
 	return cfactory.Logger(cfgLog, debug)
-}
-
-func createBuilder(srv *serverd.Manager, logger yalogi.Logger) (*listbuilder.Builder, error) {
-	cfgBuild := cfg.Data("build").(*iconfig.BuilderCfg)
-	builder, err := ifactory.Builder(cfgBuild, logger)
-	if err != nil {
-		return nil, err
-	}
-	srv.Register(serverd.Service{
-		Name:     "xlist-builder.service",
-		Start:    builder.Start,
-		Shutdown: func() { builder.Shutdown() },
-	})
-	return builder, nil
-}
-
-func createRootXList(builder *listbuilder.Builder, srv *serverd.Manager) (xlist.Checker, error) {
-	cfgXList := cfg.Data("xlist").(*iconfig.XListCfg)
-	root, err := ifactory.RootXList(cfgXList, builder)
-	if err != nil {
-		return nil, err
-	}
-	srv.Register(serverd.Service{
-		Name: "xlist-root.service",
-		Ping: root.Ping,
-	})
-	return root, nil
-}
-
-func createXListSrv(rootList xlist.Checker, srv *serverd.Manager) error {
-	//create server
-	cfgServer := cfg.Data("grpc-check").(*cconfig.ServerCfg)
-	glis, gsrv, err := cfactory.Server(cfgServer)
-	if err != nil {
-		return err
-	}
-	//create service
-	cfgXList := cfg.Data("xlist").(*iconfig.XListCfg)
-	service := check.NewService(rootList,
-		check.DisclosureErrors(cfgXList.Disclosure),
-		check.ExposePing(cfgXList.ExposePing),
-	)
-	// register service
-	check.RegisterServer(gsrv, service)
-	if cfgServer.Metrics {
-		grpc_prometheus.Register(gsrv)
-	}
-	srv.Register(serverd.Service{
-		Name:     "xlist.server",
-		Start:    func() error { go gsrv.Serve(glis); return nil },
-		Shutdown: gsrv.GracefulStop,
-		Stop:     gsrv.Stop,
-	})
-	return nil
 }
 
 func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
@@ -110,5 +39,61 @@ func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
 			Shutdown: func() { health.Close() },
 		})
 	}
+	return nil
+}
+
+func createCheckSrv(srv *serverd.Manager, logger yalogi.Logger) (*grpc.Server, error) {
+	cfgServer := cfg.Data("grpc-check").(*cconfig.ServerCfg)
+	glis, gsrv, err := cfactory.Server(cfgServer)
+	if err != nil {
+		return nil, err
+	}
+	if cfgServer.Metrics {
+		grpc_prometheus.Register(gsrv)
+	}
+	srv.Register(serverd.Service{
+		Name:     "grpc-check.server",
+		Start:    func() error { go gsrv.Serve(glis); return nil },
+		Shutdown: gsrv.GracefulStop,
+		Stop:     gsrv.Stop,
+	})
+	return gsrv, nil
+}
+
+func createLists(srv *serverd.Manager, logger yalogi.Logger) (*listbuilder.Builder, error) {
+	cfgList := cfg.Data("xlist").(*iconfig.XListCfg)
+	builder, err := ifactory.ListBuilder(cfgList, logger)
+	if err != nil {
+		return nil, err
+	}
+	//create lists
+	err = ifactory.Lists(cfgList, builder, logger)
+	if err != nil {
+		return nil, err
+	}
+	srv.Register(serverd.Service{
+		Name:     "lists.service",
+		Start:    builder.Start,
+		Shutdown: func() { builder.Shutdown() },
+	})
+	return builder, nil
+}
+
+func createCheckAPIService(gsrv *grpc.Server, finder xlist.ListFinder, srv *serverd.Manager, logger yalogi.Logger) error {
+	cfgCheck := cfg.Data("api-check").(*iconfig.APICheckCfg)
+	gsvc, err := ifactory.CheckAPIService(cfgCheck, finder, logger)
+	if err != nil {
+		return fmt.Errorf("creating checkapi service: %v", err)
+	}
+	checkapi.RegisterServer(gsrv, gsvc)
+	//get root list to monitor
+	rootList, ok := finder.FindListByID(cfgCheck.RootListID)
+	if !ok {
+		return fmt.Errorf("rootlist '%s' not found", cfgCheck.RootListID)
+	}
+	srv.Register(serverd.Service{
+		Name: "checkapi.service",
+		Ping: rootList.Ping,
+	})
 	return nil
 }

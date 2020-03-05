@@ -18,6 +18,8 @@ import (
 
 // Builder constructs RBL services
 type Builder struct {
+	xlist.ListFinder
+
 	opts   options
 	logger yalogi.Logger
 	lists  map[string]xlist.List
@@ -80,8 +82,8 @@ func New(opt ...Option) *Builder {
 	}
 }
 
-// List returns the RBL created by builder with the id passed as param
-func (b *Builder) List(id string) (xlist.List, bool) {
+// FindListByID returns the RBL created by builder with the id passed as param
+func (b *Builder) FindListByID(id string) (xlist.List, bool) {
 	bl, ok := b.lists[id]
 	return bl, ok
 }

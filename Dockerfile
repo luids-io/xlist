@@ -28,10 +28,10 @@ COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/xlistc /bin/
 COPY --from=build-env /app/bin/xlistd /bin/
-COPY --from=build-env /app/configs/docker/* /etc/xlist/
+COPY --from=build-env /app/configs/docker/* /etc/luids/xlist/
 
 USER xlist
 
 EXPOSE 5801
-VOLUME [ "/etc/xlist", "/var/lib/xlist" ]
+VOLUME [ "/etc/luids/xlist", "/var/lib/luids/xlist" ]
 CMD [ "/bin/xlistd" ]

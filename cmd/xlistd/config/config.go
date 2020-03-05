@@ -12,17 +12,18 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
-			Name:     "xlist",
+			Name:     "api-check",
 			Required: true,
 			Short:    true,
-			Data: &iconfig.XListCfg{
+			Data: &iconfig.APICheckCfg{
 				RootListID: "root",
 			},
 		},
 		goconfig.Section{
-			Name:     "build",
-			Required: false,
-			Data:     &iconfig.BuilderCfg{},
+			Name:     "xlist",
+			Required: true,
+			Short:    true,
+			Data:     &iconfig.XListCfg{},
 		},
 		goconfig.Section{
 			Name:     "grpc-check",
