@@ -162,7 +162,7 @@ func ExampleList() {
 	fmt.Println("check 4:", err)
 
 	// Output:
-	// ping 1: list is not available
+	// ping 1: not available
 	// ping 2: <nil>
 	// resources: [ip4]
 	// check 1: true hey, it's on the list

@@ -67,7 +67,7 @@ func TestBuilderSources(t *testing.T) {
 		} else if test.wantErr && err != nil {
 			continue
 		} else if err != nil {
-			t.Errorf("unexpectred error for %s: %v", test.listid, err)
+			t.Errorf("unexpected error for %s: %v", test.listid, err)
 			continue
 		}
 		mock, ok := checker.(*mockxl.List)
@@ -191,6 +191,6 @@ func ExampleBuilder() {
 
 	// Output:
 	// check ip4 rbl1: true The resource is on the mockup list
-	// check domain rbl1: resource is not supported
-	// check domain rbl2: list is not available
+	// check domain rbl1: not implemented
+	// check domain rbl2: not available
 }
