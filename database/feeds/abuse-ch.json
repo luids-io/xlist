@@ -15,21 +15,15 @@
     },
     {
         "disabled": true,
-        "id": "abuse.ch-ransomware",
+        "id": "abuse.ch-urlhaus",
         "sources": [
             {
-                "format": "flat",
+                "format": "hosts",
                 "resources": [
                     "domain"
                 ],
-                "uri": "https://ransomwaretracker.abuse.ch/downloads/RW_DOMBL.txt"
-            },
-            {
-                "format": "flat",
-                "resources": [
-                    "ip4"
-                ],
-                "uri": "https://ransomwaretracker.abuse.ch/downloads/RW_IPBL.txt"
+                "uri": "https://urlhaus.abuse.ch/downloads/hostfile/",
+                "filename": "hostfile.txt"
             }
         ],
         "update": "1h"

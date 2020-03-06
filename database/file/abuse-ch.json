@@ -19,21 +19,20 @@
     },
     {
         "disabled": true,
-        "id": "abuse.ch-ransomware",
+        "id": "abuse.ch-urlhaus",
         "class": "file",
-        "name": "Ransomware Tracker Abuse.ch",
-        "web": "https://ransomwaretracker.abuse.ch/",
+        "name": "URLhaus Abuse.ch",
+        "web": "https://urlhaus.abuse.ch/",
         "category": "blacklist",
         "tags": [
             "malware"
         ],
         "resources": [
-            "ip4",
             "domain"
         ],
         "opts": {
             "autoreload": true,
-            "reason": "found in 'abuse.ch-ransomware'"
+            "reason": "found in 'abuse.ch-urlhaus'"
         }
     },
     {
