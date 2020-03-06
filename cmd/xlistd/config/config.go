@@ -26,7 +26,7 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.XListCfg{},
 		},
 		goconfig.Section{
-			Name:     "grpc-check",
+			Name:     "server-check",
 			Required: true,
 			Short:    true,
 			Data: &cconfig.ServerCfg{

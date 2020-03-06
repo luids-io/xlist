@@ -409,9 +409,9 @@ create_service_config() {
 	if [ ! -f $ETC_DIR/$NAME/xlistd.toml ]; then
 		log "creating $ETC_DIR/$NAME/xlistd.toml"
 		{ cat > $ETC_DIR/$NAME/xlistd.toml <<EOF
-######################
-## Service settings ##
-######################
+####################
+## XList service  ##
+####################
 [xlist]
 files      = [ "${ETC_DIR}/${NAME}/service.json" ]
 dirs       = [ "${ETC_DIR}/${NAME}/services.d" ]
@@ -422,18 +422,19 @@ sourcesdir = "${VAR_DIR}/${NAME}"
 #resolvers  = [ "8.8.8.8", "8.8.4.4" ]
 #resolvconf = false
 
+######################
+## Service settings ##
+######################
 #[api-check]
 #rootid     = "root"
 #disclosure = false
 #exposeping = false
 
-
 #####################
 ## Server settings ##
 #####################
-
 ## By default only serves grpc API and listen in localhost
-#[grpc-check]
+#[server-check]
 #listenuri  = "tcp://0.0.0.0:5801"
 #certca     = "${ETC_DIR}/ssl/certs/CA.crt"
 #certfile   = "${ETC_DIR}/ssl/certs/server.crt"
@@ -442,13 +443,15 @@ sourcesdir = "${VAR_DIR}/${NAME}"
 #allowed    = [ "127.0.0.1", "192.168.0.0/16" ]
 #metrics    = false
 
+#####################
+## Health settings ##
+#####################
 ## By default health service is disabled
 ## uncoment this for metrics and monitoring
 #[health]
 #listenuri  = "tcp://127.0.0.1:8081"
 #metrics    = true
 #allowed    = [ "127.0.0.1" ]
-
 
 ##################
 ## Log settings ##
