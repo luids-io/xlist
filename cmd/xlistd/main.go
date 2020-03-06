@@ -86,15 +86,15 @@ func main() {
 	}
 
 	// create grpc check server
-	gsrv, err := createCheckSrv(msrv, logger)
+	gsrv, err := createCheckSrv(msrv)
 	if err != nil {
-		logger.Fatalf("couldn't create grpc server: %v", err)
+		logger.Fatalf("couldn't create check server: %v", err)
 	}
 
 	// create grpc service
-	err = createCheckAPIService(gsrv, lists, msrv, logger)
+	err = createCheckAPI(gsrv, lists, msrv, logger)
 	if err != nil {
-		logger.Fatalf("couldn't create checkapi service: %v", err)
+		logger.Fatalf("couldn't create check api: %v", err)
 	}
 
 	// creates health server

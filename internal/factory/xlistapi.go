@@ -12,8 +12,8 @@ import (
 	"github.com/luids-io/xlist/internal/config"
 )
 
-// CheckAPIService creates grpc service
-func CheckAPIService(cfg *config.APICheckCfg, finder xlist.ListFinder, logger yalogi.Logger) (*checkapi.Service, error) {
+// XListCheckAPI creates grpc service
+func XListCheckAPI(cfg *config.XListCheckAPICfg, finder xlist.ListFinder, logger yalogi.Logger) (*checkapi.Service, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)

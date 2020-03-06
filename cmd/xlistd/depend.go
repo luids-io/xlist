@@ -26,14 +26,14 @@ func createLogger(debug bool) (yalogi.Logger, error) {
 	return cfactory.Logger(cfgLog, debug)
 }
 
-func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
+func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 	cfgHealth := cfg.Data("health").(*cconfig.HealthCfg)
 	if !cfgHealth.Empty() {
-		hlis, health, err := cfactory.Health(cfgHealth, srv, logger)
+		hlis, health, err := cfactory.Health(cfgHealth, msrv, logger)
 		if err != nil {
-			logger.Fatalf("creating health server: %v", err)
+			return err
 		}
-		srv.Register(serverd.Service{
+		msrv.Register(serverd.Service{
 			Name:     "health.server",
 			Start:    func() error { go health.Serve(hlis); return nil },
 			Shutdown: func() { health.Close() },
@@ -42,25 +42,7 @@ func createHealthSrv(srv *serverd.Manager, logger yalogi.Logger) error {
 	return nil
 }
 
-func createCheckSrv(srv *serverd.Manager, logger yalogi.Logger) (*grpc.Server, error) {
-	cfgServer := cfg.Data("server-check").(*cconfig.ServerCfg)
-	glis, gsrv, err := cfactory.Server(cfgServer)
-	if err != nil {
-		return nil, err
-	}
-	if cfgServer.Metrics {
-		grpc_prometheus.Register(gsrv)
-	}
-	srv.Register(serverd.Service{
-		Name:     "xlist-check.server",
-		Start:    func() error { go gsrv.Serve(glis); return nil },
-		Shutdown: gsrv.GracefulStop,
-		Stop:     gsrv.Stop,
-	})
-	return gsrv, nil
-}
-
-func createLists(srv *serverd.Manager, logger yalogi.Logger) (*listbuilder.Builder, error) {
+func createLists(msrv *serverd.Manager, logger yalogi.Logger) (*listbuilder.Builder, error) {
 	cfgList := cfg.Data("xlist").(*iconfig.XListCfg)
 	builder, err := ifactory.ListBuilder(cfgList, logger)
 	if err != nil {
@@ -71,7 +53,7 @@ func createLists(srv *serverd.Manager, logger yalogi.Logger) (*listbuilder.Build
 	if err != nil {
 		return nil, err
 	}
-	srv.Register(serverd.Service{
+	msrv.Register(serverd.Service{
 		Name:     "xlist-database.service",
 		Start:    builder.Start,
 		Shutdown: func() { builder.Shutdown() },
@@ -79,11 +61,11 @@ func createLists(srv *serverd.Manager, logger yalogi.Logger) (*listbuilder.Build
 	return builder, nil
 }
 
-func createCheckAPIService(gsrv *grpc.Server, finder xlist.ListFinder, srv *serverd.Manager, logger yalogi.Logger) error {
-	cfgCheck := cfg.Data("api-check").(*iconfig.APICheckCfg)
-	gsvc, err := ifactory.CheckAPIService(cfgCheck, finder, logger)
+func createCheckAPI(gsrv *grpc.Server, finder xlist.ListFinder, msrv *serverd.Manager, logger yalogi.Logger) error {
+	cfgCheck := cfg.Data("api-check").(*iconfig.XListCheckAPICfg)
+	gsvc, err := ifactory.XListCheckAPI(cfgCheck, finder, logger)
 	if err != nil {
-		return fmt.Errorf("creating checkapi service: %v", err)
+		return err
 	}
 	checkapi.RegisterServer(gsrv, gsvc)
 	//get root list to monitor
@@ -91,9 +73,27 @@ func createCheckAPIService(gsrv *grpc.Server, finder xlist.ListFinder, srv *serv
 	if !ok {
 		return fmt.Errorf("rootlist '%s' not found", cfgCheck.RootListID)
 	}
-	srv.Register(serverd.Service{
+	msrv.Register(serverd.Service{
 		Name: "xlist-check.service",
 		Ping: rootList.Ping,
 	})
 	return nil
+}
+
+func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
+	cfgServer := cfg.Data("server-check").(*cconfig.ServerCfg)
+	glis, gsrv, err := cfactory.Server(cfgServer)
+	if err != nil {
+		return nil, err
+	}
+	if cfgServer.Metrics {
+		grpc_prometheus.Register(gsrv)
+	}
+	msrv.Register(serverd.Service{
+		Name:     "xlist-check.server",
+		Start:    func() error { go gsrv.Serve(glis); return nil },
+		Shutdown: gsrv.GracefulStop,
+		Stop:     gsrv.Stop,
+	})
+	return gsrv, nil
 }

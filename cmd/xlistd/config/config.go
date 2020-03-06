@@ -15,7 +15,7 @@ func Default(program string) *goconfig.Config {
 			Name:     "api-check",
 			Required: true,
 			Short:    true,
-			Data: &iconfig.APICheckCfg{
+			Data: &iconfig.XListCheckAPICfg{
 				RootListID: "root",
 			},
 		},

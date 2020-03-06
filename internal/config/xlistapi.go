@@ -11,15 +11,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-// APICheckCfg stores check service preferences
-type APICheckCfg struct {
+// XListCheckAPICfg stores check service preferences
+type XListCheckAPICfg struct {
 	RootListID string
 	ExposePing bool
 	Disclosure bool
 }
 
 // SetPFlags setups posix flags for commandline configuration
-func (cfg *APICheckCfg) SetPFlags(short bool, prefix string) {
+func (cfg *XListCheckAPICfg) SetPFlags(short bool, prefix string) {
 	aprefix := ""
 	if prefix != "" {
 		aprefix = prefix + "."
@@ -30,7 +30,7 @@ func (cfg *APICheckCfg) SetPFlags(short bool, prefix string) {
 }
 
 // BindViper setups posix flags for commandline configuration and bind to viper
-func (cfg *APICheckCfg) BindViper(v *viper.Viper, prefix string) {
+func (cfg *XListCheckAPICfg) BindViper(v *viper.Viper, prefix string) {
 	aprefix := ""
 	if prefix != "" {
 		aprefix = prefix + "."
@@ -41,7 +41,7 @@ func (cfg *APICheckCfg) BindViper(v *viper.Viper, prefix string) {
 }
 
 // FromViper fill values from viper
-func (cfg *APICheckCfg) FromViper(v *viper.Viper, prefix string) {
+func (cfg *XListCheckAPICfg) FromViper(v *viper.Viper, prefix string) {
 	aprefix := ""
 	if prefix != "" {
 		aprefix = prefix + "."
@@ -52,7 +52,7 @@ func (cfg *APICheckCfg) FromViper(v *viper.Viper, prefix string) {
 }
 
 // Empty returns true if configuration is empty
-func (cfg APICheckCfg) Empty() bool {
+func (cfg XListCheckAPICfg) Empty() bool {
 	if cfg.RootListID != "" {
 		return false
 	}
@@ -60,7 +60,7 @@ func (cfg APICheckCfg) Empty() bool {
 }
 
 // Validate checks that configuration is ok
-func (cfg APICheckCfg) Validate() error {
+func (cfg XListCheckAPICfg) Validate() error {
 	if cfg.RootListID == "" {
 		return errors.New("root list can't be empty")
 	}
@@ -68,6 +68,6 @@ func (cfg APICheckCfg) Validate() error {
 }
 
 // Dump configuration
-func (cfg APICheckCfg) Dump() string {
+func (cfg XListCheckAPICfg) Dump() string {
 	return fmt.Sprintf("%+v", cfg)
 }
