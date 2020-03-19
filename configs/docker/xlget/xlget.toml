@@ -1,0 +1,4 @@
+[xlget]
+files     = [ "/etc/luids/xlist/sources.json" ]
+output    = "/var/lib/luids/xlist"
+cache     = "/var/cache/luids/xlist"

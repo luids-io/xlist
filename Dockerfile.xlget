@@ -22,15 +22,17 @@ LABEL maintainer="Luis Guillén Civera <luisguillenc@gmail.com>"
 RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
 
 # create user for service
-RUN adduser -D -g '' xlist && \
-	mkdir -p /var/lib/xlist && \
-	chown xlist /var/lib/xlist
+RUN adduser -D -g 'luids' luxlist && \
+	mkdir -p /var/lib/luids/xlist && \
+	chown luxlist /var/lib/luids/xlist && \
+	mkdir -p /var/cache/luids/xlist && \
+	chown luxlist /var/cache/luids/xlist
 
 COPY --from=build-env /app/bin/xlget /bin/
-COPY --from=build-env /app/configs/empty.json /etc/xlist/sources.d/
+COPY --from=build-env /app/configs/docker/xlget/* /etc/luids/xlist/
 
-USER xlist
+USER luxlist
 
-VOLUME [ "/etc/xlist/sources.d", "/var/lib/xlist" ]
+VOLUME [ "/etc/luids", "/var/lib/luids/xlist" ]
 
-CMD [ "/bin/xlget", "--auto", "-S", "/etc/xlist/sources.d", "--xlget.output", "/var/lib/xlist", "--xlget.cache", "/var/lib/xlist/.cache" ]
+CMD [ "/bin/xlget", "--auto", "--config", "/etc/luids/xlist/xlget.toml" ]

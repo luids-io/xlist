@@ -5,7 +5,7 @@ ARG arch=amd64
 RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certificates
 
 # create user for service
-RUN adduser -D -g '' xlist
+RUN adduser -D -g 'luids' luxlist
 
 WORKDIR /app
 ## dependences
@@ -26,12 +26,11 @@ LABEL maintainer="Luis Guillén Civera <luisguillenc@gmail.com>"
 COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build-env /etc/passwd /etc/passwd
 
-COPY --from=build-env /app/bin/xlistc /bin/
-COPY --from=build-env /app/bin/xlistd /bin/
-COPY --from=build-env /app/configs/docker/* /etc/luids/xlist/
+COPY --from=build-env /app/bin/xlist? /bin/
+COPY --from=build-env /app/configs/docker/xlistd/*  /etc/luids/xlist/
 
-USER xlist
+USER luxlist
 
 EXPOSE 5801
-VOLUME [ "/etc/luids/xlist", "/var/lib/luids/xlist" ]
-CMD [ "/bin/xlistd" ]
+VOLUME [ "/etc/luids", "/var/lib/luids/xlist" ]
+CMD [ "/bin/xlistd", "--config", "/etc/luids/xlist/xlistd.toml" ]
