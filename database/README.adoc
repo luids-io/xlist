@@ -1365,12 +1365,12 @@ link:./summary-file.csv[download csv]
 |ip4
 |link:https://feodotracker.abuse.ch/[web]
 
-|link:./file/abuse-ch.json[abuse.ch-ransomware]
-|Ransomware Tracker Abuse.ch
+|link:./file/abuse-ch.json[abuse.ch-urlhaus]
+|URLhaus Abuse.ch
 |blacklist
 |malware
-|ip4 domain
-|link:https://ransomwaretracker.abuse.ch/[web]
+|domain
+|link:https://urlhaus.abuse.ch/[web]
 
 |link:./file/abuse-ch.json[abuse.ch-ssl]
 |SSL blacklist Abuse.ch
@@ -1956,7 +1956,7 @@ link:./summary-file.csv[download csv]
 |link:./feeds/abuse-ch.json[abuse.ch-feodo]
 |12h
 
-|link:./feeds/abuse-ch.json[abuse.ch-ransomware]
+|link:./feeds/abuse-ch.json[abuse.ch-urlhaus]
 |1h
 
 |link:./feeds/abuse-ch.json[abuse.ch-ssl]

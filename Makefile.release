@@ -51,8 +51,7 @@ build:
 		done ; \
 	done
 	@echo Building: database - $(VERSION)
-	database/scripts/update_csv.sh
-	database/scripts/update_readme.sh
+	$(MAKE) database
 
 .PHONY: tar
 tar:

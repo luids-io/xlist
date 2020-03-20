@@ -1,6 +1,6 @@
 "id","name","category","tags","resources","web"
 "abuse.ch-feodo","Feodo Tracker C&C Abuse.ch","blacklist","malware","ip4","https://feodotracker.abuse.ch/"
-"abuse.ch-ransomware","Ransomware Tracker Abuse.ch","blacklist","malware","ip4;domain","https://ransomwaretracker.abuse.ch/"
+"abuse.ch-urlhaus","URLhaus Abuse.ch","blacklist","malware","domain","https://urlhaus.abuse.ch/"
 "abuse.ch-ssl","SSL blacklist Abuse.ch","blacklist","malware","ip4;md5;sha1","https://sslbl.abuse.ch"
 "alienvault.com","alienvault reputation","blacklist","reputation","ip4","https://www.alienvault.com"
 "badips.com","Bad IPs","blacklist","bruteforce","ip4","https://badips.com/"
