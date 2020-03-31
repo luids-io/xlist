@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/luisguillenc/yalogi"
-
 	"github.com/cavaliercoder/grab"
+
+	"github.com/luids-io/core/utils/yalogi"
 )
 
 // Client downloads requests

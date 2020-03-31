@@ -10,8 +10,8 @@ import (
 	"net"
 	"strings"
 
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
-	"github.com/luisguillenc/yalogi"
 )
 
 //FlatConv implements a conversor from a flat file

@@ -5,7 +5,7 @@ package policywr
 import (
 	"fmt"
 
-	"github.com/luids-io/core/option"
+	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/core/xlist/reason"
 	"github.com/luids-io/xlist/pkg/listbuilder"

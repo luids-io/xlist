@@ -8,8 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luisguillenc/yalogi"
-
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/xlist/pkg/components/memxl"
 )

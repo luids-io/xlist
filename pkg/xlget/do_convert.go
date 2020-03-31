@@ -8,8 +8,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/luisguillenc/yalogi"
-
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
 )
 

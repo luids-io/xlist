@@ -6,9 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/luids-io/xlist/pkg/components/geoip2xl"
-
 	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/xlist/pkg/components/geoip2xl"
 	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 

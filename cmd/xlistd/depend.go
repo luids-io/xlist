@@ -8,13 +8,13 @@ import (
 	"fmt"
 
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	"github.com/luisguillenc/serverd"
-	"github.com/luisguillenc/yalogi"
 	"google.golang.org/grpc"
 
 	checkapi "github.com/luids-io/api/xlist/check"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
+	"github.com/luids-io/core/utils/serverd"
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
 	iconfig "github.com/luids-io/xlist/internal/config"
 	ifactory "github.com/luids-io/xlist/internal/factory"

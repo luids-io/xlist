@@ -5,9 +5,8 @@ package factory
 import (
 	"fmt"
 
-	"github.com/luisguillenc/yalogi"
-
 	"github.com/luids-io/common/util"
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/xlist/internal/config"
 	"github.com/luids-io/xlist/pkg/xlget"
 )

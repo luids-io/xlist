@@ -4,8 +4,8 @@ package config
 
 import (
 	cconfig "github.com/luids-io/common/config"
+	"github.com/luids-io/core/utils/goconfig"
 	iconfig "github.com/luids-io/xlist/internal/config"
-	"github.com/luisguillenc/goconfig"
 )
 
 // Default returns the default configuration

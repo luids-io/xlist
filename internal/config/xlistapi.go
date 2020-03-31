@@ -6,9 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/luids-io/common/util"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/luids-io/common/util"
 )
 
 // XListCheckAPICfg stores check service preferences
