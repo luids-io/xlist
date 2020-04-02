@@ -395,12 +395,6 @@ create_service_config() {
 	if [ ! -d $ETC_DIR/$NAME ]; then
 		do_create_dir $ETC_DIR/$NAME
 		[ $? -ne 0 ] && step_err && return 1
-
-		do_create_dir $ETC_DIR/$NAME/services.d
-		[ $? -ne 0 ] && step_err && return 1
-
-		do_create_dir $ETC_DIR/$NAME/sources.d
-		[ $? -ne 0 ] && step_err && return 1
 	else
 		log "$ETC_DIR/$NAME already exists"
 	fi
@@ -413,8 +407,8 @@ create_service_config() {
 ## XList service  ##
 ####################
 [xlist]
-files      = [ "${ETC_DIR}/${NAME}/service.json" ]
-dirs       = [ "${ETC_DIR}/${NAME}/services.d" ]
+files      = [ "${ETC_DIR}/${NAME}/services.json" ]
+#dirs       = [ "${ETC_DIR}/${NAME}/services.d" ]
 certsdir   = "${ETC_DIR}/ssl"
 sourcesdir = "${VAR_DIR}/${NAME}"
 
@@ -466,19 +460,20 @@ EOF
 		log "$ETC_DIR/$NAME/xlistd.toml already exists"
 	fi
 
-	if [ ! -f $ETC_DIR/$NAME/service.json ]; then
-		log "creating $ETC_DIR/$NAME/service.json"
-		echo '[{"id":"root","class":"mock"}]' > $ETC_DIR/$NAME/service.json 2>>$LOG_FILE
+	if [ ! -f $ETC_DIR/$NAME/services.json ]; then
+		log "creating $ETC_DIR/$NAME/services.json"
+		echo '[{"id":"root","class":"mock"}]' > $ETC_DIR/$NAME/services.json 2>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
-		log "$ETC_DIR/$NAME/service.json already exists"
+		log "$ETC_DIR/$NAME/services.json already exists"
 	fi
 
 	if [ ! -f $ETC_DIR/$NAME/xlget.toml ]; then
 		log "creating $ETC_DIR/$NAME/xlget.toml"
 		{ cat > $ETC_DIR/$NAME/xlget.toml <<EOF
 [xlget]
-dirs      = [ "${ETC_DIR}/${NAME}/sources.d" ]
+files     = [ "${ETC_DIR}/${NAME}/sources.json" ]
+#dirs      = [ "${ETC_DIR}/${NAME}/sources.d" ]
 output    = "${VAR_DIR}/${NAME}"
 cache     = "${CACHE_DIR}/${NAME}"
 EOF
@@ -488,11 +483,12 @@ EOF
 		log "$ETC_DIR/$NAME/xlget.toml already exists"
 	fi
 
-	if [ ! -f $ETC_DIR/$NAME/sources.d/empty.json ]; then
-		log "creating $ETC_DIR/$NAME/sources.d/empty.json"
-		echo '[ ]' > $ETC_DIR/$NAME/sources.d/empty.json
+	if [ ! -f $ETC_DIR/$NAME/sources.json ]; then
+		log "creating $ETC_DIR/$NAME/sources.json"
+		echo '[ ]' > $ETC_DIR/$NAME/sources.json 2>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
 	else
-		log "$ETC_DIR/$NAME/sources.d/empty.json already exists" && step_ok && return 0
+		log "$ETC_DIR/$NAME/sources.json already exists"
 	fi
 
 	step_ok
