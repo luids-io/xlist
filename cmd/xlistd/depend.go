@@ -90,7 +90,7 @@ func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     "xlist-check.server",
+		Name:     fmt.Sprintf("[%s].server", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,
