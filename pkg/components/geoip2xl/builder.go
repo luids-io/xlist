@@ -9,15 +9,15 @@ import (
 
 	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 // BuildClass defines class name for component builder
 const BuildClass = "geoip2"
 
 // Builder returns a list builder function
-func Builder(cfg Config) listbuilder.BuildListFn {
-	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) builder.BuildListFn {
+	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
 		if def.Source == "" {
 			return nil, errors.New("'source' is required")
 		}
@@ -98,5 +98,5 @@ func fileExists(filename string) bool {
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterListBuilder(BuildClass, Builder(Config{}))
 }

@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package listbuilder
+package builder
 
 import (
 	"encoding/json"

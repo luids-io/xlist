@@ -4,19 +4,19 @@ package metricswr
 
 import (
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 // BuildClass defines class name for component builder
 const BuildClass = "metrics"
 
 // Builder returns a builder for the component
-func Builder() listbuilder.BuildWrapperFn {
-	return func(b *listbuilder.Builder, id string, def listbuilder.WrapperDef, list xlist.List) (xlist.List, error) {
+func Builder() builder.BuildWrapperFn {
+	return func(b *builder.Builder, id string, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
 		return New(list, id), nil
 	}
 }
 
 func init() {
-	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
+	builder.RegisterWrapperBuilder(BuildClass, Builder())
 }

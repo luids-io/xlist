@@ -10,15 +10,15 @@ import (
 
 	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 // BuildClass defines default class for component builder
 const BuildClass = "mock"
 
 // Builder returns a list builder function that constructs mockups
-func Builder() listbuilder.BuildListFn {
-	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder() builder.BuildListFn {
+	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
 		//create mockup and sets source
 		bl := &List{ResourceList: xlist.ClearResourceDups(def.Resources)}
 		if def.Source != "" {
@@ -92,5 +92,5 @@ func configMockupFromOpts(mockup *List, opts map[string]interface{}) error {
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder())
+	builder.RegisterListBuilder(BuildClass, Builder())
 }

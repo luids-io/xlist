@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/geoip2xl"
-	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
-var testdatabase1 = []listbuilder.ListDef{
+var testdatabase1 = []builder.ListDef{
 	{ID: "list1",
 		Class: geoip2xl.BuildClass},
 	{ID: "list2",
@@ -66,7 +66,7 @@ var testdatabase1 = []listbuilder.ListDef{
 }
 
 func TestBuild(t *testing.T) {
-	builder := listbuilder.New()
+	b := builder.New()
 	//define and do tests
 	var tests = []struct {
 		listid  string
@@ -86,12 +86,12 @@ func TestBuild(t *testing.T) {
 		{"list12", "invalid 'reverse'"},
 	}
 	for _, test := range tests {
-		def, ok := listbuilder.FilterID(test.listid, testdatabase1)
+		def, ok := builder.FilterID(test.listid, testdatabase1)
 		if !ok {
 			t.Errorf("can't find id %s in database tests", test.listid)
 			continue
 		}
-		_, err := builder.Build(def)
+		_, err := b.Build(def)
 		switch {
 		case test.wantErr == "" && err == nil:
 			//

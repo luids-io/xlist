@@ -9,15 +9,15 @@ import (
 
 	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 // BuildClass defines default class for component builder
 const BuildClass = "mem"
 
 // Builder returns a list builder function
-func Builder(cfg Config) listbuilder.BuildListFn {
-	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) builder.BuildListFn {
+	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
 		source := ""
 		if def.Source != "" {
 			source = b.SourcePath(def.Source)
@@ -108,5 +108,5 @@ func getData(opts map[string]interface{}) ([]Data, error) {
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterListBuilder(BuildClass, Builder(Config{}))
 }

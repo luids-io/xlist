@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
-	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
-var testdatabase1 = []listbuilder.ListDef{
+var testdatabase1 = []builder.ListDef{
 	{ID: "list1",
 		Class: mockxl.BuildClass},
 	{ID: "list2",
@@ -47,7 +47,7 @@ var testdatabase1 = []listbuilder.ListDef{
 }
 
 func TestBuilderSources(t *testing.T) {
-	builder := listbuilder.New()
+	b := builder.New()
 	var tests = []struct {
 		listid  string
 		want    []bool
@@ -60,8 +60,8 @@ func TestBuilderSources(t *testing.T) {
 		{"list5", nil, true},
 	}
 	for _, test := range tests {
-		def, _ := listbuilder.FilterID(test.listid, testdatabase1)
-		checker, err := builder.Build(def)
+		def, _ := builder.FilterID(test.listid, testdatabase1)
+		checker, err := b.Build(def)
 		if test.wantErr && err == nil {
 			t.Errorf("expected error for %s", test.listid)
 		} else if test.wantErr && err != nil {
@@ -93,7 +93,7 @@ func cmpResults(a, b []bool) bool {
 }
 
 func TestBuilderProperties(t *testing.T) {
-	builder := listbuilder.New()
+	b := builder.New()
 	var tests = []struct {
 		listid     string
 		wantTTL    int
@@ -109,8 +109,8 @@ func TestBuilderProperties(t *testing.T) {
 		{"list10", 0, "", false, 10 * time.Millisecond, false},
 	}
 	for _, test := range tests {
-		def, _ := listbuilder.FilterID(test.listid, testdatabase1)
-		checker, err := builder.Build(def)
+		def, _ := builder.FilterID(test.listid, testdatabase1)
+		checker, err := b.Build(def)
 		if test.wantErr && err == nil {
 			t.Errorf("expected error for %s", test.listid)
 		} else if test.wantErr && err != nil {
@@ -140,17 +140,17 @@ func TestBuilderProperties(t *testing.T) {
 
 func ExampleBuilder() {
 	// instande builder and register class
-	builder := listbuilder.New()
+	b := builder.New()
 
 	// create a definition for a list that checks ipv4
 	// and returns true to all checks
-	listdef1 := listbuilder.ListDef{
+	listdef1 := builder.ListDef{
 		ID:        "list1",
 		Class:     "mock",
 		Resources: []xlist.Resource{xlist.IPv4},
 		Source:    "true",
 	}
-	rbl1, err := builder.Build(listdef1)
+	rbl1, err := b.Build(listdef1)
 	if err != nil {
 		log.Fatalln("this should not happen")
 	}
@@ -169,7 +169,7 @@ func ExampleBuilder() {
 
 	// create a definition for a list that checks domain
 	// and fails
-	listdef2 := listbuilder.ListDef{
+	listdef2 := builder.ListDef{
 		ID:        "list2",
 		Class:     "mock",
 		Resources: []xlist.Resource{xlist.IPv4, xlist.Domain},
@@ -178,7 +178,7 @@ func ExampleBuilder() {
 		},
 	}
 
-	rbl2, err := builder.Build(listdef2)
+	rbl2, err := b.Build(listdef2)
 	if err != nil {
 		log.Fatalln("this should not happen")
 	}

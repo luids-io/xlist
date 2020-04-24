@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
-	"github.com/luids-io/xlist/pkg/listbuilder"
 	"github.com/luids-io/xlist/pkg/wrappers/cachewr"
 )
 
@@ -19,58 +19,58 @@ var (
 	onlyDomain = []xlist.Resource{xlist.Domain}
 )
 
-var testdatabase1 = []listbuilder.ListDef{
+var testdatabase1 = []builder.ListDef{
 	{ID: "list1",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers:  []listbuilder.WrapperDef{{Class: cachewr.BuildClass}}},
+		Wrappers:  []builder.WrapperDef{{Class: cachewr.BuildClass}}},
 	{ID: "list2",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: cachewr.BuildClass,
 				Opts: map[string]interface{}{"ttl": 10}}}},
 	{ID: "list3",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: cachewr.BuildClass,
 				Opts: map[string]interface{}{"ttl": "aa"}}},
 	},
 	{ID: "list4",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: cachewr.BuildClass,
 				Opts: map[string]interface{}{"ttl": 0}}}},
 	{ID: "list5",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: cachewr.BuildClass,
 				Opts: map[string]interface{}{"ttl": -1}}}},
 	{ID: "list6",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: cachewr.BuildClass,
 				Opts: map[string]interface{}{"ttl": 10, "negativettl": 5}}}},
 	{ID: "list7",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: cachewr.BuildClass,
 				Opts: map[string]interface{}{"ttl": 10, "negativettl": xlist.NeverCache}}}},
 	{ID: "list8",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: cachewr.BuildClass,
 				Opts: map[string]interface{}{"ttl": 10, "negativettl": -2}}}},
 }
 
 func TestBuild(t *testing.T) {
-	builder := listbuilder.New()
+	b := builder.New()
 
 	//define and do tests
 	var tests = []struct {
@@ -87,12 +87,12 @@ func TestBuild(t *testing.T) {
 		{"list8", "invalid 'negativettl'"},
 	}
 	for _, test := range tests {
-		def, ok := listbuilder.FilterID(test.listid, testdatabase1)
+		def, ok := builder.FilterID(test.listid, testdatabase1)
 		if !ok {
 			t.Errorf("can't find id %s in database tests", test.listid)
 			continue
 		}
-		_, err := builder.Build(def)
+		_, err := b.Build(def)
 		switch {
 		case test.wantErr == "" && err == nil:
 			//

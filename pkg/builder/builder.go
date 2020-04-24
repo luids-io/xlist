@@ -1,9 +1,9 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-// Package listbuilder allows to create xlist services using definitions.
+// Package builder allows to create xlist services using definitions.
 //
 // This package is a work in progress and makes no API stability promises.
-package listbuilder
+package builder
 
 import (
 	"errors"

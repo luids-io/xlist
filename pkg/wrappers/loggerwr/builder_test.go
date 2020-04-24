@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
-	"github.com/luids-io/xlist/pkg/listbuilder"
 	"github.com/luids-io/xlist/pkg/wrappers/loggerwr"
 )
 
@@ -19,27 +19,27 @@ var (
 	onlyDomain = []xlist.Resource{xlist.Domain}
 )
 
-var testdatabase1 = []listbuilder.ListDef{
+var testdatabase1 = []builder.ListDef{
 	{ID: "list1",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers:  []listbuilder.WrapperDef{{Class: "logger"}}},
+		Wrappers:  []builder.WrapperDef{{Class: "logger"}}},
 	{ID: "list2",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: loggerwr.BuildClass,
 				Opts: map[string]interface{}{"showpeer": true}}}},
 	{ID: "list3",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: loggerwr.BuildClass,
 				Opts: map[string]interface{}{"showpeer": "aa"}}}},
 	{ID: "list4",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: loggerwr.BuildClass,
 				Opts: map[string]interface{}{
 					"found":    "warn",
@@ -48,7 +48,7 @@ var testdatabase1 = []listbuilder.ListDef{
 	{ID: "list5",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: loggerwr.BuildClass,
 				Opts: map[string]interface{}{
 					"found":    5,
@@ -56,7 +56,7 @@ var testdatabase1 = []listbuilder.ListDef{
 	{ID: "list6",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: loggerwr.BuildClass,
 				Opts: map[string]interface{}{
 					"found":    "warn",
@@ -65,7 +65,7 @@ var testdatabase1 = []listbuilder.ListDef{
 
 func TestBuild(t *testing.T) {
 	output := &logmockup{}
-	builder := listbuilder.New(listbuilder.SetLogger(output))
+	b := builder.New(builder.SetLogger(output))
 
 	//define and do tests
 	var tests = []struct {
@@ -80,12 +80,12 @@ func TestBuild(t *testing.T) {
 		{"list6", "invalid 'notfound'"},
 	}
 	for _, test := range tests {
-		def, ok := listbuilder.FilterID(test.listid, testdatabase1)
+		def, ok := builder.FilterID(test.listid, testdatabase1)
 		if !ok {
 			t.Errorf("can't find id %s in database tests", test.listid)
 			continue
 		}
-		_, err := builder.Build(def)
+		_, err := b.Build(def)
 		switch {
 		case test.wantErr == "" && err == nil:
 			//

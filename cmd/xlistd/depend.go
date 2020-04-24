@@ -18,7 +18,7 @@ import (
 	"github.com/luids-io/core/xlist"
 	iconfig "github.com/luids-io/xlist/internal/config"
 	ifactory "github.com/luids-io/xlist/internal/factory"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
@@ -42,7 +42,7 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 	return nil
 }
 
-func createLists(msrv *serverd.Manager, logger yalogi.Logger) (*listbuilder.Builder, error) {
+func createLists(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder, error) {
 	cfgList := cfg.Data("xlist").(*iconfig.XListCfg)
 	builder, err := ifactory.ListBuilder(cfgList, logger)
 	if err != nil {

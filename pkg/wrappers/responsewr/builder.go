@@ -7,15 +7,15 @@ import (
 
 	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 // BuildClass defines class name for component builder
 const BuildClass = "response"
 
 // Builder returns a builder for the component
-func Builder(cfg Config) listbuilder.BuildWrapperFn {
-	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
+func Builder(cfg Config) builder.BuildWrapperFn {
+	return func(b *builder.Builder, listID string, def builder.WrapperDef, bl xlist.List) (xlist.List, error) {
 		if def.Opts != nil {
 			var err error
 			cfg, err = parseOptions(cfg, def.Opts, listID)
@@ -101,5 +101,5 @@ func parseOptions(cfg Config, opts map[string]interface{}, listID string) (Confi
 }
 
 func init() {
-	listbuilder.RegisterWrapperBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterWrapperBuilder(BuildClass, Builder(Config{}))
 }

@@ -9,15 +9,15 @@ import (
 	checkapi "github.com/luids-io/api/xlist/check"
 	"github.com/luids-io/core/utils/grpctls"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 // BuildClass defines default class for component builder
 const BuildClass = "grpc"
 
 // Builder resturns a rpcxl builder
-func Builder() listbuilder.BuildListFn {
-	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder() builder.BuildListFn {
+	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
 		if def.Source == "" {
 			return nil, errors.New("source is empty")
 		}
@@ -52,5 +52,5 @@ func Builder() listbuilder.BuildListFn {
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder())
+	builder.RegisterListBuilder(BuildClass, Builder())
 }

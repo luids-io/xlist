@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
 	"github.com/luids-io/xlist/pkg/components/selectorxl"
-	"github.com/luids-io/xlist/pkg/listbuilder"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 	onlyDomain = []xlist.Resource{xlist.Domain}
 )
 
-var testmocks = []listbuilder.ListDef{
+var testmocks = []builder.ListDef{
 	{ID: "mock1",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4},
@@ -45,43 +45,43 @@ var testmocks = []listbuilder.ListDef{
 		Resources: onlyDomain},
 }
 
-var testselector1 = []listbuilder.ListDef{
+var testselector1 = []builder.ListDef{
 	{ID: "list1",
 		Class:     selectorxl.BuildClass,
 		Resources: onlyIPv4,
-		Contains:  []listbuilder.ListDef{{ID: "mock1"}}},
+		Contains:  []builder.ListDef{{ID: "mock1"}}},
 	{ID: "list2",
 		Class:     selectorxl.BuildClass,
 		Resources: onlyIPv4,
-		Contains:  []listbuilder.ListDef{{ID: "mock1"}, {ID: "mock2"}}},
+		Contains:  []builder.ListDef{{ID: "mock1"}, {ID: "mock2"}}},
 	{ID: "list3",
 		Class: selectorxl.BuildClass},
 	{ID: "list4",
 		Class:     selectorxl.BuildClass,
 		Resources: onlyIP,
-		Contains:  []listbuilder.ListDef{{ID: "mock1"}, {ID: "mock2"}}},
+		Contains:  []builder.ListDef{{ID: "mock1"}, {ID: "mock2"}}},
 	{ID: "list5",
 		Class:     selectorxl.BuildClass,
 		Resources: onlyIP,
-		Contains:  []listbuilder.ListDef{{ID: "mock1"}, {ID: "mock5"}}},
+		Contains:  []builder.ListDef{{ID: "mock1"}, {ID: "mock5"}}},
 	{ID: "list6",
 		Class:     selectorxl.BuildClass,
 		Resources: onlyIPv4,
 		Opts:      map[string]interface{}{"reason": 10},
-		Contains:  []listbuilder.ListDef{{ID: "mock1"}}},
+		Contains:  []builder.ListDef{{ID: "mock1"}}},
 	{ID: "list7",
 		Class:     selectorxl.BuildClass,
 		Resources: onlyIPv4,
 		Opts:      map[string]interface{}{"reason": "hey"},
-		Contains:  []listbuilder.ListDef{{ID: "mock1"}}},
+		Contains:  []builder.ListDef{{ID: "mock1"}}},
 }
 
 func TestBuild(t *testing.T) {
-	builder := listbuilder.New()
+	b := builder.New()
 
 	//create mocks
 	for _, defmock := range testmocks {
-		_, err := builder.Build(defmock)
+		_, err := b.Build(defmock)
 		if err != nil {
 			t.Fatalf("building mock %s: %v", defmock.ID, err)
 		}
@@ -100,8 +100,8 @@ func TestBuild(t *testing.T) {
 		{"list7", ""},
 	}
 	for _, test := range tests {
-		def, _ := listbuilder.FilterID(test.listid, testselector1)
-		_, err := builder.Build(def)
+		def, _ := builder.FilterID(test.listid, testselector1)
+		_, err := b.Build(def)
 		switch {
 		case test.wantErr == "" && err == nil:
 			//

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
-	"github.com/luids-io/xlist/pkg/listbuilder"
 	"github.com/luids-io/xlist/pkg/wrappers/responsewr"
 )
 
@@ -19,15 +19,15 @@ var (
 	onlyDomain = []xlist.Resource{xlist.Domain}
 )
 
-var testdatabase1 = []listbuilder.ListDef{
+var testdatabase1 = []builder.ListDef{
 	{ID: "list1",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers:  []listbuilder.WrapperDef{{Class: responsewr.BuildClass}}},
+		Wrappers:  []builder.WrapperDef{{Class: responsewr.BuildClass}}},
 	{ID: "list2",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: responsewr.BuildClass,
 				Opts: map[string]interface{}{
 					"negate":  true,
@@ -37,27 +37,27 @@ var testdatabase1 = []listbuilder.ListDef{
 	{ID: "list3",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: responsewr.BuildClass, Opts: map[string]interface{}{"preffixid": true}}}},
 	{ID: "list4",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: responsewr.BuildClass, Opts: map[string]interface{}{"ttl": "akk"}}}},
 	{ID: "list5",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: responsewr.BuildClass, Opts: map[string]interface{}{"negate": "akk"}}}},
 	{ID: "list6",
 		Class:     mockxl.BuildClass,
 		Resources: onlyIPv4,
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{Class: responsewr.BuildClass, Opts: map[string]interface{}{"preffixid": "akk"}}}},
 }
 
 func TestBuild(t *testing.T) {
-	builder := listbuilder.New()
+	b := builder.New()
 
 	//define and do tests
 	var tests = []struct {
@@ -72,12 +72,12 @@ func TestBuild(t *testing.T) {
 		{"list6", "invalid 'preffixid'"},
 	}
 	for _, test := range tests {
-		def, ok := listbuilder.FilterID(test.listid, testdatabase1)
+		def, ok := builder.FilterID(test.listid, testdatabase1)
 		if !ok {
 			t.Errorf("can't find id %s in database tests", test.listid)
 			continue
 		}
-		_, err := builder.Build(def)
+		_, err := b.Build(def)
 		switch {
 		case test.wantErr == "" && err == nil:
 			//

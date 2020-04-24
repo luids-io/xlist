@@ -9,15 +9,15 @@ import (
 
 	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 // BuildClass defines default class for component builder
 const BuildClass = "file"
 
 // Builder returns a list builder function
-func Builder(cfg Config) listbuilder.BuildListFn {
-	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) builder.BuildListFn {
+	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
 		if def.Source == "" {
 			def.Source = fmt.Sprintf("%s.xlist", def.ID)
 		}
@@ -95,5 +95,5 @@ func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder(DefaultConfig()))
+	builder.RegisterListBuilder(BuildClass, Builder(DefaultConfig()))
 }

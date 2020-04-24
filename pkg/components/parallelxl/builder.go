@@ -7,15 +7,15 @@ import (
 
 	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 // BuildClass defines default class for component builder
 const BuildClass = "parallel"
 
 // Builder returns a builder for parallel List component
-func Builder(cfg Config) listbuilder.BuildListFn {
-	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) builder.BuildListFn {
+	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
 		if def.Opts != nil {
 			var err error
 			cfg, err = parseOptions(cfg, def.Opts)
@@ -70,5 +70,5 @@ func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterListBuilder(BuildClass, Builder(Config{}))
 }

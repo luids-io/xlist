@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package listbuilder_test
+package builder_test
 
 import (
 	"context"
@@ -10,10 +10,10 @@ import (
 	"testing"
 
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
-var testbuilder1 = []listbuilder.ListDef{
+var testbuilder1 = []builder.ListDef{
 	{
 		ID:        "id-list1",
 		Class:     "list1",
@@ -34,12 +34,12 @@ var testbuilder1 = []listbuilder.ListDef{
 
 func TestBuilderBasic(t *testing.T) {
 	//register builders
-	listbuilder.RegisterListBuilder("list1", testBuilderList())
+	builder.RegisterListBuilder("list1", testBuilderList())
 
-	builder := listbuilder.New()
+	b := builder.New()
 
 	//check build registered
-	bl, err := builder.Build(testbuilder1[0])
+	bl, err := b.Build(testbuilder1[0])
 	if err != nil {
 		t.Fatalf("building component %v: %v", testbuilder1[0].ID, err)
 	}
@@ -50,27 +50,27 @@ func TestBuilderBasic(t *testing.T) {
 	if !resp.Result {
 		t.Errorf("unexpected result in check on list %v: %v", testbuilder1[0].ID, err)
 	}
-	list1, ok := builder.FindListByID(testbuilder1[0].ID)
+	list1, ok := b.FindListByID(testbuilder1[0].ID)
 	if !ok {
 		t.Fatalf("returning list %v from builder", testbuilder1[0].ID)
 	}
 	if bl != list1 {
 		t.Fatalf("references mismatch returning list %v", testbuilder1[0].ID)
 	}
-	_, ok = builder.FindListByID("noexists")
+	_, ok = b.FindListByID("noexists")
 	if ok {
 		t.Error("returned ok for non existing list")
 	}
 
 	//constructing other component
-	_, err = builder.Build(testbuilder1[1])
+	_, err = b.Build(testbuilder1[1])
 	if err == nil {
 		t.Errorf("non error building non existing component")
 	}
 	//register builder
-	listbuilder.RegisterListBuilder("list2", testBuilderList())
+	builder.RegisterListBuilder("list2", testBuilderList())
 
-	bl, err = builder.Build(testbuilder1[1])
+	bl, err = b.Build(testbuilder1[1])
 	if err != nil {
 		t.Fatalf("building component %v: %v", testbuilder1[1].ID, err)
 	}
@@ -81,7 +81,7 @@ func TestBuilderBasic(t *testing.T) {
 	if resp.Result {
 		t.Errorf("unexpected result in check on list %v: %v", testbuilder1[1].ID, err)
 	}
-	list2, ok := builder.FindListByID(testbuilder1[1].ID)
+	list2, ok := b.FindListByID(testbuilder1[1].ID)
 	if !ok {
 		t.Fatalf("returning list %v from builder", testbuilder1[1].ID)
 	}
@@ -95,7 +95,7 @@ func TestBuilderStartup(t *testing.T) {
 	shutdValues := make([]bool, 3, 3)
 
 	testerr := errors.New("error")
-	builder := listbuilder.New()
+	builder := builder.New()
 	builder.OnStartup(func() error { startValues[0] = true; return nil })
 	builder.OnShutdown(func() error { shutdValues[0] = true; return nil })
 	builder.OnStartup(func() error { return testerr })
@@ -126,7 +126,7 @@ func TestBuilderStartup(t *testing.T) {
 	}
 }
 
-var testbuilder2 = []listbuilder.ListDef{
+var testbuilder2 = []builder.ListDef{
 	{
 		ID:        "id-list1",
 		Class:     "list",
@@ -137,7 +137,7 @@ var testbuilder2 = []listbuilder.ListDef{
 		ID:        "id-list2",
 		Class:     "comp",
 		Resources: []xlist.Resource{xlist.IPv4},
-		Contains: []listbuilder.ListDef{
+		Contains: []builder.ListDef{
 			{
 				ID:        "id-list3",
 				Class:     "list",
@@ -152,7 +152,7 @@ var testbuilder2 = []listbuilder.ListDef{
 				ID:        "id-list5",
 				Class:     "comp",
 				Resources: []xlist.Resource{xlist.IPv4},
-				Contains: []listbuilder.ListDef{
+				Contains: []builder.ListDef{
 					{
 						ID:        "id-list6",
 						Class:     "list",
@@ -173,19 +173,19 @@ var testbuilder2 = []listbuilder.ListDef{
 
 func TestBuilderComp(t *testing.T) {
 	//register builders
-	listbuilder.RegisterListBuilder("list", testBuilderList())
-	listbuilder.RegisterListBuilder("comp", testBuilderCompo())
+	builder.RegisterListBuilder("list", testBuilderList())
+	builder.RegisterListBuilder("comp", testBuilderCompo())
 
-	builder := listbuilder.New()
+	b := builder.New()
 	for _, def := range testbuilder2 {
-		_, err := builder.Build(def)
+		_, err := b.Build(def)
 		if err != nil {
 			t.Errorf("creating lists: %v", err)
 		}
 	}
 	for i := 1; i <= 7; i++ {
 		listID := fmt.Sprintf("id-list%v", i)
-		_, ok := builder.FindListByID(listID)
+		_, ok := b.FindListByID(listID)
 		if !ok {
 			t.Fatalf("can't get list %s", listID)
 		}
@@ -203,7 +203,7 @@ func TestBuilderComp(t *testing.T) {
 		{"id-list7", "source list7"},
 	}
 	for _, test := range tests {
-		list, ok := builder.FindListByID(test.input)
+		list, ok := b.FindListByID(test.input)
 		if !ok {
 			t.Fatalf("can't get list %s", test.input)
 		}
@@ -217,12 +217,12 @@ func TestBuilderComp(t *testing.T) {
 	}
 }
 
-var testbuilderbad1 = []listbuilder.ListDef{
+var testbuilderbad1 = []builder.ListDef{
 	{
 		ID:        "id-list1",
 		Class:     "comp",
 		Resources: []xlist.Resource{xlist.IPv4},
-		Contains: []listbuilder.ListDef{
+		Contains: []builder.ListDef{
 			{
 				ID:        "id-list2",
 				Class:     "list",
@@ -233,7 +233,7 @@ var testbuilderbad1 = []listbuilder.ListDef{
 				ID:        "id-list3",
 				Class:     "comp",
 				Resources: []xlist.Resource{xlist.IPv4},
-				Contains: []listbuilder.ListDef{
+				Contains: []builder.ListDef{
 					{
 						ID:        "id-list1",
 						Class:     "list",
@@ -247,12 +247,12 @@ var testbuilderbad1 = []listbuilder.ListDef{
 
 func TestBuilderRecursion(t *testing.T) {
 	//register builders
-	listbuilder.RegisterListBuilder("list", testBuilderList())
-	listbuilder.RegisterListBuilder("comp", testBuilderCompo())
+	builder.RegisterListBuilder("list", testBuilderList())
+	builder.RegisterListBuilder("comp", testBuilderCompo())
 
-	builder := listbuilder.New()
+	b := builder.New()
 
-	_, err := builder.Build(testbuilderbad1[0])
+	_, err := b.Build(testbuilderbad1[0])
 	if err == nil {
 		t.Error("builder fails detecting recursion")
 	}
@@ -261,12 +261,12 @@ func TestBuilderRecursion(t *testing.T) {
 	}
 }
 
-var testbuilder3 = []listbuilder.ListDef{
+var testbuilder3 = []builder.ListDef{
 	{
 		ID:        "id-list1",
 		Class:     "comp",
 		Resources: []xlist.Resource{xlist.IPv4},
-		Wrappers: []listbuilder.WrapperDef{
+		Wrappers: []builder.WrapperDef{
 			{
 				Class: "wrap",
 				Opts:  map[string]interface{}{"preffix": "wrapp1-1"},
@@ -276,7 +276,7 @@ var testbuilder3 = []listbuilder.ListDef{
 				Opts:  map[string]interface{}{"preffix": "wrapp1-2"},
 			},
 		},
-		Contains: []listbuilder.ListDef{
+		Contains: []builder.ListDef{
 			{
 				ID:        "id-list2",
 				Class:     "list",
@@ -287,7 +287,7 @@ var testbuilder3 = []listbuilder.ListDef{
 				Class:     "list",
 				Resources: []xlist.Resource{xlist.IPv4},
 				Source:    "source list3",
-				Wrappers: []listbuilder.WrapperDef{
+				Wrappers: []builder.WrapperDef{
 					{
 						Class: "wrapx",
 						Opts:  map[string]interface{}{"preffix": "wrapp3"},
@@ -300,31 +300,31 @@ var testbuilder3 = []listbuilder.ListDef{
 
 func TestBuilderWrapper(t *testing.T) {
 	//register builders
-	listbuilder.RegisterListBuilder("list", testBuilderList())
-	listbuilder.RegisterListBuilder("comp", testBuilderCompo())
-	listbuilder.RegisterWrapperBuilder("wrap", testBuilderWrap())
+	builder.RegisterListBuilder("list", testBuilderList())
+	builder.RegisterListBuilder("comp", testBuilderCompo())
+	builder.RegisterWrapperBuilder("wrap", testBuilderWrap())
 
-	builder := listbuilder.New()
+	b := builder.New()
 
-	_, err := builder.Build(testbuilder3[0])
+	_, err := b.Build(testbuilder3[0])
 	if err == nil {
 		t.Fatalf("wrapper builds without register: %v", err)
 	}
 
 	//register builders
-	listbuilder.RegisterListBuilder("list", testBuilderList())
-	listbuilder.RegisterListBuilder("comp", testBuilderCompo())
-	listbuilder.RegisterWrapperBuilder("wrap", testBuilderWrap())
-	listbuilder.RegisterWrapperBuilder("wrapx", testBuilderWrap())
+	builder.RegisterListBuilder("list", testBuilderList())
+	builder.RegisterListBuilder("comp", testBuilderCompo())
+	builder.RegisterWrapperBuilder("wrap", testBuilderWrap())
+	builder.RegisterWrapperBuilder("wrapx", testBuilderWrap())
 
-	builder = listbuilder.New()
-	_, err = builder.Build(testbuilder3[0])
+	b = builder.New()
+	_, err = b.Build(testbuilder3[0])
 	if err != nil {
 		t.Fatalf("unexpected error building list: %v", err)
 	}
 	for i := 1; i <= 3; i++ {
 		listID := fmt.Sprintf("id-list%v", i)
-		_, ok := builder.FindListByID(listID)
+		_, ok := b.FindListByID(listID)
 		if !ok {
 			t.Fatalf("can't get list %s", listID)
 		}
@@ -340,7 +340,7 @@ func TestBuilderWrapper(t *testing.T) {
 		{"id-list3", "wrapp3: source list3"},
 	}
 	for _, test := range tests {
-		list, ok := builder.FindListByID(test.input)
+		list, ok := b.FindListByID(test.input)
 		if !ok {
 			t.Fatalf("can't get list %s", test.input)
 		}

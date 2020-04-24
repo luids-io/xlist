@@ -1,13 +1,13 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package listbuilder_test
+package builder_test
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/xlist/pkg/listbuilder"
+	"github.com/luids-io/xlist/pkg/builder"
 )
 
 type mockList struct {
@@ -168,8 +168,8 @@ func (w mockWrapper) ReadOnly() (bool, error) {
 	return w.list.ReadOnly()
 }
 
-func testBuilderList() listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.List, error) {
+func testBuilderList() builder.BuildListFn {
+	return func(builder *builder.Builder, parents []string, list builder.ListDef) (xlist.List, error) {
 		response := xlist.Response{}
 		if list.Source != "" {
 			response.Result = true
@@ -206,8 +206,8 @@ func testBuilderList() listbuilder.BuildListFn {
 	}
 }
 
-func testBuilderCompo() listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, list listbuilder.ListDef) (xlist.List, error) {
+func testBuilderCompo() builder.BuildListFn {
+	return func(builder *builder.Builder, parents []string, list builder.ListDef) (xlist.List, error) {
 		if list.Contains == nil || len(list.Contains) == 0 {
 			return nil, fmt.Errorf("no containers defined for %s list", list.ID)
 		}
@@ -239,8 +239,8 @@ func testBuilderCompo() listbuilder.BuildListFn {
 	}
 }
 
-func testBuilderWrap() listbuilder.BuildWrapperFn {
-	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
+func testBuilderWrap() builder.BuildWrapperFn {
+	return func(builder *builder.Builder, listID string, def builder.WrapperDef, bl xlist.List) (xlist.List, error) {
 		preffix := ""
 		if def.Opts != nil {
 			preffixs, ok := def.Opts["preffix"]
