@@ -15,12 +15,10 @@ import (
 )
 
 func TestList_Check(t *testing.T) {
-	ip4 := []xlist.Resource{xlist.IPv4}
-
-	rblFalse := &mockxl.List{ResourceList: ip4}
-	rblTrue := &mockxl.List{ResourceList: ip4, Results: []bool{true}}
-	rblFail := &mockxl.List{ResourceList: ip4, Fail: true}
-	rblLazy := &mockxl.List{ResourceList: ip4, Lazy: 10 * time.Millisecond}
+	rblFalse := &mockxl.List{ResourceList: onlyIPv4}
+	rblTrue := &mockxl.List{ResourceList: onlyIPv4, Results: []bool{true}}
+	rblFail := &mockxl.List{ResourceList: onlyIPv4, Fail: true}
+	rblLazy := &mockxl.List{ResourceList: onlyIPv4, Lazy: 10 * time.Millisecond}
 
 	var tests = []struct {
 		resources []xlist.Resource
@@ -30,29 +28,31 @@ func TestList_Check(t *testing.T) {
 		want      bool
 		wantErr   bool
 	}{
-		{ip4, []xlist.Checker{}, 0, true, false, false},
-		{ip4, []xlist.Checker{rblFalse}, 0, true, false, false},
-		{ip4, []xlist.Checker{rblTrue}, 0, true, true, false},
-		{ip4, []xlist.Checker{rblFalse, rblTrue}, 0, true, true, false},
-		{ip4, []xlist.Checker{rblTrue, rblFalse}, 0, true, true, false},
-		{ip4, []xlist.Checker{rblFalse, rblFalse, rblFalse}, 0, true, false, false},
-		{ip4, []xlist.Checker{rblFalse, rblFalse, rblTrue}, 0, true, true, false},
+		{onlyIPv4, []xlist.Checker{}, 0, true, false, false},
+		{onlyIPv4, []xlist.Checker{rblFalse}, 0, true, false, false},
+		{onlyIPv4, []xlist.Checker{rblTrue}, 0, true, true, false},
+		{onlyIPv4, []xlist.Checker{rblFalse, rblTrue}, 0, true, true, false},
+		{onlyIPv4, []xlist.Checker{rblTrue, rblFalse}, 0, true, true, false},
+		{onlyIPv4, []xlist.Checker{rblFalse, rblFalse, rblFalse}, 0, true, false, false},
+		{onlyIPv4, []xlist.Checker{rblFalse, rblFalse, rblTrue}, 0, true, true, false},
 		// errors
 		{[]xlist.Resource{xlist.Domain}, []xlist.Checker{}, 0, true, false, true},
-		{ip4, []xlist.Checker{rblFalse, rblFail, rblTrue}, 0, true, false, true},
-		{ip4, []xlist.Checker{rblFalse, rblFail, rblTrue}, 0, false, true, false},
-		{ip4, []xlist.Checker{rblLazy, rblFalse, rblTrue},
+		{onlyIPv4, []xlist.Checker{rblFalse, rblFail, rblTrue}, 0, true, false, true},
+		{onlyIPv4, []xlist.Checker{rblFalse, rblFail, rblTrue}, 0, false, true, false},
+		{onlyIPv4, []xlist.Checker{rblLazy, rblFalse, rblTrue},
 			19 * time.Millisecond, true, true, false},
-		{ip4, []xlist.Checker{rblLazy, rblLazy, rblTrue},
+		{onlyIPv4, []xlist.Checker{rblLazy, rblLazy, rblTrue},
 			19 * time.Millisecond, true, false, true},
-		{ip4, []xlist.Checker{rblLazy, rblLazy, rblTrue},
+		{onlyIPv4, []xlist.Checker{rblLazy, rblLazy, rblTrue},
 			19 * time.Millisecond, false, false, true},
 	}
 	for idx, test := range tests {
-		wseq := sequencexl.New(test.resources, sequencexl.SkipErrors(!test.stoOnErr), sequencexl.FirstResponse(true))
-		for _, rbl := range test.sequence {
-			wseq.AddChecker(rbl)
-		}
+		wseq := sequencexl.New(test.sequence,
+			sequencexl.Config{
+				FirstResponse: true,
+				Resources:     test.resources,
+				SkipErrors:    !test.stoOnErr,
+			})
 		//create context with timeout
 		ctx := context.Background()
 		if test.timeout > 0 {
@@ -74,30 +74,37 @@ func TestList_Check(t *testing.T) {
 }
 
 func ExampleList() {
-	ip4 := []xlist.Resource{xlist.IPv4}
+	resources := []xlist.Resource{xlist.IPv4}
 
-	rbl1 := &mockxl.List{
-		ResourceList: ip4,
-		Results:      []bool{true, false},
-		Reason:       "rbl1"}
-	rbl2 := &mockxl.List{
-		ResourceList: ip4,
-		Fail:         true}
-	rbl3 := &mockxl.List{
-		ResourceList: ip4,
-		Results:      []bool{true, false},
-		Reason:       "rbl3"}
-	rbl4 := &mockxl.List{
-		ResourceList: ip4,
-		Results:      []bool{true, false},
-		Reason:       "rbl4"}
+	childs := []xlist.Checker{
+		&mockxl.List{
+			ResourceList: resources,
+			Results:      []bool{true, false},
+			Reason:       "rbl1",
+		},
+		&mockxl.List{
+			ResourceList: resources,
+			Fail:         true,
+		},
+		&mockxl.List{
+			ResourceList: resources,
+			Results:      []bool{true, false},
+			Reason:       "rbl3",
+		},
+		&mockxl.List{
+			ResourceList: resources,
+			Results:      []bool{true, false},
+			Reason:       "rbl4",
+		},
+	}
 
 	//constructs sequence rbl
-	rbl := sequencexl.New(ip4, sequencexl.SkipErrors(true), sequencexl.FirstResponse(true))
-	rbl.AddChecker(rbl1)
-	rbl.AddChecker(rbl2) //rbl2 allways fails, but with skiperrors ignores it
-	rbl.AddChecker(rbl3)
-	rbl.AddChecker(rbl4)
+	rbl := sequencexl.New(childs,
+		sequencexl.Config{
+			Resources:     resources,
+			SkipErrors:    true,
+			FirstResponse: true,
+		})
 
 	for i := 1; i < 5; i++ {
 		resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)

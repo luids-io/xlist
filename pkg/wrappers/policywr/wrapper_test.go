@@ -31,7 +31,7 @@ func TestWrapper_Policy(t *testing.T) {
 		mockup.Reason = test.reason
 		policy := reason.NewPolicy()
 		policy.FromString(test.policy)
-		checker := policywr.New(mockup, policy)
+		checker := policywr.New(mockup, policy, policywr.Config{})
 
 		got, _ := checker.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if got.Reason != test.want {
@@ -59,7 +59,7 @@ func TestWrapper_PolicyMerge(t *testing.T) {
 		mockup.Reason = test.reason
 		policy := reason.NewPolicy()
 		policy.FromString(test.policy)
-		checker := policywr.New(mockup, policy, policywr.Merge(true))
+		checker := policywr.New(mockup, policy, policywr.Config{Merge: true})
 
 		got, _ := checker.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if got.Reason != test.want {
@@ -89,7 +89,11 @@ func TestWrapper_Threshold(t *testing.T) {
 		mockup.Reason = test.reason
 		policy := reason.NewPolicy()
 		policy.FromString(test.policy)
-		checker := policywr.New(mockup, policy, policywr.Threshold(test.threshold))
+		checker := policywr.New(mockup, policy,
+			policywr.Config{
+				UseThreshold: true,
+				Score:        test.threshold,
+			})
 
 		got, _ := checker.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if got.Reason != test.want {

@@ -16,8 +16,6 @@ import (
 
 // Wrapper implements an xlist.Checker wrapper for metrics
 type Wrapper struct {
-	xlist.List
-
 	listID string
 	list   xlist.List
 }
@@ -35,7 +33,7 @@ var stats struct {
 type options struct{}
 
 // New returns a Wrapper, it recevies the listID used for the metrics
-func New(listID string, list xlist.List, opt ...Option) *Wrapper {
+func New(list xlist.List, listID string) *Wrapper {
 	return &Wrapper{
 		listID: listID,
 		list:   list,

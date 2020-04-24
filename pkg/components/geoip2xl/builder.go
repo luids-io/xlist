@@ -16,53 +16,77 @@ import (
 const BuildClass = "geoip2"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) listbuilder.BuildListFn {
+	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		if def.Source == "" {
 			return nil, errors.New("'source' is required")
 		}
-		source := builder.SourcePath(def.Source)
+		source := b.SourcePath(def.Source)
 		if !fileExists(source) {
 			return nil, fmt.Errorf("geoip2 database file '%s' doesn't exists", source)
 		}
+
 		resources := xlist.ClearResourceDups(def.Resources)
 		if len(resources) != 1 || resources[0] != xlist.IPv4 {
 			return nil, errors.New("invalid 'resources': geoip2 only supports ip4")
 		}
 
-		var rules Rules
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
 		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, def.Opts)
-			if err != nil {
-				return nil, err
-			}
-			rules, err = getRulesFromOpts(def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
 
 		//create RBL list
-		bl := New(source, rules, bopt...)
+		bl := New(source, cfg)
 
 		//register startup
-		builder.OnStartup(func() error {
-			builder.Logger().Debugf("starting '%s'", def.ID)
-			return bl.Start()
+		b.OnStartup(func() error {
+			b.Logger().Debugf("starting '%s'", def.ID)
+			return bl.Open()
 		})
 
 		//register shutdown
-		builder.OnShutdown(func() error {
-			builder.Logger().Debugf("shutting down '%s'", def.ID)
-			bl.Shutdown()
+		b.OnShutdown(func() error {
+			b.Logger().Debugf("shutting down '%s'", def.ID)
+			bl.Close()
 			return nil
 		})
 
 		return bl, nil
 	}
+}
+
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
+	reason, ok, err := option.String(opts, "reason")
+	if err != nil {
+		return rCfg, err
+	}
+	if ok {
+		rCfg.Reason = reason
+	}
+
+	countries, ok, err := option.SliceString(opts, "countries")
+	if err != nil {
+		return rCfg, err
+	}
+	if ok {
+		rCfg.Countries = make([]string, len(countries), len(countries))
+		copy(rCfg.Countries, countries)
+	}
+
+	reverse, ok, err := option.Bool(opts, "reverse")
+	if err != nil {
+		return rCfg, err
+	}
+	if ok {
+		rCfg.Reverse = reverse
+	}
+
+	return rCfg, nil
 }
 
 func fileExists(filename string) bool {
@@ -73,39 +97,6 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) {
-	reason, ok, err := option.String(opts, "reason")
-	if err != nil {
-		return bopt, err
-	}
-	if ok {
-		bopt = append(bopt, Reason(reason))
-	}
-	return bopt, nil
-}
-
-func getRulesFromOpts(opts map[string]interface{}) (Rules, error) {
-	rules := Rules{Countries: make([]string, 0)}
-	//config rules
-	countries, ok, err := option.SliceString(opts, "countries")
-	if err != nil {
-		return rules, err
-	}
-	if ok {
-		for _, country := range countries {
-			rules.Countries = append(rules.Countries, country)
-		}
-	}
-	reverse, ok, err := option.Bool(opts, "reverse")
-	if err != nil {
-		return rules, err
-	}
-	if ok {
-		rules.Reverse = reverse
-	}
-	return rules, nil
-}
-
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder(Config{}))
 }

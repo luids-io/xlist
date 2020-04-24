@@ -12,36 +12,34 @@ import (
 
 	"google.golang.org/grpc/peer"
 
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
 )
 
+// DefaultConfig returns default configuration
+func DefaultConfig() Config {
+	return Config{
+		Rules: Rules{
+			Found:    Info,
+			NotFound: Debug,
+			Error:    Warn,
+		}}
+}
+
+// Config options
+type Config struct {
+	Prefix   string
+	Rules    Rules
+	ShowPeer bool
+}
+
 // Wrapper implements a logger for list checkers
 type Wrapper struct {
-	xlist.List
-
-	opts    options
-	preffix string
-	log     Logger
-	action  Rules
-	list    xlist.List
-}
-
-// Option is used for component configuration
-type Option func(*options)
-
-var defaultOptions = options{}
-
-type options struct {
 	showPeer bool
-}
-
-// DefaultRules returns a new ruleset with default values
-func DefaultRules() Rules {
-	return Rules{
-		Found:    Info,
-		NotFound: Debug,
-		Error:    Warn,
-	}
+	preffix  string
+	log      Logger
+	action   Rules
+	list     xlist.List
 }
 
 // Rules defines log levels for each event
@@ -51,25 +49,14 @@ type Rules struct {
 	Error    LogLevel
 }
 
-// ShowPeer enables log peer context information
-func ShowPeer(b bool) Option {
-	return func(o *options) {
-		o.showPeer = b
-	}
-}
-
 // New creates a logger wrapper with preffix
-func New(preffix string, list xlist.List, log Logger, rules Rules, opt ...Option) *Wrapper {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
-	}
+func New(list xlist.List, logger yalogi.Logger, cfg Config) *Wrapper {
 	return &Wrapper{
-		opts:    opts,
-		preffix: preffix,
-		log:     log,
-		action:  rules,
-		list:    list,
+		showPeer: cfg.ShowPeer,
+		preffix:  cfg.Prefix,
+		log:      logger,
+		action:   cfg.Rules,
+		list:     list,
 	}
 }
 
@@ -177,7 +164,7 @@ func (w *Wrapper) ReadOnly() (bool, error) {
 func (w *Wrapper) getPeerInfo(ctx context.Context) string {
 	//get peer info
 	peerInfo := ""
-	if w.opts.showPeer {
+	if w.showPeer {
 		p, ok := peer.FromContext(ctx)
 		if ok {
 			peerInfo = fmt.Sprintf("%v", p.Addr)

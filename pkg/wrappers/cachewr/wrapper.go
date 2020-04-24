@@ -17,17 +17,32 @@ import (
 	"github.com/luids-io/core/xlist"
 )
 
+// DefaultConfig returns default configuration
+func DefaultConfig() Config {
+	return Config{
+		TTL:           defaultCacheTTL,
+		Cleanups:      defaultCacheCleanups,
+		RandomSeconds: defaultRandomCache,
+		DoStats:       false,
+	}
+}
+
+// Config options
+type Config struct {
+	TTL             int
+	NegativeTTL     int
+	Cleanups        time.Duration
+	RandomSeconds   int
+	DoStats         bool
+	ForceValidation bool
+}
+
 // Wrapper implements a cache for list checkers
 type Wrapper struct {
-	xlist.List
-
 	opts  options
 	list  xlist.List
 	cache *cacheimpl.Cache
 }
-
-// Option is used for component configuration
-type Option func(*options)
 
 type options struct {
 	ttl             int
@@ -44,49 +59,15 @@ var (
 	defaultRandomCache   = 60 //seconds to randomize
 )
 
-var defaultOptions = options{
-	ttl:           defaultCacheTTL,
-	cleanups:      defaultCacheCleanups,
-	randomSeconds: defaultRandomCache,
-	doStats:       false,
-}
-
-// Cleanups sets time for cache cleanups
-func Cleanups(d time.Duration, randomSeconds int) Option {
-	return func(o *options) {
-		o.cleanups = d
-		o.randomSeconds = randomSeconds
-	}
-}
-
-// TTL sets time cache in seconds
-func TTL(ttl int) Option {
-	return func(o *options) {
-		if ttl > 0 {
-			o.ttl = ttl
-		}
-	}
-}
-
-// NegativeTTL sets time for negative cache in seconds
-func NegativeTTL(ttl int) Option {
-	return func(o *options) {
-		o.negativettl = ttl
-	}
-}
-
-// ForceValidation forces components to ignore context and validate requests
-func ForceValidation(b bool) Option {
-	return func(o *options) {
-		o.forceValidation = b
-	}
-}
-
 // New returns a new wrapper
-func New(list xlist.List, opt ...Option) *Wrapper {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
+func New(list xlist.List, cfg Config) *Wrapper {
+	opts := options{
+		ttl:             cfg.TTL,
+		negativettl:     cfg.NegativeTTL,
+		cleanups:        cfg.Cleanups,
+		randomSeconds:   cfg.RandomSeconds,
+		doStats:         cfg.DoStats,
+		forceValidation: cfg.ForceValidation,
 	}
 	//randomize cache cleanups
 	rands := time.Duration(rand.Intn(opts.randomSeconds)) * time.Second

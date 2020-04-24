@@ -14,7 +14,7 @@ import (
 func TestWrapper_CheckNegate(t *testing.T) {
 	ip4 := []xlist.Resource{xlist.IPv4}
 	mockup := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}}
-	respwr := responsewr.New(mockup, responsewr.Negate(true))
+	respwr := responsewr.New(mockup, responsewr.Config{Negate: true})
 
 	var tests = []struct {
 		name    string
@@ -53,7 +53,7 @@ func TestWrapper_CheckTTL(t *testing.T) {
 		{-2, 600},                            //3
 	}
 	for idx, test := range tests {
-		respwr := responsewr.New(mockup, responsewr.TTL(test.ttl))
+		respwr := responsewr.New(mockup, responsewr.Config{TTL: test.ttl})
 		resp, _ := respwr.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if test.want != resp.TTL {
 			t.Errorf("idx[%v] respwr.Check(): want=%v got=%v", idx, test.want, resp.TTL)
@@ -64,7 +64,7 @@ func TestWrapper_CheckTTL(t *testing.T) {
 func TestWrapper_CheckReason(t *testing.T) {
 	ip4 := []xlist.Resource{xlist.IPv4}
 	mockup := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}, Reason: "mockup"}
-	respwr := responsewr.New(mockup, responsewr.Reason("cambiada"))
+	respwr := responsewr.New(mockup, responsewr.Config{Reason: "cambiada"})
 
 	var tests = []struct {
 		name string
@@ -85,7 +85,7 @@ func TestWrapper_CheckReason(t *testing.T) {
 func TestWrapper_CheckPrefix(t *testing.T) {
 	ip4 := []xlist.Resource{xlist.IPv4}
 	mockup := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}, Reason: "mockup"}
-	respwr := responsewr.New(mockup, responsewr.PreffixReason("prueba"))
+	respwr := responsewr.New(mockup, responsewr.Config{Preffix: "prueba"})
 
 	var tests = []struct {
 		name string

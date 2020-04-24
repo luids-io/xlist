@@ -14,48 +14,46 @@ import (
 const BuildClass = "cache"
 
 // Builder returns a builder for the wrapper component
-func Builder(opt ...Option) listbuilder.BuildWrapperFn {
-	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
+func Builder(cfg Config) listbuilder.BuildWrapperFn {
+	return func(b *listbuilder.Builder, id string, def listbuilder.WrapperDef, list xlist.List) (xlist.List, error) {
 		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		w := New(bl, bopt...)
-		return w, nil
+		return New(list, cfg), nil
 	}
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) {
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
 	ttl, ok, err := option.Int(opts, "ttl")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
 		if ttl <= 0 {
-			return bopt, errors.New("invalid 'ttl'")
+			return rCfg, errors.New("invalid 'ttl'")
 		}
-		bopt = append(bopt, TTL(ttl))
+		rCfg.TTL = ttl
 	}
 
 	negativettl, ok, err := option.Int(opts, "negativettl")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
 		if negativettl <= 0 && negativettl != xlist.NeverCache {
-			return bopt, errors.New("invalid 'negativettl'")
+			return rCfg, errors.New("invalid 'negativettl'")
 		}
-		bopt = append(bopt, NegativeTTL(negativettl))
+		rCfg.NegativeTTL = negativettl
 	}
 
-	return bopt, nil
+	return rCfg, nil
 }
 
 func init() {
-	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
+	listbuilder.RegisterWrapperBuilder(BuildClass, Builder(DefaultConfig()))
 }

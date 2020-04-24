@@ -14,15 +14,18 @@ var testdb1 = "../../../test/testdata/GeoIP2-Country-Test.mmdb"
 
 func TestList_New(t *testing.T) {
 	//test non existdb
-	geoip := geoip2xl.New("nonexistent.mmdb", geoip2xl.Rules{})
-	err := geoip.Start()
+	geoip := geoip2xl.New("nonexistent.mmdb", geoip2xl.Config{})
+	err := geoip.Open()
 	if err == nil {
 		t.Errorf("geoip.Start(): expected error")
 	}
 	//test db
-	geoip = geoip2xl.New(testdb1, geoip2xl.Rules{
-		Countries: []string{"ES"}, Reverse: true,
-	})
+	geoip = geoip2xl.New(testdb1,
+		geoip2xl.Config{
+			Countries: []string{"ES"},
+			Reverse:   true,
+		})
+
 	//test before start
 	err = geoip.Ping()
 	if err != xlist.ErrNotAvailable {
@@ -33,11 +36,11 @@ func TestList_New(t *testing.T) {
 		t.Errorf("geoip.Check(): err=%v", err)
 	}
 	// test start
-	err = geoip.Start()
+	err = geoip.Open()
 	if err != nil {
 		t.Fatalf("geoip.Start(): err=%v", err)
 	}
-	defer geoip.Shutdown()
+	defer geoip.Close()
 
 	err = geoip.Ping()
 	if err != nil {
@@ -52,21 +55,21 @@ func TestList_New(t *testing.T) {
 
 func TestList_Check(t *testing.T) {
 	var tests = []struct {
-		in   geoip2xl.Rules
+		in   geoip2xl.Config
 		want bool
 	}{
-		{geoip2xl.Rules{}, false},
-		{geoip2xl.Rules{Countries: []string{"ES"}}, false},
-		{geoip2xl.Rules{Countries: []string{"GB"}}, true},
-		{geoip2xl.Rules{Countries: []string{"gb"}}, true},
-		{geoip2xl.Rules{Countries: []string{"ES", "FR"}}, false},
-		{geoip2xl.Rules{Countries: []string{"ES", "GB"}}, true},
-		{geoip2xl.Rules{Countries: []string{"ES", "FR"}, Reverse: true}, true},
-		{geoip2xl.Rules{Countries: []string{"ES", "GB"}, Reverse: true}, false},
+		{geoip2xl.Config{}, true},
+		{geoip2xl.Config{Countries: []string{"ES"}}, false},
+		{geoip2xl.Config{Countries: []string{"GB"}}, true},
+		{geoip2xl.Config{Countries: []string{"gb"}}, true},
+		{geoip2xl.Config{Countries: []string{"ES", "FR"}}, false},
+		{geoip2xl.Config{Countries: []string{"ES", "GB"}}, true},
+		{geoip2xl.Config{Countries: []string{"ES", "FR"}, Reverse: true}, true},
+		{geoip2xl.Config{Countries: []string{"ES", "GB"}, Reverse: true}, false},
 	}
 	for idx, test := range tests {
 		geoip := geoip2xl.New(testdb1, test.in)
-		err := geoip.Start()
+		err := geoip.Open()
 		if err != nil {
 			t.Fatalf("geoip.Start(): err=%v", err)
 		}
@@ -77,6 +80,6 @@ func TestList_Check(t *testing.T) {
 		if got.Result != test.want {
 			t.Errorf("idx[%v] geoip.Check(): want=%v got=%v", idx, test.want, got)
 		}
-		geoip.Shutdown()
+		geoip.Close()
 	}
 }

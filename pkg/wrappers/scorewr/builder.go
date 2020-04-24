@@ -4,6 +4,7 @@ package scorewr
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
@@ -14,10 +15,8 @@ import (
 const BuildClass = "score"
 
 // Builder returns a builder for the component
-func Builder(opt ...Option) listbuilder.BuildWrapperFn {
-	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
+func Builder(cfg Config) listbuilder.BuildWrapperFn {
+	return func(b *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
 		score := 0
 		if def.Opts != nil {
 			v, ok, err := option.Int(def.Opts, "value")
@@ -27,42 +26,43 @@ func Builder(opt ...Option) listbuilder.BuildWrapperFn {
 			if ok {
 				score = v
 			}
-		}
-		w := New(bl, score, bopt...)
-		if def.Opts != nil {
-			err := addExprFromOpts(w, def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		return w, nil
+		return New(bl, score, cfg), nil
 	}
 }
 
-func addExprFromOpts(w *Wrapper, opts map[string]interface{}) error {
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
 	matches, ok, err := option.SliceHash(opts, "matches")
 	if err != nil {
-		return err
+		return rCfg, err
 	}
 	if ok {
+		rCfg.Scores = make([]ScoreExpr, 0, len(matches))
 		for _, match := range matches {
 			expr, ok, err := option.String(match, "expr")
 			if err != nil || !ok {
-				return err
+				return rCfg, err
 			}
 			value, ok, err := option.Int(match, "value")
 			if err != nil || !ok {
-				return err
+				return rCfg, err
 			}
-			err = w.AddExpr(expr, value)
+			// compile regexpr
+			re, err := regexp.Compile(expr)
 			if err != nil {
-				return fmt.Errorf("invalid 'matches': invalid 'expr': %s %v", expr, err)
+				return rCfg, fmt.Errorf("invalid 'matches': invalid 'expr': %s %v", expr, err)
 			}
+			rCfg.Scores = append(rCfg.Scores, ScoreExpr{RegExp: re, Score: value})
 		}
 	}
-	return nil
+	return rCfg, nil
 }
 
 func init() {
-	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
+	listbuilder.RegisterWrapperBuilder(BuildClass, Builder(Config{}))
 }

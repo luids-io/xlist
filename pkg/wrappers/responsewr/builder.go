@@ -14,93 +14,92 @@ import (
 const BuildClass = "response"
 
 // Builder returns a builder for the component
-func Builder(opt ...Option) listbuilder.BuildWrapperFn {
+func Builder(cfg Config) listbuilder.BuildWrapperFn {
 	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
 		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, def.Opts, listID)
+			cfg, err = parseOptions(cfg, def.Opts, listID)
 			if err != nil {
 				return nil, err
 			}
 		}
-		w := New(bl, bopt...)
-		return w, nil
+		return New(bl, cfg), nil
 	}
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}, listID string) ([]Option, error) {
+func parseOptions(cfg Config, opts map[string]interface{}, listID string) (Config, error) {
+	rCfg := cfg
 	clean, ok, err := option.Bool(opts, "clean")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Clean(clean))
+		rCfg.Clean = clean
 	}
 
 	aggregate, ok, err := option.Bool(opts, "aggregate")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
 		if clean && aggregate {
-			return bopt, errors.New("'clean' and 'aggregate' fields are incompatible")
+			return rCfg, errors.New("'clean' and 'aggregate' fields are incompatible")
 		}
-		bopt = append(bopt, Aggregate(aggregate))
+		rCfg.Aggregate = aggregate
 	}
 
 	negate, ok, err := option.Bool(opts, "negate")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Negate(negate))
+		rCfg.Negate = negate
 	}
 
 	ttl, ok, err := option.Int(opts, "ttl")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
-	if ok {
-		bopt = append(bopt, TTL(ttl))
+	if ok && ttl >= xlist.NeverCache {
+		rCfg.TTL = ttl
 	}
 
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Reason(reason))
+		rCfg.Reason = reason
 	}
 
 	preffixID, ok, err := option.Bool(opts, "preffixid")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok && preffixID {
-		bopt = append(bopt, PreffixReason(listID))
+		rCfg.Preffix = listID
 	}
 
 	preffix, ok, err := option.String(opts, "preffix")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, PreffixReason(preffix))
+		rCfg.Preffix = preffix
 	}
 
 	threshold, ok, err := option.Int(opts, "threshold")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Threshold(threshold))
+		rCfg.UseThreshold = true
+		rCfg.Score = threshold
 	}
 
-	return bopt, nil
+	return rCfg, nil
 }
 
 func init() {
-	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
+	listbuilder.RegisterWrapperBuilder(BuildClass, Builder(Config{}))
 }

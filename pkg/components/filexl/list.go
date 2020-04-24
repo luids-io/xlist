@@ -13,71 +13,35 @@ import (
 	"github.com/luids-io/xlist/pkg/components/memxl"
 )
 
+// DefaultConfig returns default configuration
+func DefaultConfig() Config {
+	return Config{
+		Logger:     yalogi.LogNull,
+		ReloadTime: 30 * time.Second,
+	}
+}
+
+// Config options
+type Config struct {
+	Resources       []xlist.Resource
+	Logger          yalogi.Logger
+	ForceValidation bool
+	Reason          string
+	UnsafeReload    bool
+	Autoreload      bool
+	ReloadTime      time.Duration
+}
+
 type options struct {
-	logger          yalogi.Logger
 	forceValidation bool
 	reason          string
 	unsafeReload    bool
 	autoreload      bool
-	reloadSecs      int
-}
-
-var defaultOptions = options{
-	logger:     yalogi.LogNull,
-	reloadSecs: 30,
-}
-
-// Option is used for component configuration
-type Option func(*options)
-
-// SetLogger sets a logger for the component
-func SetLogger(l yalogi.Logger) Option {
-	return func(o *options) {
-		o.logger = l
-	}
-}
-
-// ReloadSeconds number of seconds between check if file has changed
-func ReloadSeconds(i int) Option {
-	return func(o *options) {
-		if i > 0 {
-			o.reloadSecs = i
-		}
-	}
-}
-
-// Autoreload uses a goroutine for checking changes in file and reloads it
-func Autoreload(b bool) Option {
-	return func(o *options) {
-		o.autoreload = b
-	}
-}
-
-// UnsafeReload don't use a temporal memxl for reload
-func UnsafeReload(b bool) Option {
-	return func(o *options) {
-		o.unsafeReload = b
-	}
-}
-
-// ForceValidation forces components to ignore context and validate requests
-func ForceValidation(b bool) Option {
-	return func(o *options) {
-		o.forceValidation = b
-	}
-}
-
-// Reason sets a fixed reason for component
-func Reason(s string) Option {
-	return func(o *options) {
-		o.reason = s
-	}
+	reloadTime      time.Duration
 }
 
 // List loads list from a file using internally a memxl.List
 type List struct {
-	xlist.List
-
 	opts     options
 	logger   yalogi.Logger
 	filename string
@@ -93,19 +57,26 @@ type List struct {
 }
 
 // New creates a new List with the filename passed
-func New(filename string, resources []xlist.Resource, opt ...Option) *List {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
-	}
+func New(filename string, cfg Config) *List {
 	l := &List{
-		opts:     opts,
-		logger:   opts.logger,
 		filename: filename,
-		list: memxl.New(resources,
-			memxl.ForceValidation(opts.forceValidation),
-			memxl.Reason(opts.reason)),
+		opts: options{
+			forceValidation: cfg.ForceValidation,
+			reason:          cfg.Reason,
+			unsafeReload:    cfg.UnsafeReload,
+			autoreload:      cfg.Autoreload,
+			reloadTime:      cfg.ReloadTime,
+		},
+		logger: cfg.Logger,
+		list: memxl.New(memxl.Config{
+			Resources:       cfg.Resources,
+			ForceValidation: cfg.ForceValidation,
+			Reason:          cfg.Reason,
+		}),
 		close: make(chan bool),
+	}
+	if l.logger == nil {
+		l.logger = yalogi.LogNull
 	}
 	return l
 }
@@ -166,9 +137,9 @@ func (l *List) ReadOnly() (bool, error) {
 	return true, nil
 }
 
-// Start loads file to memory
-func (l *List) Start() error {
-	l.logger.Debugf("starting list with source '%s'", l.filename)
+// Open loads file to memory
+func (l *List) Open() error {
+	l.logger.Debugf("opening source '%s'", l.filename)
 	err := l.loadFile(l.list, false)
 	if err != nil {
 		return err
@@ -180,9 +151,9 @@ func (l *List) Start() error {
 	return nil
 }
 
-// Shutdown release memory
-func (l *List) Shutdown() {
-	l.logger.Debugf("shutting down list with source '%s'", l.filename)
+// Close release memory
+func (l *List) Close() {
+	l.logger.Debugf("closing source '%s'", l.filename)
 	if l.started {
 		if l.opts.autoreload {
 			l.close <- true
@@ -205,9 +176,11 @@ func (l *List) Reload() error {
 		return nil
 	}
 	//safe reload
-	list := memxl.New(l.Resources(),
-		memxl.ForceValidation(l.opts.forceValidation),
-		memxl.Reason(l.opts.reason))
+	list := memxl.New(memxl.Config{
+		Resources:       l.Resources(),
+		ForceValidation: l.opts.forceValidation,
+		Reason:          l.opts.reason,
+	})
 	err := l.loadFile(list, false)
 	if err != nil {
 		return err
@@ -222,7 +195,7 @@ func (l *List) Reload() error {
 }
 
 func (l *List) doReload() {
-	ticker := time.NewTicker(time.Duration(l.opts.reloadSecs) * time.Second)
+	ticker := time.NewTicker(l.opts.reloadTime)
 	for {
 		select {
 		case <-l.close:

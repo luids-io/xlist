@@ -16,21 +16,19 @@ import (
 const BuildClass = "mem"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) listbuilder.BuildListFn {
+	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		source := ""
 		if def.Source != "" {
-			source = builder.SourcePath(def.Source)
+			source = b.SourcePath(def.Source)
 			if !fileExists(source) {
 				return nil, fmt.Errorf("file '%s' doesn't exists", source)
 			}
 		}
 		var data []Data
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
 		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
@@ -39,26 +37,13 @@ func Builder(opt ...Option) listbuilder.BuildListFn {
 				return nil, err
 			}
 		}
-		bl := New(def.Resources, bopt...)
-
-		//register startup
-		builder.OnStartup(func() error {
-			builder.Logger().Debugf("starting '%s'", def.ID)
-			if source != "" {
-				err := LoadFromFile(bl, source, false)
-				if err != nil {
-					return err
-				}
+		bl := New(cfg)
+		if len(data) > 0 {
+			err := LoadFromData(bl, data, false)
+			if err != nil {
+				return nil, err
 			}
-			if data != nil {
-				err := LoadFromData(bl, data, false)
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-
+		}
 		return bl, nil
 	}
 }
@@ -71,16 +56,16 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) {
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Reason(reason))
+		rCfg.Reason = reason
 	}
-
-	return bopt, nil
+	return rCfg, nil
 }
 
 func getData(opts map[string]interface{}) ([]Data, error) {
@@ -123,5 +108,5 @@ func getData(opts map[string]interface{}) ([]Data, error) {
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder(Config{}))
 }

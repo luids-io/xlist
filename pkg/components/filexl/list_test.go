@@ -16,13 +16,15 @@ var testfile1 = "../../../test/testdata/testfile1.xlist"
 var testfileerr = "../../../test/testdata/testfile-err.xlist"
 
 func TestList_Check(t *testing.T) {
-	list := filexl.New(testfile1, []xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6})
-
-	err := list.Start()
+	list := filexl.New(testfile1,
+		filexl.Config{
+			Resources: []xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
+		})
+	err := list.Open()
 	if err != nil {
 		t.Fatalf("filexl.Start(): err=%v", err)
 	}
-	defer list.Shutdown()
+	defer list.Close()
 
 	var tests = []struct {
 		name     string
@@ -53,21 +55,28 @@ func TestList_Check(t *testing.T) {
 }
 
 func TestList_New(t *testing.T) {
-	list := filexl.New(testfileerr, []xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6})
-	err := list.Start()
+	list := filexl.New(testfileerr,
+		filexl.Config{
+			Resources: []xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
+		})
+	err := list.Open()
 	if err == nil || !strings.Contains(err.Error(), "ip4,cidr,-10.5.0.0/16") {
 		t.Fatalf("filexl.Start(): expected error %v", err)
 	}
-	list = filexl.New(testfile1, []xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6})
+
+	list = filexl.New(testfile1,
+		filexl.Config{
+			Resources: []xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
+		})
 	err = list.Ping()
 	if err != xlist.ErrNotAvailable {
 		t.Errorf("filexl.Ping(): err=%v", err)
 	}
-	err = list.Start()
+	err = list.Open()
 	if err != nil {
 		t.Fatalf("filexl.Start(): err=%v", err)
 	}
-	defer list.Shutdown()
+	defer list.Close()
 }
 
 //TODO: check autoreload

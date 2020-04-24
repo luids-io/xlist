@@ -18,7 +18,9 @@ func TestWrapper_Check(t *testing.T) {
 	mockup := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}}
 
 	output := &logmockup{}
-	logged := loggerwr.New("mockup", mockup, output, loggerwr.DefaultRules())
+	cfg := loggerwr.DefaultConfig()
+	cfg.Prefix = "mockup"
+	logged := loggerwr.New(mockup, output, cfg)
 
 	var tests = []struct {
 		name    string

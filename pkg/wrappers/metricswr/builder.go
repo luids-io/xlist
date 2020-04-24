@@ -11,9 +11,9 @@ import (
 const BuildClass = "metrics"
 
 // Builder returns a builder for the component
-func Builder(opt ...Option) listbuilder.BuildWrapperFn {
-	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
-		return New(listID, bl), nil
+func Builder() listbuilder.BuildWrapperFn {
+	return func(b *listbuilder.Builder, id string, def listbuilder.WrapperDef, list xlist.List) (xlist.List, error) {
+		return New(list, id), nil
 	}
 }
 

@@ -5,6 +5,7 @@ package filexl
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/luids-io/core/utils/option"
 	"github.com/luids-io/core/xlist"
@@ -15,38 +16,32 @@ import (
 const BuildClass = "file"
 
 // Builder returns a list builder function
-func Builder(opt ...Option) listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) listbuilder.BuildListFn {
+	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		if def.Source == "" {
 			def.Source = fmt.Sprintf("%s.xlist", def.ID)
 		}
-		source := builder.SourcePath(def.Source)
+		source := b.SourcePath(def.Source)
 		if !fileExists(source) {
 			return nil, fmt.Errorf("file '%s' doesn't exists", source)
 		}
-
-		bopt := make([]Option, 0)
-		bopt = append(bopt, SetLogger(builder.Logger()))
-		bopt = append(bopt, opt...)
+		cfg.Logger = b.Logger()
 		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		bl := New(source, def.Resources, bopt...)
 
+		bl := New(source, cfg)
 		//register startup
-		builder.OnStartup(func() error {
-			builder.Logger().Debugf("starting '%s'", def.ID)
-			return bl.Start()
+		b.OnStartup(func() error {
+			return bl.Open()
 		})
-
 		//register shutdown
-		builder.OnShutdown(func() error {
-			builder.Logger().Debugf("shutting down '%s'", def.ID)
-			bl.Shutdown()
+		b.OnShutdown(func() error {
+			bl.Close()
 			return nil
 		})
 
@@ -62,42 +57,43 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) {
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Reason(reason))
+		rCfg.Reason = reason
 	}
 
 	autoreload, ok, err := option.Bool(opts, "autoreload")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Autoreload(autoreload))
+		rCfg.Autoreload = autoreload
 	}
 
 	unsafereload, ok, err := option.Bool(opts, "unsafereload")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, UnsafeReload(unsafereload))
+		rCfg.UnsafeReload = unsafereload
 	}
 
 	reloadSecs, ok, err := option.Int(opts, "reloadseconds")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, ReloadSeconds(reloadSecs))
+		rCfg.ReloadTime = time.Duration(reloadSecs) * time.Second
 	}
 
-	return bopt, nil
+	return rCfg, nil
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder(DefaultConfig()))
 }

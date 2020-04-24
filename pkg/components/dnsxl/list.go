@@ -8,29 +8,52 @@ package dnsxl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/miekg/dns"
 
 	"github.com/luids-io/core/xlist"
 )
 
-// Client is the struct that implements dns client.
-// It's an miekg/dns.Client alias.
-type Client = dns.Client
+// DefaultConfig returns default configuration
+func DefaultConfig() Config {
+	return Config{
+		DoReverse: true,
+		Retries:   1,
+		Timeout:   1 * time.Second,
+	}
+}
+
+// Config options
+type Config struct {
+	Resources       []xlist.Resource
+	Timeout         time.Duration
+	ForceValidation bool
+	DoReverse       bool
+	HalfPing        bool
+	ResolveReason   bool
+	AuthToken       string
+	Reason          string
+	PingDNS         string
+	Resolver        Resolver
+	Retries         int
+	DNSCodes        map[string]string
+	ErrCodes        map[string]string
+}
 
 //List implements an xlist.List that checks against DNS blacklists
 type List struct {
-	xlist.List
-
-	opts     options
-	client   *Client
-	resolver Resolver
-	zone     string
-	dnsCodes map[string]string //map reason codes
-	errCodes map[string]string //map error codes
-	provides []bool            //resources
+	opts      options
+	client    *dns.Client
+	resolver  Resolver
+	zone      string
+	dnsCodes  map[string]string //map reason codes
+	errCodes  map[string]string //map error codes
+	resources []xlist.Resource
+	provides  []bool
 }
 
 type options struct {
@@ -41,125 +64,66 @@ type options struct {
 	authToken       string
 	reason          string
 	pingDNS         string
-	resolver        Resolver
 	retries         int
 }
 
-var defaultOptions = options{
-	doReverse: true,
-	retries:   1,
-}
-
-// Option is used for common component configuration
-type Option func(*options)
-
-// ForceValidation forces component to ignore context and validate requests
-func ForceValidation(b bool) Option {
-	return func(o *options) {
-		o.forceValidation = b
-	}
-}
-
-//Reverse option reverses ips and domains for dns searchs
-func Reverse(b bool) Option {
-	return func(o *options) {
-		o.doReverse = b
-	}
-}
-
-//ResolveReason option enables to query TXT records
-func ResolveReason(b bool) Option {
-	return func(o *options) {
-		o.resolveReason = b
-	}
-}
-
-//Reason option fixes a default reason
-func Reason(s string) Option {
-	return func(o *options) {
-		o.reason = s
-	}
-}
-
-//UseDNSPing option is for lists that doesn't support rfc and replaces lookup
-func UseDNSPing(query string) Option {
-	return func(o *options) {
-		o.pingDNS = query
-	}
-}
-
-//HalfPing option is for lists that doesn't support fully rfc
-func HalfPing(b bool) Option {
-	return func(o *options) {
-		o.halfPing = b
-	}
-}
-
-//AuthToken option prepends token to dns queries
-func AuthToken(token string) Option {
-	return func(o *options) {
-		o.authToken = token
-	}
-}
-
-//UseResolver option sets a custom resolver for the list
-func UseResolver(r Resolver) Option {
-	return func(o *options) {
-		o.resolver = r
-	}
-}
-
-//Retries option sets the number of retries in dns queries
-func Retries(i int) Option {
-	return func(o *options) {
-		o.retries = i
-	}
-}
-
 // New creates a new DNSxL based RBL
-func New(client *Client, zone string, resources []xlist.Resource, opt ...Option) *List {
+func New(zone string, cfg Config) (*List, error) {
 	if zone == "" {
-		panic("zone parameter is required")
+		return nil, errors.New("zone parameter is required")
 	}
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
+	client := &dns.Client{}
+	if cfg.Timeout > 0 {
+		client.Timeout = cfg.Timeout
 	}
 	l := &List{
-		opts:     opts,
-		client:   client,
+		opts: options{
+			forceValidation: cfg.ForceValidation,
+			doReverse:       cfg.DoReverse,
+			halfPing:        cfg.HalfPing,
+			resolveReason:   cfg.ResolveReason,
+			authToken:       cfg.AuthToken,
+			reason:          cfg.Reason,
+			pingDNS:         cfg.PingDNS,
+			retries:         cfg.Retries,
+		},
 		resolver: defaultResolver,
+		client:   client,
 		zone:     zone,
-		dnsCodes: make(map[string]string),
-		errCodes: make(map[string]string),
-		provides: make([]bool, len(xlist.Resources), len(xlist.Resources)),
+	}
+	if cfg.Resolver != nil {
+		l.resolver = cfg.Resolver
 	}
 	//set resource types that provides
-	for _, r := range resources {
-		if r >= xlist.IPv4 && r <= xlist.Domain {
-			l.provides[int(r)] = true
+	l.provides = make([]bool, len(xlist.Resources), len(xlist.Resources))
+	l.resources = make([]xlist.Resource, 0, 3)
+	for _, r := range xlist.ClearResourceDups(cfg.Resources) {
+		if r < xlist.IPv4 || r > xlist.Domain {
+			return nil, fmt.Errorf("resource '%v' not supported", r)
+		}
+		l.provides[int(r)] = true
+		l.resources = append(l.resources, r)
+	}
+	// set dns codes and error codes
+	if len(cfg.DNSCodes) > 0 {
+		l.dnsCodes = make(map[string]string, len(cfg.DNSCodes))
+		for sip, reason := range cfg.DNSCodes {
+			if !isIP(sip) {
+				return l, fmt.Errorf("invalid ip '%s' in dnscodes", sip)
+			}
+			l.dnsCodes[sip] = reason
 		}
 	}
-	if opts.resolver != nil {
-		l.resolver = opts.resolver
+	if len(cfg.ErrCodes) > 0 {
+		l.errCodes = make(map[string]string, len(cfg.ErrCodes))
+		for sip, reason := range cfg.ErrCodes {
+			if !isIP(sip) {
+				return l, fmt.Errorf("invalid ip '%s' in errcodes", sip)
+			}
+			l.errCodes[sip] = reason
+		}
 	}
-	return l
-}
-
-// AddDNSCode adds an ip with its reason
-func (l *List) AddDNSCode(ip string, reason string) {
-	if !isIP(ip) {
-		return // do nothing
-	}
-	l.dnsCodes[ip] = reason
-}
-
-// AddErrCode adds an ip as error
-func (l *List) AddErrCode(ip string, msgerr string) {
-	if !isIP(ip) {
-		return // do nothing
-	}
-	l.errCodes[ip] = msgerr
+	return l, nil
 }
 
 // Check implements xlist.Checker interface

@@ -14,81 +14,69 @@ import (
 const BuildClass = "logger"
 
 // Builder returns a builder for the wrapper component with the logger passed
-func Builder(opt ...Option) listbuilder.BuildWrapperFn {
-	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
-
-		rules := DefaultRules()
+func Builder(cfg Config) listbuilder.BuildWrapperFn {
+	return func(b *listbuilder.Builder, id string, def listbuilder.WrapperDef, list xlist.List) (xlist.List, error) {
 		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
-			r, err := getRulesFromOpts(def.Opts)
-			if err != nil {
-				return nil, err
-			}
-			rules = r
 		}
-		return New(listID, bl, builder.Logger(), rules, bopt...), nil
+		cfg.Prefix = id
+		return New(list, b.Logger(), cfg), nil
 	}
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) {
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
 	showpeer, ok, err := option.Bool(opts, "showpeer")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, ShowPeer(showpeer))
+		rCfg.ShowPeer = showpeer
 	}
-	return bopt, nil
-}
-
-func getRulesFromOpts(opts map[string]interface{}) (Rules, error) {
-	rules := DefaultRules()
 
 	found, ok, err := option.String(opts, "found")
 	if err != nil {
-		return rules, err
+		return rCfg, err
 	}
 	if ok {
 		lfound, err := StringToLevel(found)
 		if err != nil {
-			return rules, errors.New("invalid 'found'")
+			return rCfg, errors.New("invalid 'found'")
 		}
-		rules.Found = lfound
+		rCfg.Rules.Found = lfound
 	}
 
 	notfound, ok, err := option.String(opts, "notfound")
 	if err != nil {
-		return rules, err
+		return rCfg, err
 	}
 	if ok {
 		lnotfound, err := StringToLevel(notfound)
 		if err != nil {
-			return rules, errors.New("invalid 'notfound'")
+			return rCfg, errors.New("invalid 'notfound'")
 		}
-		rules.NotFound = lnotfound
+		rCfg.Rules.NotFound = lnotfound
 	}
 
 	errorlevel, ok, err := option.String(opts, "error")
 	if err != nil {
-		return rules, err
+		return rCfg, err
 	}
 	if ok {
 		lerror, err := StringToLevel(errorlevel)
 		if err != nil {
-			return rules, errors.New("invalid 'error'")
+			return rCfg, errors.New("invalid 'error'")
 		}
-		rules.Error = lerror
+		rCfg.Rules.Error = lerror
 	}
 
-	return rules, nil
+	return rCfg, nil
 }
 
 func init() {
-	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
+	listbuilder.RegisterWrapperBuilder(BuildClass, Builder(DefaultConfig()))
 }

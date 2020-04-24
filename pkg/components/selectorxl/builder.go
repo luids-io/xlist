@@ -15,23 +15,22 @@ import (
 const BuildClass = "selector"
 
 // Builder returns a builder for selector List component
-func Builder(opt ...Option) listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) listbuilder.BuildListFn {
+	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		if len(def.Resources) != len(def.Contains) {
 			return nil, errors.New("number of resources doesn't match with members")
 		}
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
 		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		bl := New(bopt...)
-		for idx, sublist := range def.Contains {
-			sl, err := builder.BuildChild(append(parents, def.ID), sublist)
+		// create services
+		services := make(map[xlist.Resource]xlist.List, len(def.Contains))
+		for idx, childdef := range def.Contains {
+			sl, err := b.BuildChild(append(parents, def.ID), childdef)
 			if err != nil {
 				return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[idx].ID, err)
 			}
@@ -39,23 +38,24 @@ func Builder(opt ...Option) listbuilder.BuildListFn {
 			if !resource.InArray(sl.Resources()) {
 				return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", def.Contains[idx].ID, resource)
 			}
-			bl.SetService(resource, sl)
+			services[resource] = sl
 		}
-		return bl, nil
+		return New(services, cfg), nil
 	}
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) {
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Reason(reason))
+		rCfg.Reason = reason
 	}
-	return bopt, nil
+	return rCfg, nil
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder(Config{}))
 }

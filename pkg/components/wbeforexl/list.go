@@ -10,33 +10,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/luids-io/core/xlist"
 )
 
+// Config options
+type Config struct {
+	Resources       []xlist.Resource
+	ForceValidation bool
+	Reason          string
+}
+
 type options struct {
 	forceValidation bool
 	reason          string
-}
-
-var defaultOptions = options{}
-
-// Option is used for common component configuration
-type Option func(*options)
-
-// ForceValidation forces components to ignore context and validate requests
-func ForceValidation(b bool) Option {
-	return func(o *options) {
-		o.forceValidation = b
-	}
-}
-
-// Reason sets a fixed reason for component
-func Reason(s string) Option {
-	return func(o *options) {
-		o.reason = s
-	}
 }
 
 // List implements a composite RBL that checks a whtelist before checking
@@ -44,56 +31,43 @@ func Reason(s string) Option {
 // whitelist, then it returns immediately with a negative result. If not
 // in the whitelist, then returns the response of the blacklist.
 type List struct {
-	xlist.List
-
-	opts options
-	//resource types that list provides
-	provides  []bool
-	whitelist xlist.Checker
-	blacklist xlist.Checker
+	opts         options
+	provides     []bool
+	resources    []xlist.Resource
+	white, black xlist.Checker
 }
 
 // New constructs a new "white before" RBL, it receives the resource list that
 // RBL supports.
-func New(resources []xlist.Resource, opt ...Option) *List {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
-	}
-	w := &List{
-		opts:     opts,
-		provides: make([]bool, len(xlist.Resources), len(xlist.Resources)),
+func New(white, black xlist.Checker, cfg Config) *List {
+	l := &List{
+		opts: options{
+			forceValidation: cfg.ForceValidation,
+			reason:          cfg.Reason,
+		},
+		white:     white,
+		black:     black,
+		resources: xlist.ClearResourceDups(cfg.Resources),
+		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
 	//set resource types that provides
-	for _, r := range resources {
-		if r.IsValid() {
-			w.provides[int(r)] = true
-		}
+	for _, r := range l.resources {
+		l.provides[int(r)] = true
 	}
-	return w
-}
-
-// SetWhitelist sets the whitelist
-func (w *List) SetWhitelist(c xlist.Checker) {
-	w.whitelist = c
-}
-
-// SetBlacklist sets the blacklist
-func (w *List) SetBlacklist(c xlist.Checker) {
-	w.blacklist = c
+	return l
 }
 
 // Check implements xlist.Checker interface
-func (w *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
-	if !w.checks(resource) {
+func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
+	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotImplemented
 	}
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, w.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
-	if w.whitelist != nil {
-		resp, err := w.whitelist.Check(ctx, name, resource)
+	if l.white != nil {
+		resp, err := l.white.Check(ctx, name, resource)
 		if err != nil {
 			return xlist.Response{}, err
 		}
@@ -105,10 +79,10 @@ func (w *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	case <-ctx.Done():
 		return xlist.Response{}, ctx.Err()
 	default:
-		if w.blacklist != nil {
-			resp, err := w.blacklist.Check(ctx, name, resource)
-			if err == nil && resp.Result && w.opts.reason != "" {
-				resp.Reason = w.opts.reason
+		if l.black != nil {
+			resp, err := l.black.Check(ctx, name, resource)
+			if err == nil && resp.Result && l.opts.reason != "" {
+				resp.Reason = l.opts.reason
 			}
 			return resp, err
 		}
@@ -117,61 +91,60 @@ func (w *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 }
 
 // Resources implements xlist.Checker interface
-func (w *List) Resources() []xlist.Resource {
-	resources := make([]xlist.Resource, 0, len(xlist.Resources))
-	for _, r := range xlist.Resources {
-		if w.provides[int(r)] {
-			resources = append(resources, r)
-		}
-	}
+func (l *List) Resources() []xlist.Resource {
+	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
+	copy(resources, l.resources)
 	return resources
 }
 
 // Ping implements xlist.Checker interface
-func (w *List) Ping() error {
+func (l *List) Ping() error {
 	var errWhite, errBlack error
-	if w.whitelist != nil {
-		errWhite = w.whitelist.Ping()
+	if l.white != nil {
+		errWhite = l.white.Ping()
 	}
-	if w.blacklist != nil {
-		errBlack = w.blacklist.Ping()
+	if l.black != nil {
+		errBlack = l.black.Ping()
 	}
 	if errWhite != nil || errBlack != nil {
-		msgErr := make([]string, 0, 2)
+		var msgErr string
 		if errWhite != nil {
-			msgErr = append(msgErr, fmt.Sprintf("wbefore[0]: %v", errWhite.Error()))
+			msgErr = fmt.Sprintf("wbefore[0]: %v", errWhite.Error())
 		}
 		if errBlack != nil {
-			msgErr = append(msgErr, fmt.Sprintf("wbefore[1]: %v", errBlack.Error()))
+			if msgErr != "" {
+				msgErr = msgErr + ";"
+			}
+			msgErr = msgErr + fmt.Sprintf("wbefore[1]: %v", errBlack.Error())
 		}
-		return errors.New(strings.Join(msgErr, ";"))
+		return errors.New(msgErr)
 	}
 	return nil
 }
 
-func (w *List) checks(r xlist.Resource) bool {
+func (l *List) checks(r xlist.Resource) bool {
 	if r.IsValid() {
-		return w.provides[int(r)]
+		return l.provides[int(r)]
 	}
 	return false
 }
 
 // Append implements xlist.Writer interface
-func (w *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
 	return xlist.ErrReadOnlyMode
 }
 
 // Remove implements xlist.Writer interface
-func (w *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
 	return xlist.ErrReadOnlyMode
 }
 
 // Clear implements xlist.Writer interface
-func (w *List) Clear(ctx context.Context) error {
+func (l *List) Clear(ctx context.Context) error {
 	return xlist.ErrReadOnlyMode
 }
 
 // ReadOnly implements xlist.Writer interface
-func (w *List) ReadOnly() (bool, error) {
+func (l *List) ReadOnly() (bool, error) {
 	return true, nil
 }

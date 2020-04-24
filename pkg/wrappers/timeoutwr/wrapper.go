@@ -13,22 +13,15 @@ import (
 	"github.com/luids-io/core/xlist"
 )
 
-type options struct{}
-
-// Option is used for component configuration
-type Option func(*options)
-
 // Wrapper implements an xlist.Checker wrapper for include a timeout in check
 // requests
 type Wrapper struct {
-	xlist.List
-
 	timeout time.Duration
 	list    xlist.List
 }
 
 // New creates a Wrapper with timeout
-func New(timeout time.Duration, list xlist.List, opt ...Option) *Wrapper {
+func New(list xlist.List, timeout time.Duration) *Wrapper {
 	return &Wrapper{
 		timeout: timeout,
 		list:    list,

@@ -16,6 +16,15 @@ import (
 	"github.com/luids-io/core/xlist"
 )
 
+// Config options
+type Config struct {
+	Resources       []xlist.Resource
+	FirstResponse   bool
+	SkipErrors      bool
+	ForceValidation bool
+	Reason          string
+}
+
 type options struct {
 	firstResponse   bool
 	skipErrors      bool
@@ -23,70 +32,41 @@ type options struct {
 	reason          string
 }
 
-var defaultOptions = options{}
-
-// Option is used for common component configuration
-type Option func(*options)
-
-// FirstResponse return first child with positive result
-func FirstResponse(b bool) Option {
-	return func(o *options) {
-		o.firstResponse = b
-	}
-}
-
-// ForceValidation forces components to ignore context and validate requests
-func ForceValidation(b bool) Option {
-	return func(o *options) {
-		o.forceValidation = b
-	}
-}
-
-// Reason sets a fixed reason for component
-func Reason(s string) Option {
-	return func(o *options) {
-		o.reason = s
-	}
-}
-
-// SkipErrors option skips errors produced by childs
-func SkipErrors(b bool) Option {
-	return func(o *options) {
-		o.skipErrors = b
-	}
-}
-
 // List is a composite list that does the checks in parallel
 type List struct {
-	xlist.List
-
-	opts     options
-	childs   []xlist.Checker
-	provides []bool //slice with resources availables
+	opts      options
+	childs    []xlist.Checker
+	provides  []bool
+	resources []xlist.Resource
 }
 
 // New returns a new parallel component with the resources passed
-func New(resources []xlist.Resource, opt ...Option) *List {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
+func New(childs []xlist.Checker, cfg Config) *List {
+	l := &List{
+		opts: options{
+			firstResponse:   cfg.FirstResponse,
+			skipErrors:      cfg.SkipErrors,
+			forceValidation: cfg.ForceValidation,
+			reason:          cfg.Reason,
+		},
+		resources: xlist.ClearResourceDups(cfg.Resources),
+		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
-	p := &List{
-		opts:     opts,
-		childs:   make([]xlist.Checker, 0),
-		provides: make([]bool, len(xlist.Resources), len(xlist.Resources)),
+	//set resource types that provides
+	for _, r := range l.resources {
+		l.provides[int(r)] = true
 	}
-	for _, r := range resources {
-		if r.IsValid() {
-			p.provides[int(r)] = true
-		}
+	//set childs
+	if len(childs) > 0 {
+		l.childs = make([]xlist.Checker, len(childs), len(childs))
+		copy(l.childs, childs)
 	}
-	return p
+	return l
 }
 
 // AddChecker adds a checker to the RBL
-func (p *List) AddChecker(list xlist.Checker) {
-	p.childs = append(p.childs, list)
+func (l *List) AddChecker(list xlist.Checker) {
+	l.childs = append(l.childs, list)
 }
 
 // checkResult is used for store parallel checks
@@ -97,11 +77,11 @@ type checkResult struct {
 }
 
 // Check implements xlist.Checker interface
-func (p *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
-	if !p.checks(resource) {
+func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
+	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotImplemented
 	}
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, p.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
@@ -109,23 +89,23 @@ func (p *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	childCtx, cancel := context.WithCancel(ctx)
 
 	var wg sync.WaitGroup
-	results := make(chan *checkResult, len(p.childs))
-	for idx, l := range p.childs {
+	results := make(chan *checkResult, len(l.childs))
+	for idx, child := range l.childs {
 		wg.Add(1)
-		go workerCheck(childCtx, &wg, l, idx, name, resource, results)
+		go workerCheck(childCtx, &wg, child, idx, name, resource, results)
 	}
 
 	ttl := 0
 	result := false
-	reasons := make([]string, 0, len(p.childs))
+	reasons := make([]string, 0, len(l.childs))
 	finished := 0
 RESULTLOOP:
-	for finished < len(p.childs) {
+	for finished < len(l.childs) {
 		select {
 		case r := <-results:
 			finished++
 			if r.err != nil {
-				if !p.opts.skipErrors {
+				if !l.opts.skipErrors {
 					err = r.err
 					break RESULTLOOP
 				}
@@ -138,7 +118,7 @@ RESULTLOOP:
 						ttl = r.response.TTL
 					}
 					reasons = append(reasons, r.response.Reason)
-					if p.opts.firstResponse {
+					if l.opts.firstResponse {
 						break RESULTLOOP
 					}
 				}
@@ -158,23 +138,19 @@ RESULTLOOP:
 		if ttl > 0 {
 			resp.TTL = ttl
 		}
-		if p.opts.reason == "" {
+		if l.opts.reason == "" {
 			resp.Reason = strings.Join(reasons, ";")
 		} else {
-			resp.Reason = p.opts.reason
+			resp.Reason = l.opts.reason
 		}
 	}
 	return resp, err
 }
 
 // Resources implements xlist.Checker interface
-func (p *List) Resources() []xlist.Resource {
-	resources := make([]xlist.Resource, 0, len(xlist.Resources))
-	for _, r := range xlist.Resources {
-		if p.provides[int(r)] {
-			resources = append(resources, r)
-		}
-	}
+func (l *List) Resources() []xlist.Resource {
+	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
+	copy(resources, l.resources)
 	return resources
 }
 
@@ -186,17 +162,17 @@ type pingResult struct {
 }
 
 // Ping implements xlist.Checker interface
-func (p *List) Ping() error {
+func (l *List) Ping() error {
 	var wg sync.WaitGroup
-	results := make(chan *pingResult, len(p.childs))
-	for idx, l := range p.childs {
+	results := make(chan *pingResult, len(l.childs))
+	for idx, child := range l.childs {
 		wg.Add(1)
-		go workerPing(&wg, l, idx, results)
+		go workerPing(&wg, child, idx, results)
 	}
 
-	errs := make([]*pingResult, 0, len(p.childs))
+	errs := make([]*pingResult, 0, len(l.childs))
 	finished := 0
-	for finished < len(p.childs) {
+	for finished < len(l.childs) {
 		select {
 		case result := <-results:
 			finished++
@@ -218,9 +194,9 @@ func (p *List) Ping() error {
 	return nil
 }
 
-func (p *List) checks(r xlist.Resource) bool {
+func (l *List) checks(r xlist.Resource) bool {
 	if r.IsValid() {
-		return p.provides[int(r)]
+		return l.provides[int(r)]
 	}
 	return false
 }
@@ -253,21 +229,21 @@ func workerPing(wg *sync.WaitGroup, list xlist.Checker, listIdx int, results cha
 }
 
 // Append implements xlist.Writer interface
-func (p *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
 	return xlist.ErrReadOnlyMode
 }
 
 // Remove implements xlist.Writer interface
-func (p *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
 	return xlist.ErrReadOnlyMode
 }
 
 // Clear implements xlist.Writer interface
-func (p *List) Clear(ctx context.Context) error {
+func (l *List) Clear(ctx context.Context) error {
 	return xlist.ErrReadOnlyMode
 }
 
 // ReadOnly implements xlist.Writer interface
-func (p *List) ReadOnly() (bool, error) {
+func (l *List) ReadOnly() (bool, error) {
 	return true, nil
 }

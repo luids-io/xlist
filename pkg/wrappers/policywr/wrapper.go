@@ -14,17 +14,19 @@ import (
 	"github.com/luids-io/core/xlist/reason"
 )
 
+// Config options
+type Config struct {
+	Merge        bool
+	UseThreshold bool
+	Score        int
+}
+
 // Wrapper implements an xlist.List wrapper for insert policies
 type Wrapper struct {
-	xlist.List
-
 	opts   options
 	policy reason.Policy
 	list   xlist.List
 }
-
-// Option is used for component configuration
-type Option func(*options)
 
 type options struct {
 	merge        bool
@@ -32,31 +34,14 @@ type options struct {
 	score        int
 }
 
-var defaultOptions = options{}
-
-// Merge option merges response with the policy
-func Merge(b bool) Option {
-	return func(o *options) {
-		o.merge = b
-	}
-}
-
-// Threshold sets limit score for apply policy
-func Threshold(i int) Option {
-	return func(o *options) {
-		o.useThreshold = true
-		o.score = i
-	}
-}
-
 // New returns a new Wrapper
-func New(list xlist.List, p reason.Policy, opt ...Option) *Wrapper {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
-	}
+func New(list xlist.List, p reason.Policy, cfg Config) *Wrapper {
 	return &Wrapper{
-		opts:   opts,
+		opts: options{
+			merge:        cfg.Merge,
+			useThreshold: cfg.UseThreshold,
+			score:        cfg.Score,
+		},
 		policy: p,
 		list:   list,
 	}

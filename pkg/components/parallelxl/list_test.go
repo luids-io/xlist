@@ -53,10 +53,12 @@ func TestList_Check(t *testing.T) {
 		{ip4, []xlist.Checker{rblLazyT, rblLazyF, rblLazyT}, t5ms, true, false, true}, //13
 	}
 	for idx, test := range tests {
-		wpar := parallelxl.New(test.resources, parallelxl.SkipErrors(!test.stoOnErr), parallelxl.FirstResponse(true))
-		for _, rbl := range test.parallel {
-			wpar.AddChecker(rbl)
-		}
+		wpar := parallelxl.New(test.parallel,
+			parallelxl.Config{
+				Resources:     test.resources,
+				SkipErrors:    !test.stoOnErr,
+				FirstResponse: true,
+			})
 		//create context with timeout
 		ctx := context.Background()
 		if test.timeout > 0 {
@@ -81,18 +83,21 @@ func ExampleList() {
 	ip4 := []xlist.Resource{xlist.IPv4}
 	t5ms := 5 * time.Millisecond
 
-	rbl1 := &mockxl.List{Results: []bool{false}, ResourceList: ip4, Reason: "rbl1"}
-	rbl2 := &mockxl.List{Results: []bool{true, false}, ResourceList: ip4, Reason: "rbl2"}
-	rbl3 := &mockxl.List{Results: []bool{true}, Lazy: t5ms, ResourceList: ip4, Reason: "rbl3"}
-	rbl4 := &mockxl.List{Fail: true, ResourceList: ip4}
+	cfg := parallelxl.Config{
+		Resources:     ip4,
+		SkipErrors:    true,
+		FirstResponse: true,
+	}
+	childs := []xlist.Checker{
+		&mockxl.List{Results: []bool{false}, ResourceList: ip4, Reason: "rbl1"},
+		&mockxl.List{Results: []bool{true, false}, ResourceList: ip4, Reason: "rbl2"},
+		&mockxl.List{Results: []bool{true}, Lazy: t5ms, ResourceList: ip4, Reason: "rbl3"},
+		//rbl4 allways fails, but with skiperrors ignores this fail
+		&mockxl.List{Fail: true, ResourceList: ip4},
+	}
 
 	//constructs parallel rbl
-	rbl := parallelxl.New(ip4, parallelxl.SkipErrors(true), parallelxl.FirstResponse(true))
-	rbl.AddChecker(rbl1)
-	rbl.AddChecker(rbl2)
-	rbl.AddChecker(rbl3)
-	rbl.AddChecker(rbl4) //rbl4 allways fails, but with skiperrors ignores this fail
-
+	rbl := parallelxl.New(childs, cfg)
 	for i := 0; i < 4; i++ {
 		resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if err != nil {

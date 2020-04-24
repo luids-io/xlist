@@ -15,14 +15,12 @@ import (
 const BuildClass = "policy"
 
 // Builder returns a builder for the component
-func Builder(opt ...Option) listbuilder.BuildWrapperFn {
+func Builder(cfg Config) listbuilder.BuildWrapperFn {
 	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
 		policy := reason.NewPolicy()
 		if def.Opts != nil {
 			var err error
-			bopt, err = parseOptions(bopt, def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
@@ -36,30 +34,32 @@ func Builder(opt ...Option) listbuilder.BuildWrapperFn {
 				}
 			}
 		}
-		w := New(bl, policy, bopt...)
+		w := New(bl, policy, cfg)
 		return w, nil
 	}
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) {
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
 	merge, ok, err := option.Bool(opts, "merge")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Merge(merge))
+		rCfg.Merge = merge
 	}
 
 	threshold, ok, err := option.Int(opts, "threshold")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Threshold(threshold))
+		rCfg.UseThreshold = true
+		rCfg.Score = threshold
 	}
-	return bopt, nil
+	return rCfg, nil
 }
 
 func init() {
-	listbuilder.RegisterWrapperBuilder(BuildClass, Builder())
+	listbuilder.RegisterWrapperBuilder(BuildClass, Builder(Config{}))
 }

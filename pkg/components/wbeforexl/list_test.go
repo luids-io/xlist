@@ -16,11 +16,9 @@ import (
 )
 
 func TestList_Check(t *testing.T) {
-	ip4 := []xlist.Resource{xlist.IPv4}
-
-	rblFalse := &mockxl.List{ResourceList: ip4}
-	rblTrue := &mockxl.List{ResourceList: ip4, Results: []bool{true}}
-	rblFail := &mockxl.List{ResourceList: ip4, Fail: true}
+	rblFalse := &mockxl.List{ResourceList: onlyIPv4}
+	rblTrue := &mockxl.List{ResourceList: onlyIPv4, Results: []bool{true}}
+	rblFail := &mockxl.List{ResourceList: onlyIPv4, Fail: true}
 
 	var tests = []struct {
 		resources []xlist.Resource
@@ -29,20 +27,18 @@ func TestList_Check(t *testing.T) {
 		want      bool
 		wantErr   bool
 	}{
-		{ip4, rblFalse, rblFalse, false, false},
-		{ip4, rblTrue, rblFalse, false, false},
-		{ip4, rblFalse, rblTrue, true, false},
-		{ip4, rblTrue, rblTrue, false, false},
+		{onlyIPv4, rblFalse, rblFalse, false, false},
+		{onlyIPv4, rblTrue, rblFalse, false, false},
+		{onlyIPv4, rblFalse, rblTrue, true, false},
+		{onlyIPv4, rblTrue, rblTrue, false, false},
 		// errors
-		{[]xlist.Resource{xlist.Domain}, rblFalse, rblFalse, false, true},
-		{ip4, rblFail, rblFalse, false, true},
-		{ip4, rblTrue, rblFail, false, false},
-		{ip4, rblFalse, rblFail, false, true},
+		{onlyDomain, rblFalse, rblFalse, false, true},
+		{onlyIPv4, rblFail, rblFalse, false, true},
+		{onlyIPv4, rblTrue, rblFail, false, false},
+		{onlyIPv4, rblFalse, rblFail, false, true},
 	}
 	for idx, test := range tests {
-		wblist := wbeforexl.New(test.resources)
-		wblist.SetWhitelist(test.white)
-		wblist.SetBlacklist(test.black)
+		wblist := wbeforexl.New(test.white, test.black, wbeforexl.Config{Resources: test.resources})
 		resp, err := wblist.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if test.wantErr && err == nil {
 			t.Errorf("wbefore.Check idx[%v] expected error", idx)
@@ -56,14 +52,17 @@ func TestList_Check(t *testing.T) {
 }
 
 func TestList_CheckCancel(t *testing.T) {
-	resIP4 := []xlist.Resource{xlist.IPv4}
+	cfg := wbeforexl.Config{Resources: onlyIPv4}
+	white := &mockxl.List{
+		ResourceList: onlyIPv4,
+		Sleep:        100 * time.Millisecond,
+	}
+	black := &mockxl.List{
+		ResourceList: onlyIPv4,
+		Results:      []bool{true},
+	}
 
-	wrbl := &mockxl.List{ResourceList: resIP4, Sleep: 100 * time.Millisecond}
-	brbl := &mockxl.List{ResourceList: resIP4, Results: []bool{true}}
-
-	wblist := wbeforexl.New(resIP4)
-	wblist.SetWhitelist(wrbl)
-	wblist.SetBlacklist(brbl)
+	wblist := wbeforexl.New(white, black, cfg)
 	resp, err := wblist.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 	if err != nil {
 		t.Errorf("wbefore.Check unexpected error: %v", err)
@@ -98,9 +97,7 @@ func TestList_Ping(t *testing.T) {
 		{rblFail, rblFail, true}, //3
 	}
 	for idx, test := range tests {
-		wblist := wbeforexl.New(onlyIPv4)
-		wblist.SetWhitelist(test.white)
-		wblist.SetBlacklist(test.black)
+		wblist := wbeforexl.New(test.white, test.black, wbeforexl.Config{Resources: onlyIPv4})
 		err := wblist.Ping()
 		switch {
 		case test.wantErr && err == nil:
@@ -123,7 +120,7 @@ func TestList_Resources(t *testing.T) {
 		{xlist.Resources, xlist.Resources},
 	}
 	for idx, test := range tests {
-		wblist := wbeforexl.New(test.in)
+		wblist := wbeforexl.New(&mockxl.List{}, &mockxl.List{}, wbeforexl.Config{Resources: test.in})
 		got := wblist.Resources()
 		if !cmpResourceSlice(got, test.want) {
 			t.Errorf("idx[%v] wbefore.Resources() got=%v want=%v", idx, got, test.want)
@@ -144,15 +141,16 @@ func cmpResourceSlice(a, b []xlist.Resource) bool {
 }
 
 func ExampleList() {
-	ip4 := []xlist.Resource{xlist.IPv4}
-	whitelist := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}}
-	blacklist := &mockxl.List{ResourceList: ip4, Results: []bool{true}}
+	resources := []xlist.Resource{xlist.IPv4}
+	white := &mockxl.List{ResourceList: resources, Results: []bool{true, false}}
+	black := &mockxl.List{ResourceList: resources, Results: []bool{true}}
 
 	//constructs wbefore rbl
-	rbl := wbeforexl.New(ip4, wbeforexl.Reason("hello"))
-	rbl.SetWhitelist(whitelist)
-	rbl.SetBlacklist(blacklist)
-
+	rbl := wbeforexl.New(white, black,
+		wbeforexl.Config{
+			Resources: resources,
+			Reason:    "hello",
+		})
 	//in the first check, whitelist returns true -> return false
 	resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 	if err != nil && resp.Result {

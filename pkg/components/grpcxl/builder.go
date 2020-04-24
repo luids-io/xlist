@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/luids-io/api/xlist/check"
+	checkapi "github.com/luids-io/api/xlist/check"
 	"github.com/luids-io/core/utils/grpctls"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/xlist/pkg/listbuilder"
@@ -16,18 +16,18 @@ import (
 const BuildClass = "grpc"
 
 // Builder resturns a rpcxl builder
-func Builder(opt ...check.ClientOption) listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder() listbuilder.BuildListFn {
+	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		if def.Source == "" {
 			return nil, errors.New("source is empty")
 		}
 		clientCfg := grpctls.ClientCfg{}
 		if def.TLS != nil {
-			clientCfg.CertFile = builder.CertPath(def.TLS.CertFile)
-			clientCfg.KeyFile = builder.CertPath(def.TLS.KeyFile)
+			clientCfg.CertFile = b.CertPath(def.TLS.CertFile)
+			clientCfg.KeyFile = b.CertPath(def.TLS.KeyFile)
 			clientCfg.ServerName = def.TLS.ServerName
-			clientCfg.ServerCert = builder.CertPath(def.TLS.ServerCert)
-			clientCfg.CACert = builder.CertPath(def.TLS.CACert)
+			clientCfg.ServerCert = b.CertPath(def.TLS.ServerCert)
+			clientCfg.CACert = b.CertPath(def.TLS.CACert)
 			clientCfg.UseSystemCAs = def.TLS.UseSystemCAs
 		}
 		err := clientCfg.Validate()
@@ -38,14 +38,13 @@ func Builder(opt ...check.ClientOption) listbuilder.BuildListFn {
 		if err != nil {
 			return nil, fmt.Errorf("dialing: %v", err)
 		}
-		bl := check.NewClient(dial, def.Resources, opt...)
+		bl := checkapi.NewClient(dial, def.Resources, checkapi.SetLogger(b.Logger()))
 		if err != nil {
 			return nil, fmt.Errorf("creating rpcxl: %v", err)
 		}
 
 		//register hooks
-		builder.OnShutdown(func() error {
-			builder.Logger().Debugf("shutting down grpc client '%s'", def.ID)
+		b.OnShutdown(func() error {
 			return bl.Close()
 		})
 		return &grpclist{Checker: bl}, nil

@@ -17,21 +17,18 @@ const DefaultTimeout = 1 * time.Second
 const BuildClass = "timeout"
 
 // Builder returns a builder for the component
-func Builder(timeout time.Duration, opt ...Option) listbuilder.BuildWrapperFn {
-	return func(builder *listbuilder.Builder, listID string, def listbuilder.WrapperDef, bl xlist.List) (xlist.List, error) {
-		setTimeout := timeout
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
+func Builder(timeout time.Duration) listbuilder.BuildWrapperFn {
+	return func(b *listbuilder.Builder, id string, def listbuilder.WrapperDef, list xlist.List) (xlist.List, error) {
 		if def.Opts != nil {
 			v, ok, err := option.Int(def.Opts, "timeout")
 			if err != nil {
 				return nil, err
 			}
 			if ok {
-				setTimeout = time.Duration(v) * time.Millisecond
+				timeout = time.Duration(v) * time.Millisecond
 			}
 		}
-		return New(setTimeout, bl, bopt...), nil
+		return New(list, timeout), nil
 	}
 }
 

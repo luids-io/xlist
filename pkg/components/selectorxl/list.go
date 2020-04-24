@@ -16,108 +16,102 @@ import (
 	"github.com/luids-io/core/xlist"
 )
 
+// Config options
+type Config struct {
+	ForceValidation bool
+	Reason          string
+}
+
 type options struct {
-	firstResponse   bool
 	forceValidation bool
 	reason          string
-}
-
-var defaultOptions = options{}
-
-// Option is used for common component configuration
-type Option func(*options)
-
-// ForceValidation forces components to ignore context and validate requests
-func ForceValidation(b bool) Option {
-	return func(o *options) {
-		o.forceValidation = b
-	}
-}
-
-// Reason sets a fixed reason for component
-func Reason(s string) Option {
-	return func(o *options) {
-		o.reason = s
-	}
 }
 
 // List is a composite list that redirects requests to RBLs based on the
 // resource type.
 type List struct {
-	xlist.List
-	opts     options
-	checkers map[xlist.Resource]xlist.List
+	opts      options
+	services  []xlist.List
+	resources []xlist.Resource
+	readonly  bool
 }
 
 // New returns a new selector component
-func New(opt ...Option) *List {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
+func New(services map[xlist.Resource]xlist.List, cfg Config) *List {
+	l := &List{
+		opts: options{
+			forceValidation: cfg.ForceValidation,
+			reason:          cfg.Reason,
+		},
+		services:  make([]xlist.List, len(xlist.Resources), len(xlist.Resources)),
+		resources: make([]xlist.Resource, 0, len(services)),
 	}
-	s := &List{
-		opts:     opts,
-		checkers: make(map[xlist.Resource]xlist.List),
+	for res, list := range services {
+		if readonly, _ := list.ReadOnly(); readonly {
+			l.readonly = true
+		}
+		if res.IsValid() {
+			if l.services[int(res)] == nil {
+				l.services[int(res)] = list
+				l.resources = append(l.resources, res)
+			}
+		}
 	}
-	return s
-}
-
-//SetService sets a blacklist interface for a resource type and enables it
-func (s *List) SetService(resource xlist.Resource, list xlist.List) *List {
-	if !resource.IsValid() {
-		return s //do noting
-	}
-	s.checkers[resource] = list
-	return s
+	l.resources = xlist.ClearResourceDups(l.resources)
+	return l
 }
 
 // Check implements xlist.Checker interface
-func (s *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
-	list, ok := s.checkers[resource]
-	if !ok {
+func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
+	list := l.getList(resource)
+	if list == nil {
 		return xlist.Response{}, xlist.ErrNotImplemented
 	}
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, s.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
 	resp, err := list.Check(ctx, name, resource)
-	if err == nil && resp.Result && s.opts.reason != "" {
-		resp.Reason = s.opts.reason
+	if err == nil && resp.Result && l.opts.reason != "" {
+		resp.Reason = l.opts.reason
 	}
 	return resp, err
 }
 
 // Resources implements xlist.Checker interface
-func (s *List) Resources() []xlist.Resource {
-	ret := make([]xlist.Resource, 0, len(xlist.Resources))
-	for _, r := range xlist.Resources {
-		_, ok := s.checkers[r]
-		if ok {
-			ret = append(ret, r)
-		}
-	}
+func (l *List) Resources() []xlist.Resource {
+	ret := make([]xlist.Resource, len(l.resources), len(l.resources))
+	copy(ret, l.resources)
 	return ret
+}
+
+func (l *List) getList(r xlist.Resource) xlist.List {
+	if r.IsValid() {
+		return l.services[int(r)]
+	}
+	return nil
 }
 
 // pingResult is used for store pings
 type pingResult struct {
-	listIdx int
-	listKey string
-	err     error
+	res xlist.Resource
+	err error
 }
 
 // Ping implements xlist.Checker interface
-func (s *List) Ping() error {
+func (l *List) Ping() error {
 	var wg sync.WaitGroup
-	results := make(chan *pingResult, len(s.checkers))
-	for key, l := range s.checkers {
-		wg.Add(1)
-		go workerPing(&wg, l, key.String(), results)
+	results := make(chan *pingResult, len(l.resources))
+	for _, res := range l.resources {
+		child := l.services[int(res)]
+		if child != nil {
+			wg.Add(1)
+			go workerPing(&wg, child, res, results)
+		}
 	}
-	errs := make([]*pingResult, 0, len(s.checkers))
+	errs := make([]*pingResult, 0, len(l.resources))
 	finished := 0
-	for finished < len(s.checkers) {
+	for finished < len(l.resources) {
 		select {
 		case result := <-results:
 			finished++
@@ -132,39 +126,58 @@ func (s *List) Ping() error {
 	if len(errs) > 0 {
 		msgErr := make([]string, 0, len(errs))
 		for _, e := range errs {
-			msgErr = append(msgErr, fmt.Sprintf("selector[%v]: %v", e.listKey, e.err))
+			msgErr = append(msgErr, fmt.Sprintf("selector[%v]: %v", e.res, e.err))
 		}
 		return errors.New(strings.Join(msgErr, ";"))
 	}
 	return nil
 }
 
-func workerPing(wg *sync.WaitGroup, list xlist.Checker, listKey string,
-	results chan<- *pingResult) {
+func workerPing(wg *sync.WaitGroup, list xlist.Checker, res xlist.Resource, results chan<- *pingResult) {
 	defer wg.Done()
 	err := list.Ping()
 	results <- &pingResult{
-		listKey: listKey,
-		err:     err,
+		res: res,
+		err: err,
 	}
 }
 
 // Append implements xlist.Writer interface
-func (s *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	if !l.readonly {
+		if list := l.getList(r); list != nil {
+			return list.Append(ctx, name, r, f)
+		}
+		return xlist.ErrNotAvailable
+	}
 	return xlist.ErrReadOnlyMode
 }
 
 // Remove implements xlist.Writer interface
-func (s *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
+	if !l.readonly {
+		if list := l.getList(r); list != nil {
+			return list.Remove(ctx, name, r, f)
+		}
+		return xlist.ErrNotAvailable
+	}
 	return xlist.ErrReadOnlyMode
 }
 
 // Clear implements xlist.Writer interface
-func (s *List) Clear(ctx context.Context) error {
+func (l *List) Clear(ctx context.Context) error {
+	if !l.readonly {
+		for _, child := range l.services {
+			err := child.Clear(ctx)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return xlist.ErrReadOnlyMode
 }
 
 // ReadOnly implements xlist.Writer interface
-func (s *List) ReadOnly() (bool, error) {
-	return true, nil
+func (l *List) ReadOnly() (bool, error) {
+	return l.readonly, nil
 }

@@ -18,8 +18,6 @@ var defaultReason = "The resource is on the mockup list"
 
 // List is a mockup list that implements xlist.Checker, see examples.
 type List struct {
-	xlist.List
-
 	// ResourceList that this list checks
 	ResourceList []xlist.Resource
 	// Results is the sequence of results that the list returns on checks

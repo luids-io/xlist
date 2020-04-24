@@ -13,6 +13,18 @@ import (
 	"github.com/luids-io/core/xlist"
 )
 
+// Config options
+type Config struct {
+	Resources       []xlist.Resource
+	ForceValidation bool
+	Reason          string
+}
+
+type options struct {
+	forceValidation bool
+	reason          string
+}
+
 // List stores all items in memory
 type List struct {
 	opts options
@@ -23,45 +35,22 @@ type List struct {
 	domlist  *domainList
 	hashlist *hashList
 	//resource types
-	provides []bool
-}
-
-// Option is used for component configuration
-type Option func(*options)
-
-type options struct {
-	forceValidation bool
-	reason          string
-}
-
-var defaultOptions = options{}
-
-// ForceValidation forces components to ignore context and validate requests
-func ForceValidation(b bool) Option {
-	return func(o *options) {
-		o.forceValidation = b
-	}
-}
-
-// Reason sets a fixed reason for component
-func Reason(s string) Option {
-	return func(o *options) {
-		o.reason = s
-	}
+	provides  []bool
+	resources []xlist.Resource
 }
 
 // New returns a new List
-func New(resources []xlist.Resource, opt ...Option) *List {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
-	}
+func New(cfg Config) *List {
 	l := &List{
-		opts:     opts,
-		provides: make([]bool, len(xlist.Resources), len(xlist.Resources)),
+		opts: options{
+			forceValidation: cfg.ForceValidation,
+			reason:          cfg.Reason,
+		},
+		resources: xlist.ClearResourceDups(cfg.Resources),
+		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
-	//set resource types that provides
-	for _, r := range xlist.ClearResourceDups(resources) {
+	//set resource types that providess
+	for _, r := range l.resources {
 		l.provides[int(r)] = true
 	}
 	l.init()
@@ -112,12 +101,8 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 
 // Resources implements xlist.Checker interface
 func (l *List) Resources() []xlist.Resource {
-	resources := make([]xlist.Resource, 0, len(xlist.Resources))
-	for _, r := range xlist.Resources {
-		if l.provides[int(r)] {
-			resources = append(resources, r)
-		}
-	}
+	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
+	copy(resources, l.resources)
 	return resources
 }
 

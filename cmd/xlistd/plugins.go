@@ -20,7 +20,6 @@ import (
 	_ "github.com/luids-io/xlist/pkg/wrappers/loggerwr"
 	_ "github.com/luids-io/xlist/pkg/wrappers/metricswr"
 	_ "github.com/luids-io/xlist/pkg/wrappers/policywr"
-	_ "github.com/luids-io/xlist/pkg/wrappers/ratewr"
 	_ "github.com/luids-io/xlist/pkg/wrappers/responsewr"
 	_ "github.com/luids-io/xlist/pkg/wrappers/scorewr"
 	_ "github.com/luids-io/xlist/pkg/wrappers/timeoutwr"

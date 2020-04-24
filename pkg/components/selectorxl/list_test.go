@@ -14,7 +14,10 @@ import (
 )
 
 func TestList_Check(t *testing.T) {
-	selector := selectorxl.New()
+	//create services map
+	services := make(map[xlist.Resource]xlist.List)
+
+	selector := selectorxl.New(services, selectorxl.Config{})
 	resp, err := selector.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 	if err != xlist.ErrNotImplemented {
 		t.Fatal("selector.Check unexpected error")
@@ -23,13 +26,16 @@ func TestList_Check(t *testing.T) {
 		ResourceList: []xlist.Resource{xlist.IPv4, xlist.IPv6},
 		Results:      []bool{true}, Reason: "ip",
 	}
-	selector.SetService(xlist.IPv6, rblip)
+
+	services[xlist.IPv6] = rblip
+	selector = selectorxl.New(services, selectorxl.Config{})
 	resp, err = selector.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 	if err != xlist.ErrNotImplemented {
 		t.Fatal("selector.Check unexpected error")
 	}
 
-	selector.SetService(xlist.IPv4, rblip)
+	services[xlist.IPv4] = rblip
+	selector = selectorxl.New(services, selectorxl.Config{})
 	resp, err = selector.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 	if err != nil {
 		t.Fatalf("selector.Check unexpected error: %v", err)
@@ -56,7 +62,9 @@ func TestList_Check(t *testing.T) {
 		ResourceList: []xlist.Resource{xlist.Domain},
 		Results:      []bool{true}, Reason: "domain",
 	}
-	selector.SetService(xlist.Domain, rbldomain)
+
+	services[xlist.Domain] = rbldomain
+	selector = selectorxl.New(services, selectorxl.Config{})
 	resp, err = selector.Check(context.Background(), "www.google.com", xlist.Domain)
 	if err != nil {
 		t.Fatalf("selector.Check unexpected error: %v", err)
@@ -69,39 +77,32 @@ func TestList_Check(t *testing.T) {
 func TestList_Ping(t *testing.T) {
 	rblOk := &mockxl.List{ResourceList: xlist.Resources, Fail: false}
 	rblFail := &mockxl.List{ResourceList: xlist.Resources, Fail: true}
-	type item struct {
-		resource xlist.Resource
-		list     xlist.List
-	}
 	var tests = []struct {
-		checkers []item
+		checkers map[xlist.Resource]xlist.List
 		wantErr  bool
 	}{
-		{[]item{}, false}, //0
-		{[]item{
-			{resource: xlist.IPv4, list: rblOk},
+		{map[xlist.Resource]xlist.List{}, false}, //0
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv4: rblOk,
 		}, false}, //1
-		{[]item{
-			{resource: xlist.IPv4, list: rblOk},
-			{resource: xlist.Domain, list: rblOk},
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv4:   rblOk,
+			xlist.Domain: rblOk,
 		}, false}, //2
-		{[]item{
-			{resource: xlist.IPv4, list: rblFail},
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv4: rblFail,
 		}, true}, //3
-		{[]item{
-			{resource: xlist.IPv4, list: rblOk},
-			{resource: xlist.Domain, list: rblFail},
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv4:   rblOk,
+			xlist.Domain: rblFail,
 		}, true}, //4
-		{[]item{
-			{resource: xlist.IPv4, list: rblFail},
-			{resource: xlist.Domain, list: rblOk},
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv4:   rblFail,
+			xlist.Domain: rblOk,
 		}, true}, //5
 	}
 	for idx, test := range tests {
-		slist := selectorxl.New()
-		for _, c := range test.checkers {
-			slist.SetService(c.resource, c.list)
-		}
+		slist := selectorxl.New(test.checkers, selectorxl.Config{})
 		err := slist.Ping()
 		switch {
 		case test.wantErr && err == nil:
@@ -119,31 +120,27 @@ func TestList_Resources(t *testing.T) {
 		list     xlist.List
 	}
 	var tests = []struct {
-		checkers []item
+		checkers map[xlist.Resource]xlist.List
 		want     []xlist.Resource
 	}{
-		{[]item{}, []xlist.Resource{}}, //0
-		{[]item{
-			{resource: xlist.IPv4, list: rblOk},
+		{map[xlist.Resource]xlist.List{}, []xlist.Resource{}}, //0
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv4: rblOk,
 		}, onlyIPv4}, //1
-		{[]item{
-			{resource: xlist.IPv4, list: rblOk},
-			{resource: xlist.Domain, list: rblOk},
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv4:   rblOk,
+			xlist.Domain: rblOk,
 		}, []xlist.Resource{xlist.IPv4, xlist.Domain}}, //2
-		{[]item{
-			{resource: xlist.IPv4, list: rblOk},
-			{resource: xlist.IPv4, list: rblOk},
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv4: rblOk,
 		}, onlyIPv4}, //3
-		{[]item{
-			{resource: xlist.IPv6, list: rblOk},
-			{resource: xlist.IPv4, list: rblOk},
+		{map[xlist.Resource]xlist.List{
+			xlist.IPv6: rblOk,
+			xlist.IPv4: rblOk,
 		}, onlyIP}, //4
 	}
 	for idx, test := range tests {
-		slist := selectorxl.New()
-		for _, c := range test.checkers {
-			slist.SetService(c.resource, c.list)
-		}
+		slist := selectorxl.New(test.checkers, selectorxl.Config{})
 		got := slist.Resources()
 		if !cmpResourceSlice(got, test.want) {
 			t.Errorf("idx[%v] selector.Resources() got=%v want=%v", idx, got, test.want)
@@ -170,11 +167,12 @@ func ExampleList() {
 	domain := &mockxl.List{
 		Results: []bool{true}, ResourceList: []xlist.Resource{xlist.Domain},
 		Reason: "domain"}
+	services := map[xlist.Resource]xlist.List{
+		xlist.IPv4:   ip4,
+		xlist.Domain: domain,
+	}
 
-	rbl := selectorxl.New()
-	rbl.SetService(xlist.IPv4, ip4)
-	rbl.SetService(xlist.Domain, domain)
-
+	rbl := selectorxl.New(services, selectorxl.Config{})
 	resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 	if err != nil || !resp.Result {
 		log.Fatalln("this should not happen")

@@ -18,7 +18,7 @@ const BuildClass = "mock"
 
 // Builder returns a list builder function that constructs mockups
 func Builder() listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		//create mockup and sets source
 		bl := &List{ResourceList: xlist.ClearResourceDups(def.Resources)}
 		if def.Source != "" {

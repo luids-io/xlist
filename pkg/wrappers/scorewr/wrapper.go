@@ -14,40 +14,43 @@ import (
 	"github.com/luids-io/core/xlist/reason"
 )
 
+// Config options
+type Config struct {
+	Scores []ScoreExpr
+}
+
+// ScoreExpr defines score matching
+type ScoreExpr struct {
+	RegExp *regexp.Regexp
+	Score  int
+}
+
+// Match returns true if matching
+func (e ScoreExpr) Match(s string) bool {
+	if e.RegExp != nil && e.RegExp.MatchString(s) {
+		return true
+	}
+	return false
+}
+
 // Wrapper implements an xlist.Checker wrapper for insert scores
 type Wrapper struct {
-	xlist.List
-
-	opts       options
 	score      int
-	exprScores []exprScored
+	exprScores []ScoreExpr
 	list       xlist.List
 }
 
-// Option is used for component configuration
-type Option func(*options)
-
-type options struct{}
-
-var defaultOptions = options{}
-
-type exprScored struct {
-	expr  *regexp.Regexp
-	score int
-}
-
 // New returns a new Wrapper
-func New(list xlist.List, score int, opt ...Option) *Wrapper {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
+func New(list xlist.List, score int, cfg Config) *Wrapper {
+	w := &Wrapper{
+		score: score,
+		list:  list,
 	}
-	return &Wrapper{
-		opts:       opts,
-		score:      score,
-		exprScores: make([]exprScored, 0),
-		list:       list,
+	if len(cfg.Scores) > 0 {
+		w.exprScores = make([]ScoreExpr, len(cfg.Scores), len(cfg.Scores))
+		copy(w.exprScores, cfg.Scores)
 	}
+	return w
 }
 
 // Check implements xlist.Checker interface
@@ -57,9 +60,9 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 		sumScore := 0
 		matched := false
 		for _, item := range w.exprScores {
-			if item.expr.MatchString(resp.Reason) {
+			if item.Match(resp.Reason) {
 				matched = true
-				sumScore = sumScore + item.score
+				sumScore = sumScore + item.Score
 			}
 		}
 		if matched {
@@ -69,16 +72,6 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 		}
 	}
 	return resp, err
-}
-
-// AddExpr adds expresion score
-func (w *Wrapper) AddExpr(expr string, score int) error {
-	r, err := regexp.Compile(expr)
-	if err != nil {
-		return err
-	}
-	w.exprScores = append(w.exprScores, exprScored{expr: r, score: score})
-	return nil
 }
 
 // Resources implements xlist.Checker interface

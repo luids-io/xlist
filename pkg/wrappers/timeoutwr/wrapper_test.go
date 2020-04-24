@@ -33,7 +33,7 @@ func TestWrapper_Check(t *testing.T) {
 		{t10ms, true},   //1
 	}
 	for idx, test := range tests {
-		cache := timeoutwr.New(test.timeout, mockup)
+		cache := timeoutwr.New(mockup, test.timeout)
 		_, err := cache.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		switch {
 		case test.wantErr && err == nil:

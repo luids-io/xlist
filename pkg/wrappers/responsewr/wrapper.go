@@ -13,16 +13,23 @@ import (
 	"github.com/luids-io/core/xlist/reason"
 )
 
+// Config options
+type Config struct {
+	Clean        bool
+	Aggregate    bool
+	Negate       bool
+	Reason       string
+	Preffix      string
+	TTL          int
+	UseThreshold bool
+	Score        int
+}
+
 // Wrapper implements an xlist.Checker wrapper for change responses
 type Wrapper struct {
-	xlist.List
-
 	opts options
 	list xlist.List
 }
-
-// Option is used for component configuration
-type Option func(*options)
 
 type options struct {
 	clean        bool
@@ -37,66 +44,22 @@ type options struct {
 
 var defaultOptions = options{}
 
-// Clean the response reason
-func Clean(b bool) Option {
-	return func(o *options) {
-		o.clean = b
-	}
-}
-
-// Aggregate encoded data
-func Aggregate(b bool) Option {
-	return func(o *options) {
-		o.aggregate = b
-	}
-}
-
-// Negate changes the response result
-func Negate(b bool) Option {
-	return func(o *options) {
-		o.negate = b
-	}
-}
-
-// Reason overrides the reason in case of positive result
-func Reason(s string) Option {
-	return func(o *options) {
-		o.reason = s
-	}
-}
-
-// PreffixReason adds a prefix to reason in case of positive result
-func PreffixReason(s string) Option {
-	return func(o *options) {
-		o.preffix = s
-	}
-}
-
-// TTL changes the ttl of the response to a fixed value
-func TTL(i int) Option {
-	return func(o *options) {
-		if i >= xlist.NeverCache {
-			o.ttl = i
-		}
-	}
-}
-
-// Threshold sets limit score for true reasons
-func Threshold(i int) Option {
-	return func(o *options) {
-		o.useThreshold = true
-		o.score = i
-	}
-}
-
 // New returns a new Wrapper
-func New(list xlist.List, opt ...Option) *Wrapper {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
+func New(list xlist.List, cfg Config) *Wrapper {
+	if cfg.TTL < xlist.NeverCache {
+		cfg.TTL = 0
 	}
 	return &Wrapper{
-		opts: opts,
+		opts: options{
+			clean:        cfg.Clean,
+			aggregate:    cfg.Aggregate,
+			negate:       cfg.Negate,
+			reason:       cfg.Reason,
+			preffix:      cfg.Preffix,
+			ttl:          cfg.TTL,
+			useThreshold: cfg.UseThreshold,
+			score:        cfg.Score,
+		},
 		list: list,
 	}
 }

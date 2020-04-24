@@ -61,11 +61,11 @@ func setupDNSxL(cfg config.DNSxLCfg) error {
 		dnsxl.DefaultResolver(resolver)
 	}
 	// dnsclient
-	dnsclient := &dnsxl.Client{}
+	dnsCfg := dnsxl.DefaultConfig()
 	if cfg.TimeoutMSecs > 0 {
-		dnsclient.Timeout = time.Duration(cfg.TimeoutMSecs) * time.Millisecond
+		dnsCfg.Timeout = time.Duration(cfg.TimeoutMSecs) * time.Millisecond
 	}
-	listbuilder.RegisterListBuilder(dnsxl.BuildClass, dnsxl.Builder(dnsclient))
+	listbuilder.RegisterListBuilder(dnsxl.BuildClass, dnsxl.Builder(dnsCfg))
 	return nil
 }
 

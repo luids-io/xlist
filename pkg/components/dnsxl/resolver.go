@@ -103,8 +103,10 @@ func (p *ResolverRRPool) Ping(domain string) error {
 }
 
 // NewResolverPoolFromZone queries a dns zone for its name servers and returns a resolver pool
-func NewResolverPoolFromZone(client *dns.Client, zone string) (*ResolverRRPool, error) {
+func NewResolverPoolFromZone(zone string) (*ResolverRRPool, error) {
+	client := &dns.Client{}
 	server := defaultResolver.Resolver()
+
 	nameservers, err := getNameservers(client, server, zone)
 	if err != nil {
 		return nil, fmt.Errorf("can't create resolver pool por zone %s: %v", zone, err)

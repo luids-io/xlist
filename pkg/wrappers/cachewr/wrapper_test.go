@@ -14,7 +14,7 @@ import (
 func TestWrapper_Check(t *testing.T) {
 	ip4 := []xlist.Resource{xlist.IPv4}
 	mockup := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}}
-	cache := cachewr.New(mockup)
+	cache := cachewr.New(mockup, cachewr.DefaultConfig())
 
 	var tests = []struct {
 		name      string
@@ -52,7 +52,9 @@ func TestWrapper_Check(t *testing.T) {
 func TestWrapper_CheckNegative(t *testing.T) {
 	ip4 := []xlist.Resource{xlist.IPv4}
 	mockup := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}}
-	cache := cachewr.New(mockup, cachewr.NegativeTTL(xlist.NeverCache))
+	cfg := cachewr.DefaultConfig()
+	cfg.NegativeTTL = xlist.NeverCache
+	cache := cachewr.New(mockup, cfg)
 
 	var tests = []struct {
 		name      string

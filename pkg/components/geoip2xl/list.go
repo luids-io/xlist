@@ -18,64 +18,48 @@ import (
 	"github.com/luids-io/core/xlist"
 )
 
-// List implements an RBL that uses a geoip database for checks
-type List struct {
-	xlist.List
-	opts     options
-	started  bool
-	rules    Rules
-	dbPath   string
-	database *geoip2.Reader
-}
-
-// Rules defines the logic for checks
-type Rules struct {
+// Config options
+type Config struct {
+	Database string
 	// Countries is a list of country codes
 	Countries []string
 	// Reverse the matching of the rule
 	Reverse bool
+	// Common options
+	ForceValidation bool
+	Reason          string
 }
-
-// Option is used for configuration options
-type Option func(*options)
 
 type options struct {
 	forceValidation bool
 	reason          string
 }
 
-var defaultOptions = options{}
-
-// ForceValidation forces components to ignore context and validate requests
-func ForceValidation(b bool) Option {
-	return func(o *options) {
-		o.forceValidation = b
-	}
-}
-
-// Reason sets a fixed reason for component responses
-func Reason(s string) Option {
-	return func(o *options) {
-		o.reason = s
-	}
+// List implements an RBL that uses a geoip database for checks
+type List struct {
+	opts      options
+	started   bool
+	dbPath    string
+	database  *geoip2.Reader
+	countries []string
+	reverse   bool
 }
 
 // New constructs a new List with dbpath as database and rules for logic
-func New(dbpath string, rules Rules, opt ...Option) *List {
-	opts := defaultOptions
-	for _, o := range opt {
-		o(&opts)
+func New(database string, cfg Config) *List {
+	l := &List{
+		dbPath: database,
+		opts: options{
+			forceValidation: cfg.ForceValidation,
+			reason:          cfg.Reason,
+		},
+		countries: make([]string, 0, len(cfg.Countries)),
+		reverse:   cfg.Reverse,
 	}
-	s := &List{
-		opts:   opts,
-		rules:  rules,
-		dbPath: dbpath,
+	for _, c := range cfg.Countries {
+		l.countries = append(l.countries, strings.ToUpper(c))
 	}
-	// capitalize country codes
-	for idx, c := range s.rules.Countries {
-		s.rules.Countries[idx] = strings.ToUpper(c)
-	}
-	return s
+	return l
 }
 
 // Check implements xlist.Checker interface
@@ -137,13 +121,13 @@ func (l *List) Clear(ctx context.Context) error {
 // ReadOnly implements xlist.Writer interface
 func (l *List) ReadOnly() (bool, error) {
 	if !l.started {
-		return false, xlist.ErrNotAvailable
+		return true, xlist.ErrNotAvailable
 	}
 	return true, nil
 }
 
-// Start opens database file
-func (l *List) Start() error {
+// Open opens database file
+func (l *List) Open() error {
 	var err error
 	l.database, err = geoip2.Open(l.dbPath)
 	if err == nil {
@@ -152,9 +136,10 @@ func (l *List) Start() error {
 	return err
 }
 
-// Shutdown closes the database file
-func (l *List) Shutdown() {
+// Close closes the database file
+func (l *List) Close() {
 	if l.started {
+		l.started = false
 		l.database.Close()
 	}
 }
@@ -167,19 +152,21 @@ func (l *List) checkRules(ip net.IP) (xlist.Response, error) {
 	if info.Country.IsoCode == "" {
 		return xlist.Response{}, fmt.Errorf("can't get code for ip %s", ip.String())
 	}
-
-	found := false
+	found := true
 	reason := fmt.Sprintf("found country code '%s'", info.Country.IsoCode)
-	for _, c := range l.rules.Countries {
-		if c == info.Country.IsoCode {
-			found = true
+	if len(l.countries) > 0 {
+		found = false
+		for _, c := range l.countries {
+			if c == info.Country.IsoCode {
+				found = true
+			}
 		}
-	}
-	if l.rules.Reverse {
-		if found {
-			found = false
-		} else {
-			found = true
+		if l.reverse {
+			if found {
+				found = false
+			} else {
+				found = true
+			}
 		}
 	}
 	response := xlist.Response{}

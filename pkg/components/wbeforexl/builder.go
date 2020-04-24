@@ -15,13 +15,13 @@ import (
 const BuildClass = "wbefore"
 
 // Builder returns a builder for "white before" List component
-func Builder(opt ...Option) listbuilder.BuildListFn {
-	return func(builder *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
+func Builder(cfg Config) listbuilder.BuildListFn {
+	return func(b *listbuilder.Builder, parents []string, def listbuilder.ListDef) (xlist.List, error) {
 		if len(def.Contains) != 2 {
 			return nil, errors.New("number of childs must be 2")
 		}
-		// constructs childs
-		whitelist, err := builder.BuildChild(append(parents, def.ID), def.Contains[0])
+		cfg.Resources = def.Resources
+		whitelist, err := b.BuildChild(append(parents, def.ID), def.Contains[0])
 		if err != nil {
 			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[0].ID, err)
 		}
@@ -30,7 +30,7 @@ func Builder(opt ...Option) listbuilder.BuildListFn {
 				return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", def.Contains[0].ID, r)
 			}
 		}
-		blacklist, err := builder.BuildChild(append(parents, def.ID), def.Contains[1])
+		blacklist, err := b.BuildChild(append(parents, def.ID), def.Contains[1])
 		if err != nil {
 			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[1].ID, err)
 		}
@@ -39,34 +39,28 @@ func Builder(opt ...Option) listbuilder.BuildListFn {
 				return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", def.Contains[1].ID, r)
 			}
 		}
-
-		bopt := make([]Option, 0)
-		bopt = append(bopt, opt...)
 		if def.Opts != nil {
-			var err error
-			bopt, err = parseOptions(bopt, def.Opts)
+			cfg, err = parseOptions(cfg, def.Opts)
 			if err != nil {
 				return nil, err
 			}
 		}
-		bl := New(def.Resources, bopt...)
-		bl.SetWhitelist(whitelist)
-		bl.SetBlacklist(blacklist)
-		return bl, nil
+		return New(whitelist, blacklist, cfg), nil
 	}
 }
 
-func parseOptions(bopt []Option, opts map[string]interface{}) ([]Option, error) {
+func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
+	rCfg := cfg
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return bopt, err
+		return rCfg, err
 	}
 	if ok {
-		bopt = append(bopt, Reason(reason))
+		rCfg.Reason = reason
 	}
-	return bopt, nil
+	return rCfg, nil
 }
 
 func init() {
-	listbuilder.RegisterListBuilder(BuildClass, Builder())
+	listbuilder.RegisterListBuilder(BuildClass, Builder(Config{}))
 }
