@@ -34,7 +34,7 @@ func Builder(cfg Config) builder.BuildListFn {
 			}
 		}
 
-		bl := New(source, cfg)
+		bl := New(source, def.Resources, cfg)
 		//register startup
 		b.OnStartup(func() error {
 			return bl.Open()

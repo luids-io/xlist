@@ -29,7 +29,6 @@ func DefaultConfig() Config {
 
 // Config options
 type Config struct {
-	Resources       []xlist.Resource
 	Timeout         time.Duration
 	ForceValidation bool
 	DoReverse       bool
@@ -68,7 +67,7 @@ type options struct {
 }
 
 // New creates a new DNSxL based RBL
-func New(zone string, cfg Config) (*List, error) {
+func New(zone string, resources []xlist.Resource, cfg Config) (*List, error) {
 	if zone == "" {
 		return nil, errors.New("zone parameter is required")
 	}
@@ -97,7 +96,7 @@ func New(zone string, cfg Config) (*List, error) {
 	//set resource types that provides
 	l.provides = make([]bool, len(xlist.Resources), len(xlist.Resources))
 	l.resources = make([]xlist.Resource, 0, 3)
-	for _, r := range xlist.ClearResourceDups(cfg.Resources) {
+	for _, r := range xlist.ClearResourceDups(resources) {
 		if r < xlist.IPv4 || r > xlist.Domain {
 			return nil, fmt.Errorf("resource '%v' not supported", r)
 		}

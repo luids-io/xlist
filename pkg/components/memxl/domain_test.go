@@ -11,9 +11,7 @@ import (
 )
 
 func TestList_Check_domains(t *testing.T) {
-	list := memxl.New(memxl.Config{
-		Resources: []xlist.Resource{xlist.Domain},
-	})
+	list := memxl.New([]xlist.Resource{xlist.Domain}, memxl.Config{})
 	err := list.AddDomains([]string{"www.micasa.com", "www.tucasa.com"})
 	if err != nil {
 		t.Fatalf("memxl.AddDomains(): err=%v", err)
@@ -41,9 +39,7 @@ func TestList_Check_domains(t *testing.T) {
 }
 
 func TestList_Check_subdomains1(t *testing.T) {
-	list := memxl.New(memxl.Config{
-		Resources: []xlist.Resource{xlist.Domain},
-	})
+	list := memxl.New([]xlist.Resource{xlist.Domain}, memxl.Config{})
 	err := list.AddDomains([]string{"www.malware.com"})
 	if err != nil {
 		t.Fatalf("memxl.AddDomains(): err=%v", err)
@@ -79,9 +75,7 @@ func TestList_Check_subdomains1(t *testing.T) {
 }
 
 func TestList_Check_subdomains2(t *testing.T) {
-	list := memxl.New(memxl.Config{
-		Resources: []xlist.Resource{xlist.Domain},
-	})
+	list := memxl.New([]xlist.Resource{xlist.Domain}, memxl.Config{})
 	err := list.AddDomains([]string{"www.micasa.com"})
 	if err != nil {
 		t.Fatalf("memxl.AddDomains(): err=%v", err)

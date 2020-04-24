@@ -47,10 +47,9 @@ func TestList_Check(t *testing.T) {
 			19 * time.Millisecond, false, false, true},
 	}
 	for idx, test := range tests {
-		wseq := sequencexl.New(test.sequence,
+		wseq := sequencexl.New(test.sequence, test.resources,
 			sequencexl.Config{
 				FirstResponse: true,
-				Resources:     test.resources,
 				SkipErrors:    !test.stoOnErr,
 			})
 		//create context with timeout
@@ -99,9 +98,8 @@ func ExampleList() {
 	}
 
 	//constructs sequence rbl
-	rbl := sequencexl.New(childs,
+	rbl := sequencexl.New(childs, resources,
 		sequencexl.Config{
-			Resources:     resources,
 			SkipErrors:    true,
 			FirstResponse: true,
 		})

@@ -18,7 +18,6 @@ import (
 
 // Config options
 type Config struct {
-	Resources       []xlist.Resource
 	FirstResponse   bool
 	SkipErrors      bool
 	ForceValidation bool
@@ -41,7 +40,7 @@ type List struct {
 }
 
 // New returns a new parallel component with the resources passed
-func New(childs []xlist.Checker, cfg Config) *List {
+func New(childs []xlist.Checker, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
 		opts: options{
 			firstResponse:   cfg.FirstResponse,
@@ -49,7 +48,7 @@ func New(childs []xlist.Checker, cfg Config) *List {
 			forceValidation: cfg.ForceValidation,
 			reason:          cfg.Reason,
 		},
-		resources: xlist.ClearResourceDups(cfg.Resources),
+		resources: xlist.ClearResourceDups(resources),
 		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
 	//set resource types that provides

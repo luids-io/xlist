@@ -37,8 +37,7 @@ func Builder(cfg Config) builder.BuildListFn {
 				cfg.Resolver = pool
 			}
 		}
-		// create dnsxl object
-		return New(def.Source, cfg)
+		return New(def.Source, def.Resources, cfg)
 	}
 }
 

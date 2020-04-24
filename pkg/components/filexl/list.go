@@ -23,7 +23,6 @@ func DefaultConfig() Config {
 
 // Config options
 type Config struct {
-	Resources       []xlist.Resource
 	Logger          yalogi.Logger
 	ForceValidation bool
 	Reason          string
@@ -42,9 +41,10 @@ type options struct {
 
 // List loads list from a file using internally a memxl.List
 type List struct {
-	opts     options
-	logger   yalogi.Logger
-	filename string
+	opts      options
+	logger    yalogi.Logger
+	filename  string
+	resources []xlist.Resource
 	// mtime and size are only read and modified by a single goroutine
 	mtime time.Time
 	size  int64
@@ -57,7 +57,7 @@ type List struct {
 }
 
 // New creates a new List with the filename passed
-func New(filename string, cfg Config) *List {
+func New(filename string, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
 		filename: filename,
 		opts: options{
@@ -67,14 +67,16 @@ func New(filename string, cfg Config) *List {
 			autoreload:      cfg.Autoreload,
 			reloadTime:      cfg.ReloadTime,
 		},
-		logger: cfg.Logger,
-		list: memxl.New(memxl.Config{
-			Resources:       cfg.Resources,
-			ForceValidation: cfg.ForceValidation,
-			Reason:          cfg.Reason,
-		}),
-		close: make(chan bool),
+		logger:    cfg.Logger,
+		resources: xlist.ClearResourceDups(resources),
+		close:     make(chan bool),
 	}
+	l.list = memxl.New(l.resources,
+		memxl.Config{
+			ForceValidation: l.opts.forceValidation,
+			Reason:          l.opts.reason,
+		})
+
 	if l.logger == nil {
 		l.logger = yalogi.LogNull
 	}
@@ -94,7 +96,9 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 
 // Resources implements xlist.Checker interface
 func (l *List) Resources() []xlist.Resource {
-	return l.list.Resources()
+	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
+	copy(resources, l.resources)
+	return resources
 }
 
 // Ping implements xlist.Checker interface
@@ -176,11 +180,11 @@ func (l *List) Reload() error {
 		return nil
 	}
 	//safe reload
-	list := memxl.New(memxl.Config{
-		Resources:       l.Resources(),
-		ForceValidation: l.opts.forceValidation,
-		Reason:          l.opts.reason,
-	})
+	list := memxl.New(l.resources,
+		memxl.Config{
+			ForceValidation: l.opts.forceValidation,
+			Reason:          l.opts.reason,
+		})
 	err := l.loadFile(list, false)
 	if err != nil {
 		return err

@@ -37,7 +37,7 @@ func Builder(cfg Config) builder.BuildListFn {
 				return nil, err
 			}
 		}
-		bl := New(cfg)
+		bl := New(def.Resources, cfg)
 		if len(data) > 0 {
 			err := LoadFromData(bl, data, false)
 			if err != nil {

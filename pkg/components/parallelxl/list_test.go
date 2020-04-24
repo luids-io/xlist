@@ -53,9 +53,8 @@ func TestList_Check(t *testing.T) {
 		{ip4, []xlist.Checker{rblLazyT, rblLazyF, rblLazyT}, t5ms, true, false, true}, //13
 	}
 	for idx, test := range tests {
-		wpar := parallelxl.New(test.parallel,
+		wpar := parallelxl.New(test.parallel, test.resources,
 			parallelxl.Config{
-				Resources:     test.resources,
 				SkipErrors:    !test.stoOnErr,
 				FirstResponse: true,
 			})
@@ -84,7 +83,6 @@ func ExampleList() {
 	t5ms := 5 * time.Millisecond
 
 	cfg := parallelxl.Config{
-		Resources:     ip4,
 		SkipErrors:    true,
 		FirstResponse: true,
 	}
@@ -97,7 +95,7 @@ func ExampleList() {
 	}
 
 	//constructs parallel rbl
-	rbl := parallelxl.New(childs, cfg)
+	rbl := parallelxl.New(childs, ip4, cfg)
 	for i := 0; i < 4; i++ {
 		resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if err != nil {

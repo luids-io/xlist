@@ -16,7 +16,6 @@ import (
 
 // Config options
 type Config struct {
-	Resources       []xlist.Resource
 	ForceValidation bool
 	Reason          string
 }
@@ -39,7 +38,7 @@ type List struct {
 
 // New constructs a new "white before" RBL, it receives the resource list that
 // RBL supports.
-func New(white, black xlist.Checker, cfg Config) *List {
+func New(white, black xlist.Checker, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
 		opts: options{
 			forceValidation: cfg.ForceValidation,
@@ -47,7 +46,7 @@ func New(white, black xlist.Checker, cfg Config) *List {
 		},
 		white:     white,
 		black:     black,
-		resources: xlist.ClearResourceDups(cfg.Resources),
+		resources: xlist.ClearResourceDups(resources),
 		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
 	//set resource types that provides

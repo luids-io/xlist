@@ -20,7 +20,6 @@ func Builder(cfg Config) builder.BuildListFn {
 		if len(def.Contains) != 2 {
 			return nil, errors.New("number of childs must be 2")
 		}
-		cfg.Resources = def.Resources
 		whitelist, err := b.BuildChild(append(parents, def.ID), def.Contains[0])
 		if err != nil {
 			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[0].ID, err)
@@ -45,7 +44,7 @@ func Builder(cfg Config) builder.BuildListFn {
 				return nil, err
 			}
 		}
-		return New(whitelist, blacklist, cfg), nil
+		return New(whitelist, blacklist, def.Resources, cfg), nil
 	}
 }
 

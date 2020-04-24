@@ -39,7 +39,7 @@ func Builder(cfg Config) builder.BuildListFn {
 			}
 			childs = append(childs, child)
 		}
-		return New(childs, cfg), nil
+		return New(childs, def.Resources, cfg), nil
 	}
 }
 
