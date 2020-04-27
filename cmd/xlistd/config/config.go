@@ -12,7 +12,13 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
-			Name:     "api-check",
+			Name:     "xlist",
+			Required: true,
+			Short:    true,
+			Data:     &iconfig.XListCfg{},
+		},
+		goconfig.Section{
+			Name:     "xlist.api.check",
 			Required: true,
 			Short:    true,
 			Data: &iconfig.XListCheckAPICfg{
@@ -20,13 +26,7 @@ func Default(program string) *goconfig.Config {
 			},
 		},
 		goconfig.Section{
-			Name:     "xlist",
-			Required: true,
-			Short:    true,
-			Data:     &iconfig.XListCfg{},
-		},
-		goconfig.Section{
-			Name:     "server-check",
+			Name:     "server",
 			Required: true,
 			Short:    true,
 			Data: &cconfig.ServerCfg{

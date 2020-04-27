@@ -1,6 +1,8 @@
 [xlist]
-files      = [ "/etc/luids/xlist/service.json" ]
 sourcesdir = "/var/lib/luids/xlist"
 
-[grpc-server]
+[xlist.db]
+files      = [ "/etc/luids/xlist/service.json" ]
+
+[server]
 listenuri  = "tcp://0.0.0.0:5801"

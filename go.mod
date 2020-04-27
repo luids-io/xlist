@@ -7,7 +7,7 @@ require (
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/luids-io/api v0.0.0-20200420101700-7ef915904345
-	github.com/luids-io/common v0.0.0-20200402071902-620ef2e970dc
+	github.com/luids-io/common v0.0.0-20200424154549-b9f88f4b7ee2
 	github.com/luids-io/core v0.0.0-20200423065407-5f95689cd84b
 	github.com/miekg/dns v1.1.29
 	github.com/oschwald/geoip2-golang v1.4.0

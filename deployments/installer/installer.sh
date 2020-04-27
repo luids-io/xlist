@@ -403,23 +403,22 @@ create_service_config() {
 	if [ ! -f $ETC_DIR/$NAME/xlistd.toml ]; then
 		log "creating $ETC_DIR/$NAME/xlistd.toml"
 		{ cat > $ETC_DIR/$NAME/xlistd.toml <<EOF
-####################
-## XList service  ##
-####################
+######################
+## Service settings ##
+######################
 [xlist]
-files      = [ "${ETC_DIR}/${NAME}/services.json" ]
-#dirs       = [ "${ETC_DIR}/${NAME}/services.d" ]
 certsdir   = "${ETC_DIR}/ssl"
 sourcesdir = "${VAR_DIR}/${NAME}"
+
+[xlist.db]
+files      = [ "${ETC_DIR}/${NAME}/services.json" ]
+#dirs       = [ "${ETC_DIR}/${NAME}/services.d" ]
 
 #[xlist.dnsxl]
 #resolvers  = [ "8.8.8.8", "8.8.4.4" ]
 #resolvconf = false
 
-######################
-## Service settings ##
-######################
-#[api-check]
+#[xlist.api.check]
 #rootid     = "root"
 #disclosure = false
 #exposeping = false
@@ -428,7 +427,7 @@ sourcesdir = "${VAR_DIR}/${NAME}"
 ## Server settings ##
 #####################
 ## By default only serves grpc API and listen in localhost
-#[server-check]
+#[server]
 #listenuri  = "tcp://0.0.0.0:5801"
 #certca     = "${ETC_DIR}/ssl/certs/CA.crt"
 #certfile   = "${ETC_DIR}/ssl/certs/server.crt"
@@ -450,9 +449,9 @@ sourcesdir = "${VAR_DIR}/${NAME}"
 ##################
 ## Log settings ##
 ##################
-#[log]
-#format  = "text"
-#level   = "info"
+[log]
+format  = "log"
+level   = "info"
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1

@@ -54,7 +54,7 @@ func createLists(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder,
 		return nil, err
 	}
 	msrv.Register(serverd.Service{
-		Name:     "xlist-database.service",
+		Name:     "xlist",
 		Start:    builder.Start,
 		Shutdown: func() { builder.Shutdown() },
 	})
@@ -62,7 +62,7 @@ func createLists(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder,
 }
 
 func createCheckAPI(gsrv *grpc.Server, finder xlist.ListFinder, msrv *serverd.Manager, logger yalogi.Logger) error {
-	cfgCheck := cfg.Data("api-check").(*iconfig.XListCheckAPICfg)
+	cfgCheck := cfg.Data("xlist.api.check").(*iconfig.XListCheckAPICfg)
 	gsvc, err := ifactory.XListCheckAPI(cfgCheck, finder, logger)
 	if err != nil {
 		return err
@@ -74,14 +74,14 @@ func createCheckAPI(gsrv *grpc.Server, finder xlist.ListFinder, msrv *serverd.Ma
 		return fmt.Errorf("rootlist '%s' not found", cfgCheck.RootListID)
 	}
 	msrv.Register(serverd.Service{
-		Name: "xlist-check.service",
+		Name: "xlist.api.check",
 		Ping: rootList.Ping,
 	})
 	return nil
 }
 
 func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
-	cfgServer := cfg.Data("server-check").(*cconfig.ServerCfg)
+	cfgServer := cfg.Data("server").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err != nil {
 		return nil, err

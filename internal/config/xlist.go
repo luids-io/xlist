@@ -32,11 +32,11 @@ func (cfg *XListCfg) SetPFlags(short bool, prefix string) {
 		aprefix = prefix + "."
 	}
 	if short {
-		pflag.StringSliceVarP(&cfg.ConfigDirs, aprefix+"dirs", "D", cfg.ConfigDirs, "Definition config dirs.")
-		pflag.StringSliceVarP(&cfg.ConfigFiles, aprefix+"files", "d", cfg.ConfigFiles, "Definition config files.")
+		pflag.StringSliceVarP(&cfg.ConfigDirs, aprefix+"db.dirs", "D", cfg.ConfigDirs, "Definition config dirs.")
+		pflag.StringSliceVarP(&cfg.ConfigFiles, aprefix+"db.files", "d", cfg.ConfigFiles, "Definition config files.")
 	} else {
-		pflag.StringSliceVar(&cfg.ConfigDirs, aprefix+"dirs", cfg.ConfigDirs, "Definition config dirs.")
-		pflag.StringSliceVar(&cfg.ConfigFiles, aprefix+"files", cfg.ConfigFiles, "Definition config files.")
+		pflag.StringSliceVar(&cfg.ConfigDirs, aprefix+"db.dirs", cfg.ConfigDirs, "Definition config dirs.")
+		pflag.StringSliceVar(&cfg.ConfigFiles, aprefix+"db.files", cfg.ConfigFiles, "Definition config files.")
 	}
 	pflag.StringVar(&cfg.SourcesDir, aprefix+"sourcesdir", cfg.SourcesDir, "Path to sources files.")
 	pflag.StringVar(&cfg.CertsDir, aprefix+"certsdir", cfg.CertsDir, "Path to certificate files.")
@@ -53,8 +53,8 @@ func (cfg *XListCfg) BindViper(v *viper.Viper, prefix string) {
 		aprefix = prefix + "."
 	}
 	//config
-	util.BindViper(v, aprefix+"dirs")
-	util.BindViper(v, aprefix+"files")
+	util.BindViper(v, aprefix+"db.dirs")
+	util.BindViper(v, aprefix+"db.files")
 	//build opts
 	util.BindViper(v, aprefix+"sourcesdir")
 	util.BindViper(v, aprefix+"certsdir")
@@ -70,8 +70,8 @@ func (cfg *XListCfg) FromViper(v *viper.Viper, prefix string) {
 	if prefix != "" {
 		aprefix = prefix + "."
 	}
-	cfg.ConfigDirs = v.GetStringSlice(aprefix + "dirs")
-	cfg.ConfigFiles = v.GetStringSlice(aprefix + "files")
+	cfg.ConfigDirs = v.GetStringSlice(aprefix + "db.dirs")
+	cfg.ConfigFiles = v.GetStringSlice(aprefix + "db.files")
 	cfg.SourcesDir = v.GetString(aprefix + "sourcesdir")
 	cfg.CertsDir = v.GetString(aprefix + "certsdir")
 	//dnsxl
