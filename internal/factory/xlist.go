@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/luids-io/common/util"
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/xlist/internal/config"
 	"github.com/luids-io/xlist/pkg/builder"
@@ -20,12 +21,12 @@ var (
 )
 
 // ListBuilder is a factory for an xlist builder
-func ListBuilder(cfg *config.XListCfg, logger yalogi.Logger) (*builder.Builder, error) {
+func ListBuilder(cfg *config.XListCfg, apisvc apiservice.Discover, logger yalogi.Logger) (*builder.Builder, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
 	}
-	b := builder.New(
+	b := builder.New(apisvc,
 		builder.SourcesDir(cfg.SourcesDir),
 		builder.CertsDir(cfg.CertsDir),
 		builder.SetLogger(logger),

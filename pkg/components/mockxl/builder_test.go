@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
@@ -47,7 +48,7 @@ var testdatabase1 = []builder.ListDef{
 }
 
 func TestBuilderSources(t *testing.T) {
-	b := builder.New()
+	b := builder.New(apiservice.NewRegistry())
 	var tests = []struct {
 		listid  string
 		want    []bool
@@ -93,7 +94,7 @@ func cmpResults(a, b []bool) bool {
 }
 
 func TestBuilderProperties(t *testing.T) {
-	b := builder.New()
+	b := builder.New(apiservice.NewRegistry())
 	var tests = []struct {
 		listid     string
 		wantTTL    int
@@ -140,7 +141,7 @@ func TestBuilderProperties(t *testing.T) {
 
 func ExampleBuilder() {
 	// instande builder and register class
-	b := builder.New()
+	b := builder.New(apiservice.NewRegistry())
 
 	// create a definition for a list that checks ipv4
 	// and returns true to all checks

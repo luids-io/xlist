@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
@@ -65,7 +66,7 @@ var testdatabase1 = []builder.ListDef{
 
 func TestBuild(t *testing.T) {
 	output := &logmockup{}
-	b := builder.New(builder.SetLogger(output))
+	b := builder.New(apiservice.NewRegistry(), builder.SetLogger(output))
 
 	//define and do tests
 	var tests = []struct {

@@ -74,8 +74,20 @@ func main() {
 	// creates main server manager
 	msrv := serverd.New(serverd.SetLogger(logger))
 
+	// create api services and register
+	apisvc, err := createAPIServices(msrv, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create api registry: %v", err)
+	}
+
+	//setup event notifier
+	err = setupEventNotify(apisvc, msrv, logger)
+	if err != nil {
+		logger.Fatalf("couldn't create event notify: %v", err)
+	}
+
 	// create lists
-	lists, err := createLists(msrv, logger)
+	lists, err := createLists(apisvc, msrv, logger)
 	if err != nil {
 		logger.Fatalf("couldn't create lists: %v", err)
 	}
@@ -86,7 +98,7 @@ func main() {
 	}
 
 	// create grpc check server
-	gsrv, err := createCheckSrv(msrv)
+	gsrv, err := createServer(msrv)
 	if err != nil {
 		logger.Fatalf("couldn't create check server: %v", err)
 	}

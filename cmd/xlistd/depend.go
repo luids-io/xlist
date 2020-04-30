@@ -13,6 +13,9 @@ import (
 	checkapi "github.com/luids-io/api/xlist/check"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
+	"github.com/luids-io/core/apiservice"
+	"github.com/luids-io/core/event"
+	"github.com/luids-io/core/event/notifybuffer"
 	"github.com/luids-io/core/utils/serverd"
 	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
@@ -42,9 +45,40 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 	return nil
 }
 
-func createLists(msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder, error) {
+func createAPIServices(msrv *serverd.Manager, logger yalogi.Logger) (apiservice.Discover, error) {
+	cfgServices := cfg.Data("ids.api").(*cconfig.APIServicesCfg)
+	registry, err := cfactory.APIAutoloader(cfgServices, logger)
+	if err != nil {
+		return nil, err
+	}
+	msrv.Register(serverd.Service{
+		Name:     "apiservices.service",
+		Ping:     registry.Ping,
+		Shutdown: func() { registry.CloseAll() },
+	})
+	return registry, nil
+}
+
+func setupEventNotify(registry apiservice.Discover, msrv *serverd.Manager, logger yalogi.Logger) error {
+	cfgEvent := cfg.Data("ids.event").(*cconfig.EventNotifyCfg)
+	if !cfgEvent.Empty() {
+		client, err := cfactory.EventNotify(cfgEvent, registry)
+		if err != nil {
+			return err
+		}
+		ebuffer := notifybuffer.New(client, cfgEvent.Buffer, notifybuffer.SetLogger(logger))
+		msrv.Register(serverd.Service{
+			Name:     "event-notify.service",
+			Shutdown: func() { ebuffer.Close() },
+		})
+		event.SetBuffer(ebuffer)
+	}
+	return nil
+}
+
+func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder, error) {
 	cfgList := cfg.Data("xlist").(*iconfig.XListCfg)
-	builder, err := ifactory.ListBuilder(cfgList, logger)
+	builder, err := ifactory.ListBuilder(cfgList, apisvc, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +114,7 @@ func createCheckAPI(gsrv *grpc.Server, finder xlist.ListFinder, msrv *serverd.Ma
 	return nil
 }
 
-func createCheckSrv(msrv *serverd.Manager) (*grpc.Server, error) {
+func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
 	cfgServer := cfg.Data("server").(*cconfig.ServerCfg)
 	glis, gsrv, err := cfactory.Server(cfgServer)
 	if err != nil {

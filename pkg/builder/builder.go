@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/utils/yalogi"
 
 	"github.com/luids-io/core/xlist"
@@ -18,11 +19,11 @@ import (
 
 // Builder constructs RBL services
 type Builder struct {
-	xlist.ListFinder
-
 	opts   options
 	logger yalogi.Logger
-	lists  map[string]xlist.List
+
+	services apiservice.Discover
+	lists    map[string]xlist.List
 
 	startup  []func() error
 	shutdown []func() error
@@ -68,7 +69,7 @@ func SetLogger(l yalogi.Logger) Option {
 }
 
 // New instances a new builder
-func New(opt ...Option) *Builder {
+func New(services apiservice.Discover, opt ...Option) *Builder {
 	opts := defaultOptions
 	for _, o := range opt {
 		o(&opts)
@@ -76,6 +77,7 @@ func New(opt ...Option) *Builder {
 	return &Builder{
 		opts:     opts,
 		logger:   opts.logger,
+		services: services,
 		lists:    make(map[string]xlist.List),
 		startup:  make([]func() error, 0),
 		shutdown: make([]func() error, 0),
@@ -200,6 +202,11 @@ func (b *Builder) Shutdown() error {
 		}
 	}
 	return ret
+}
+
+// APIService returns service by name
+func (b Builder) APIService(name string) (apiservice.Service, bool) {
+	return b.services.GetService(name)
 }
 
 // SourcePath returns path for source

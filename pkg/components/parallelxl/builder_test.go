@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/xlist/pkg/builder"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
@@ -82,7 +83,7 @@ var testparallel1 = []builder.ListDef{
 }
 
 func TestBuild(t *testing.T) {
-	b := builder.New()
+	b := builder.New(apiservice.NewRegistry())
 
 	//create mocks
 	for _, defmock := range testmocks {

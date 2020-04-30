@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/xlist"
 	"github.com/luids-io/xlist/pkg/builder"
 )
@@ -36,7 +37,7 @@ func TestBuilderBasic(t *testing.T) {
 	//register builders
 	builder.RegisterListBuilder("list1", testBuilderList())
 
-	b := builder.New()
+	b := builder.New(apiservice.NewRegistry())
 
 	//check build registered
 	bl, err := b.Build(testbuilder1[0])
@@ -95,7 +96,7 @@ func TestBuilderStartup(t *testing.T) {
 	shutdValues := make([]bool, 3, 3)
 
 	testerr := errors.New("error")
-	builder := builder.New()
+	builder := builder.New(apiservice.NewRegistry())
 	builder.OnStartup(func() error { startValues[0] = true; return nil })
 	builder.OnShutdown(func() error { shutdValues[0] = true; return nil })
 	builder.OnStartup(func() error { return testerr })
@@ -176,7 +177,7 @@ func TestBuilderComp(t *testing.T) {
 	builder.RegisterListBuilder("list", testBuilderList())
 	builder.RegisterListBuilder("comp", testBuilderCompo())
 
-	b := builder.New()
+	b := builder.New(apiservice.NewRegistry())
 	for _, def := range testbuilder2 {
 		_, err := b.Build(def)
 		if err != nil {
@@ -250,7 +251,7 @@ func TestBuilderRecursion(t *testing.T) {
 	builder.RegisterListBuilder("list", testBuilderList())
 	builder.RegisterListBuilder("comp", testBuilderCompo())
 
-	b := builder.New()
+	b := builder.New(apiservice.NewRegistry())
 
 	_, err := b.Build(testbuilderbad1[0])
 	if err == nil {
@@ -304,7 +305,7 @@ func TestBuilderWrapper(t *testing.T) {
 	builder.RegisterListBuilder("comp", testBuilderCompo())
 	builder.RegisterWrapperBuilder("wrap", testBuilderWrap())
 
-	b := builder.New()
+	b := builder.New(apiservice.NewRegistry())
 
 	_, err := b.Build(testbuilder3[0])
 	if err == nil {
@@ -317,7 +318,7 @@ func TestBuilderWrapper(t *testing.T) {
 	builder.RegisterWrapperBuilder("wrap", testBuilderWrap())
 	builder.RegisterWrapperBuilder("wrapx", testBuilderWrap())
 
-	b = builder.New()
+	b = builder.New(apiservice.NewRegistry())
 	_, err = b.Build(testbuilder3[0])
 	if err != nil {
 		t.Fatalf("unexpected error building list: %v", err)
