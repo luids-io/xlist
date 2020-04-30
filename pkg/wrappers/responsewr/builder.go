@@ -28,77 +28,77 @@ func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	}
 }
 
-func parseOptions(cfg Config, opts map[string]interface{}, listID string) (Config, error) {
-	rCfg := cfg
+func parseOptions(src Config, opts map[string]interface{}, listID string) (Config, error) {
+	dst := src
 	clean, ok, err := option.Bool(opts, "clean")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Clean = clean
+		dst.Clean = clean
 	}
 
 	aggregate, ok, err := option.Bool(opts, "aggregate")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
 		if clean && aggregate {
-			return rCfg, errors.New("'clean' and 'aggregate' fields are incompatible")
+			return dst, errors.New("'clean' and 'aggregate' fields are incompatible")
 		}
-		rCfg.Aggregate = aggregate
+		dst.Aggregate = aggregate
 	}
 
 	negate, ok, err := option.Bool(opts, "negate")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Negate = negate
+		dst.Negate = negate
 	}
 
 	ttl, ok, err := option.Int(opts, "ttl")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok && ttl >= xlist.NeverCache {
-		rCfg.TTL = ttl
+		dst.TTL = ttl
 	}
 
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Reason = reason
+		dst.Reason = reason
 	}
 
 	preffixID, ok, err := option.Bool(opts, "preffixid")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok && preffixID {
-		rCfg.Preffix = listID
+		dst.Preffix = listID
 	}
 
 	preffix, ok, err := option.String(opts, "preffix")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Preffix = preffix
+		dst.Preffix = preffix
 	}
 
 	threshold, ok, err := option.Int(opts, "threshold")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.UseThreshold = true
-		rCfg.Score = threshold
+		dst.UseThreshold = true
+		dst.Score = threshold
 	}
 
-	return rCfg, nil
+	return dst, nil
 }
 
 func init() {

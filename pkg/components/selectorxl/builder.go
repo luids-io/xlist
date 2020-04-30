@@ -45,16 +45,16 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 	}
 }
 
-func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
-	rCfg := cfg
+func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
+	dst := src
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Reason = reason
+		dst.Reason = reason
 	}
-	return rCfg, nil
+	return dst, nil
 }
 
 func init() {

@@ -58,41 +58,41 @@ func fileExists(filename string) bool {
 	return !info.IsDir()
 }
 
-func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
-	rCfg := cfg
+func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
+	dst := src
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Reason = reason
+		dst.Reason = reason
 	}
 
 	autoreload, ok, err := option.Bool(opts, "autoreload")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Autoreload = autoreload
+		dst.Autoreload = autoreload
 	}
 
 	unsafereload, ok, err := option.Bool(opts, "unsafereload")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.UnsafeReload = unsafereload
+		dst.UnsafeReload = unsafereload
 	}
 
 	reloadSecs, ok, err := option.Int(opts, "reloadseconds")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.ReloadTime = time.Duration(reloadSecs) * time.Second
+		dst.ReloadTime = time.Duration(reloadSecs) * time.Second
 	}
 
-	return rCfg, nil
+	return dst, nil
 }
 
 func init() {

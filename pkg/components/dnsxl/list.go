@@ -256,7 +256,7 @@ func (l *List) getResponse(ctx context.Context, server, dnsrecord string) (xlist
 			}
 			codeerror, ok := l.errCodes[resIP]
 			if ok {
-				return xlist.Response{}, fmt.Errorf("%s", codeerror)
+				return xlist.Response{}, errors.New(codeerror)
 			}
 			codereason, ok := l.dnsCodes[resIP]
 			if ok {

@@ -28,31 +28,31 @@ func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	}
 }
 
-func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
-	rCfg := cfg
+func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
+	dst := src
 	ttl, ok, err := option.Int(opts, "ttl")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
 		if ttl <= 0 {
-			return rCfg, errors.New("invalid 'ttl'")
+			return dst, errors.New("invalid 'ttl'")
 		}
-		rCfg.TTL = ttl
+		dst.TTL = ttl
 	}
 
 	negativettl, ok, err := option.Int(opts, "negativettl")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
 		if negativettl <= 0 && negativettl != xlist.NeverCache {
-			return rCfg, errors.New("invalid 'negativettl'")
+			return dst, errors.New("invalid 'negativettl'")
 		}
-		rCfg.NegativeTTL = negativettl
+		dst.NegativeTTL = negativettl
 	}
 
-	return rCfg, nil
+	return dst, nil
 }
 
 func init() {

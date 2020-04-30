@@ -36,32 +36,32 @@ func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	}
 }
 
-func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
-	rCfg := cfg
+func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
+	dst := src
 	matches, ok, err := option.SliceHash(opts, "matches")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Scores = make([]ScoreExpr, 0, len(matches))
+		dst.Scores = make([]ScoreExpr, 0, len(matches))
 		for _, match := range matches {
 			expr, ok, err := option.String(match, "expr")
 			if err != nil || !ok {
-				return rCfg, err
+				return dst, err
 			}
 			value, ok, err := option.Int(match, "value")
 			if err != nil || !ok {
-				return rCfg, err
+				return dst, err
 			}
 			// compile regexpr
 			re, err := regexp.Compile(expr)
 			if err != nil {
-				return rCfg, fmt.Errorf("invalid 'matches': invalid 'expr': %s %v", expr, err)
+				return dst, fmt.Errorf("invalid 'matches': invalid 'expr': %s %v", expr, err)
 			}
-			rCfg.Scores = append(rCfg.Scores, ScoreExpr{RegExp: re, Score: value})
+			dst.Scores = append(dst.Scores, ScoreExpr{RegExp: re, Score: value})
 		}
 	}
-	return rCfg, nil
+	return dst, nil
 }
 
 func init() {

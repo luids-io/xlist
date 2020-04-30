@@ -40,25 +40,25 @@ func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	}
 }
 
-func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
-	rCfg := cfg
+func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
+	dst := src
 	merge, ok, err := option.Bool(opts, "merge")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Merge = merge
+		dst.Merge = merge
 	}
 
 	threshold, ok, err := option.Int(opts, "threshold")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.UseThreshold = true
-		rCfg.Score = threshold
+		dst.UseThreshold = true
+		dst.Score = threshold
 	}
-	return rCfg, nil
+	return dst, nil
 }
 
 func init() {

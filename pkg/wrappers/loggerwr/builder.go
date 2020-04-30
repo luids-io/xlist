@@ -29,53 +29,53 @@ func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	}
 }
 
-func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
-	rCfg := cfg
+func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
+	dst := src
 	showpeer, ok, err := option.Bool(opts, "showpeer")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.ShowPeer = showpeer
+		dst.ShowPeer = showpeer
 	}
 
 	found, ok, err := option.String(opts, "found")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
 		lfound, err := StringToLevel(found)
 		if err != nil {
-			return rCfg, errors.New("invalid 'found'")
+			return dst, errors.New("invalid 'found'")
 		}
-		rCfg.Rules.Found = lfound
+		dst.Rules.Found = lfound
 	}
 
 	notfound, ok, err := option.String(opts, "notfound")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
 		lnotfound, err := StringToLevel(notfound)
 		if err != nil {
-			return rCfg, errors.New("invalid 'notfound'")
+			return dst, errors.New("invalid 'notfound'")
 		}
-		rCfg.Rules.NotFound = lnotfound
+		dst.Rules.NotFound = lnotfound
 	}
 
 	errorlevel, ok, err := option.String(opts, "error")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
 		lerror, err := StringToLevel(errorlevel)
 		if err != nil {
-			return rCfg, errors.New("invalid 'error'")
+			return dst, errors.New("invalid 'error'")
 		}
-		rCfg.Rules.Error = lerror
+		dst.Rules.Error = lerror
 	}
 
-	return rCfg, nil
+	return dst, nil
 }
 
 func init() {

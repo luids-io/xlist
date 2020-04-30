@@ -60,34 +60,34 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 	}
 }
 
-func parseOptions(cfg Config, opts map[string]interface{}) (Config, error) {
-	rCfg := cfg
+func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
+	dst := src
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Reason = reason
+		dst.Reason = reason
 	}
 
 	countries, ok, err := option.SliceString(opts, "countries")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Countries = make([]string, len(countries), len(countries))
-		copy(rCfg.Countries, countries)
+		dst.Countries = make([]string, len(countries), len(countries))
+		copy(dst.Countries, countries)
 	}
 
 	reverse, ok, err := option.Bool(opts, "reverse")
 	if err != nil {
-		return rCfg, err
+		return dst, err
 	}
 	if ok {
-		rCfg.Reverse = reverse
+		dst.Reverse = reverse
 	}
 
-	return rCfg, nil
+	return dst, nil
 }
 
 func fileExists(filename string) bool {
