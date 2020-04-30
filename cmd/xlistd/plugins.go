@@ -4,6 +4,7 @@ package main
 
 import (
 	//components
+	_ "github.com/luids-io/xlist/pkg/components/apicheckxl"
 	_ "github.com/luids-io/xlist/pkg/components/dnsxl"
 	_ "github.com/luids-io/xlist/pkg/components/filexl"
 	_ "github.com/luids-io/xlist/pkg/components/geoip2xl"
