@@ -15,8 +15,9 @@ import (
 const BuildClass = "score"
 
 // Builder returns a builder for the component
-func Builder(cfg Config) builder.BuildWrapperFn {
+func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	return func(b *builder.Builder, listID string, def builder.WrapperDef, bl xlist.List) (xlist.List, error) {
+		cfg := defaultCfg
 		score := 0
 		if def.Opts != nil {
 			v, ok, err := option.Int(def.Opts, "value")

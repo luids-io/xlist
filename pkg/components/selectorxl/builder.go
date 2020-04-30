@@ -15,8 +15,9 @@ import (
 const BuildClass = "selector"
 
 // Builder returns a builder for selector List component
-func Builder(cfg Config) builder.BuildListFn {
+func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
+		cfg := defaultCfg
 		if len(def.Resources) != len(def.Contains) {
 			return nil, errors.New("number of resources doesn't match with members")
 		}

@@ -43,6 +43,24 @@ type Config struct {
 	ErrCodes        map[string]string
 }
 
+// Copy configuration
+func (src Config) Copy() Config {
+	dst := src
+	if len(src.DNSCodes) > 0 {
+		dst.DNSCodes = make(map[string]string, len(src.DNSCodes))
+		for k, v := range src.DNSCodes {
+			dst.DNSCodes[k] = v
+		}
+	}
+	if len(src.ErrCodes) > 0 {
+		dst.ErrCodes = make(map[string]string, len(src.ErrCodes))
+		for k, v := range src.ErrCodes {
+			dst.ErrCodes[k] = v
+		}
+	}
+	return dst
+}
+
 //List implements an xlist.List that checks against DNS blacklists
 type List struct {
 	opts      options

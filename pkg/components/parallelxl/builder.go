@@ -14,8 +14,9 @@ import (
 const BuildClass = "parallel"
 
 // Builder returns a builder for parallel List component
-func Builder(cfg Config) builder.BuildListFn {
+func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
+		cfg := defaultCfg
 		if def.Opts != nil {
 			var err error
 			cfg, err = parseOptions(cfg, def.Opts)

@@ -16,8 +16,9 @@ import (
 const BuildClass = "mem"
 
 // Builder returns a list builder function
-func Builder(cfg Config) builder.BuildListFn {
+func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
+		cfg := defaultCfg
 		source := ""
 		if def.Source != "" {
 			source = b.SourcePath(def.Source)

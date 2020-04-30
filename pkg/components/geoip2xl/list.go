@@ -30,6 +30,16 @@ type Config struct {
 	Reason          string
 }
 
+// Copy configuration
+func (src Config) Copy() Config {
+	dst := src
+	if len(src.Countries) > 0 {
+		dst.Countries = make([]string, len(src.Countries), len(src.Countries))
+		copy(dst.Countries, src.Countries)
+	}
+	return dst
+}
+
 type options struct {
 	forceValidation bool
 	reason          string

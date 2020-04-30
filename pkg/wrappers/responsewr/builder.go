@@ -14,8 +14,9 @@ import (
 const BuildClass = "response"
 
 // Builder returns a builder for the component
-func Builder(cfg Config) builder.BuildWrapperFn {
+func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	return func(b *builder.Builder, listID string, def builder.WrapperDef, bl xlist.List) (xlist.List, error) {
+		cfg := defaultCfg
 		if def.Opts != nil {
 			var err error
 			cfg, err = parseOptions(cfg, def.Opts, listID)

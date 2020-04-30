@@ -15,8 +15,9 @@ import (
 const BuildClass = "wbefore"
 
 // Builder returns a builder for "white before" List component
-func Builder(cfg Config) builder.BuildListFn {
+func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
+		cfg := defaultCfg
 		if len(def.Contains) != 2 {
 			return nil, errors.New("number of childs must be 2")
 		}

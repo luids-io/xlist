@@ -15,8 +15,9 @@ import (
 const BuildClass = "dnsxl"
 
 // Builder returns a builder for component dnsxl
-func Builder(cfg Config) builder.BuildListFn {
+func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlist.List, error) {
+		cfg := defaultCfg.Copy()
 		if def.Source == "" {
 			def.Source = def.ID
 		}
