@@ -296,8 +296,6 @@ github.com/ugorji/go v1.1.7/go.mod h1:kZn38zHttfInRq0xu/PH0az30d+z6vm202qpg1oXVM
 github.com/ugorji/go/codec v1.1.7/go.mod h1:Ax+UKWsSmolVDwsd+7N3ZtXu+yMGCf907BLYF3GoBXY=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
-github.com/yl2chen/cidranger v0.0.0-20190806234802-fed7223fd934 h1:P+GkUo/9iN49SERuywkyoSINX2P9gWDgwEmPdM6VPhA=
-github.com/yl2chen/cidranger v0.0.0-20190806234802-fed7223fd934/go.mod h1:mq0zhomp/G6rRTb0dvHWXRHr/2+Qgeq5hMXfJ670+i4=
 github.com/yl2chen/cidranger v1.0.0 h1:9tdo0orHQJvXsX6mf+1Goou/R4kq21AfpbYeTcpXs2Q=
 github.com/yl2chen/cidranger v1.0.0/go.mod h1:L7Msw4X7EQK7zMVjOtv7o8xMyjv1rJcNlYlMgGwP7ko=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=

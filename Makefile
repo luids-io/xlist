@@ -19,7 +19,7 @@ BUILDLDFLAGS=-ldflags '-s -w -X main.Version=$(VERSION) -X main.Revision=$(REVIS
 # Print output
 WHALE = "+"
 
-.PHONY: all binaries database clean
+.PHONY: all binaries database clean docker
 all: binaries
 
 
@@ -45,6 +45,11 @@ clean:
 	@echo "$(WHALE) $@"
 	@rm -f $(BINARIES)
 	@rmdir bin
+
+docker:
+	@echo "$(WHALE) $@"
+	docker build -t xlistd -f Dockerfile.xlistd .
+	docker build -t xlget -f Dockerfile.xlget .
 
 ## Targets for Makefile.release
 .PHONY: release
