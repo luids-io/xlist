@@ -60,6 +60,16 @@ func New(list xlist.List, logger yalogi.Logger, cfg Config) *Wrapper {
 	}
 }
 
+// ID implements xlist.List interface
+func (w *Wrapper) ID() string {
+	return w.list.ID()
+}
+
+// Class implements xlist.List interface
+func (w *Wrapper) Class() string {
+	return BuildClass
+}
+
 // Check implements xlist.Checker interface
 func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	//do check
@@ -114,51 +124,9 @@ func (w *Wrapper) Ping() error {
 	return nil
 }
 
-// Append implements xlist.Writer interface
-func (w *Wrapper) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	peerInfo := w.getPeerInfo(ctx)
-	err := w.list.Append(ctx, name, r, f)
-	if err != nil {
-		w.log.Warnf("%s: [%s] Append(%s,%v,%v) = %v", w.preffix, peerInfo, name, r, f, err)
-		return err
-	}
-	w.log.Infof("%s: [%s] Append(%s,%v,%v)", w.preffix, peerInfo, name, r, f)
-	return nil
-}
-
-// Remove implements xlist.Writer interface
-func (w *Wrapper) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	peerInfo := w.getPeerInfo(ctx)
-	err := w.list.Remove(ctx, name, r, f)
-	if err != nil {
-		w.log.Warnf("%s: [%s] Remove(%s,%v,%v) = %v", w.preffix, peerInfo, name, r, f, err)
-		return err
-	}
-	w.log.Infof("%s: [%s] Remove(%s,%v,%v)", w.preffix, peerInfo, name, r, f)
-	return nil
-}
-
-// Clear implements xlist.Writer interface
-func (w *Wrapper) Clear(ctx context.Context) error {
-	peerInfo := w.getPeerInfo(ctx)
-	err := w.list.Clear(ctx)
-	if err != nil {
-		w.log.Warnf("%s: [%s] Clear() = %v", w.preffix, peerInfo, err)
-		return err
-	}
-	w.log.Infof("%s: [%s] Clear()", w.preffix, peerInfo)
-	return nil
-}
-
 // ReadOnly implements xlist.Writer interface
-func (w *Wrapper) ReadOnly() (bool, error) {
-	ro, err := w.list.ReadOnly()
-	if err != nil {
-		w.log.Warnf("%s: ReadOnly() = %v,%v", w.preffix, ro, err)
-		return ro, err
-	}
-	w.log.Infof("%s: ReadOnly() = %v,%v", w.preffix, ro, err)
-	return ro, err
+func (w *Wrapper) ReadOnly() bool {
+	return true
 }
 
 func (w *Wrapper) getPeerInfo(ctx context.Context) string {

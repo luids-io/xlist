@@ -26,6 +26,7 @@ type options struct {
 
 // List stores all items in memory
 type List struct {
+	id   string
 	opts options
 	//lock
 	mu sync.RWMutex
@@ -39,8 +40,9 @@ type List struct {
 }
 
 // New returns a new List
-func New(resources []xlist.Resource, cfg Config) *List {
+func New(id string, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
+		id: id,
 		opts: options{
 			forceValidation: cfg.ForceValidation,
 			reason:          cfg.Reason,
@@ -54,6 +56,16 @@ func New(resources []xlist.Resource, cfg Config) *List {
 	}
 	l.init()
 	return l
+}
+
+// ID implements xlist.List interface
+func (l *List) ID() string {
+	return l.id
+}
+
+// Class implements xlist.List interface
+func (l *List) Class() string {
+	return BuildClass
 }
 
 func (l *List) init() {
@@ -71,7 +83,7 @@ func (l *List) init() {
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
-		return xlist.Response{}, xlist.ErrNotImplemented
+		return xlist.Response{}, xlist.ErrNotSupported
 	}
 	name, _, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
@@ -113,7 +125,7 @@ func (l *List) Ping() error {
 // generic funcion add resource, warning! no lock
 func (l *List) add(r xlist.Resource, f xlist.Format, s string) error {
 	if !l.checks(r) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	var err error
 	switch r {
@@ -172,7 +184,7 @@ func (l *List) add(r xlist.Resource, f xlist.Format, s string) error {
 // generic funcion add resource, warning! no lock
 func (l *List) remove(r xlist.Resource, f xlist.Format, s string) error {
 	if !l.checks(r) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	var err error
 	switch r {
@@ -236,7 +248,7 @@ func (l *List) AddIP4(ip string) error {
 // AddIP4s add a list of ip4
 func (l *List) AddIP4s(ips []string) error {
 	if !l.checks(xlist.IPv4) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -257,7 +269,7 @@ func (l *List) AddIP6(ip string) error {
 // AddIP6s add a list of ip6
 func (l *List) AddIP6s(ips []string) error {
 	if !l.checks(xlist.IPv6) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -278,7 +290,7 @@ func (l *List) AddCIDR4(cidr string) error {
 // AddCIDR4s add a list of cidrs
 func (l *List) AddCIDR4s(cidrs []string) error {
 	if !l.checks(xlist.IPv4) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -299,7 +311,7 @@ func (l *List) AddCIDR6(cidr string) error {
 // AddCIDR6s add a list of cidrs
 func (l *List) AddCIDR6s(cidrs []string) error {
 	if !l.checks(xlist.IPv6) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -320,7 +332,7 @@ func (l *List) AddDomain(domain string) error {
 // AddDomains add a list of domains
 func (l *List) AddDomains(domains []string) error {
 	if !l.checks(xlist.Domain) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -341,7 +353,7 @@ func (l *List) AddSubdomain(subdomain string) error {
 // AddSubdomains add a list of subdomains
 func (l *List) AddSubdomains(subdomains []string) error {
 	if !l.checks(xlist.Domain) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -362,7 +374,7 @@ func (l *List) AddMD5(hash string) error {
 // AddMD5s add a list of md5
 func (l *List) AddMD5s(hashes []string) error {
 	if !l.checks(xlist.MD5) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -383,7 +395,7 @@ func (l *List) AddSHA1(hash string) error {
 // AddSHA1s add a list of sha1 hashes
 func (l *List) AddSHA1s(hashes []string) error {
 	if !l.checks(xlist.SHA1) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -404,7 +416,7 @@ func (l *List) AddSHA256(hash string) error {
 // AddSHA256s add a list of sha256 hashes
 func (l *List) AddSHA256s(hashes []string) error {
 	if !l.checks(xlist.SHA256) {
-		return xlist.ErrNotImplemented
+		return xlist.ErrNotSupported
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -457,7 +469,7 @@ func (l *List) Clear(ctx context.Context) error {
 	return nil
 }
 
-// ReadOnly implements xlist.Writer interface
-func (l *List) ReadOnly() (bool, error) {
-	return false, nil
+// ReadOnly implements xlist.List interface
+func (l *List) ReadOnly() bool {
+	return false
 }

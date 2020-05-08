@@ -45,7 +45,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 				return nil, err
 			}
 		}
-		return New(whitelist, blacklist, def.Resources, cfg), nil
+		return New(def.ID, whitelist, blacklist, def.Resources, cfg), nil
 	}
 }
 

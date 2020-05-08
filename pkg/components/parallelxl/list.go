@@ -33,15 +33,17 @@ type options struct {
 
 // List is a composite list that does the checks in parallel
 type List struct {
+	id        string
 	opts      options
-	childs    []xlist.Checker
+	childs    []xlist.List
 	provides  []bool
 	resources []xlist.Resource
 }
 
 // New returns a new parallel component with the resources passed
-func New(childs []xlist.Checker, resources []xlist.Resource, cfg Config) *List {
+func New(id string, childs []xlist.List, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
+		id: id,
 		opts: options{
 			firstResponse:   cfg.FirstResponse,
 			skipErrors:      cfg.SkipErrors,
@@ -57,14 +59,24 @@ func New(childs []xlist.Checker, resources []xlist.Resource, cfg Config) *List {
 	}
 	//set childs
 	if len(childs) > 0 {
-		l.childs = make([]xlist.Checker, len(childs), len(childs))
+		l.childs = make([]xlist.List, len(childs), len(childs))
 		copy(l.childs, childs)
 	}
 	return l
 }
 
+// ID implements xlist.List interface
+func (l *List) ID() string {
+	return l.id
+}
+
+// Class implements xlist.List interface
+func (l *List) Class() string {
+	return BuildClass
+}
+
 // AddChecker adds a checker to the RBL
-func (l *List) AddChecker(list xlist.Checker) {
+func (l *List) AddChecker(list xlist.List) {
 	l.childs = append(l.childs, list)
 }
 
@@ -78,7 +90,7 @@ type checkResult struct {
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
-		return xlist.Response{}, xlist.ErrNotImplemented
+		return xlist.Response{}, xlist.ErrNotSupported
 	}
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
@@ -186,7 +198,7 @@ func (l *List) Ping() error {
 	if len(errs) > 0 {
 		msgErr := make([]string, 0, len(errs))
 		for _, e := range errs {
-			msgErr = append(msgErr, fmt.Sprintf("parallel[%v]: %v", e.listIdx, e.err))
+			msgErr = append(msgErr, fmt.Sprintf("%s: %v", l.childs[e.listIdx].ID(), e.err))
 		}
 		return errors.New(strings.Join(msgErr, ";"))
 	}
@@ -227,22 +239,7 @@ func workerPing(wg *sync.WaitGroup, list xlist.Checker, listIdx int, results cha
 	}
 }
 
-// Append implements xlist.Writer interface
-func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Remove implements xlist.Writer interface
-func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Clear implements xlist.Writer interface
-func (l *List) Clear(ctx context.Context) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// ReadOnly implements xlist.Writer interface
-func (l *List) ReadOnly() (bool, error) {
-	return true, nil
+// ReadOnly implements xlist.List interface
+func (l *List) ReadOnly() bool {
+	return true
 }

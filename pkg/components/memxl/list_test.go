@@ -76,7 +76,7 @@ var testfile1 = "../../../test/testdata/testfile1.xlist"
 var testfileerr = "../../../test/testdata/testfile-err.xlist"
 
 func TestLoadFile(t *testing.T) {
-	list := memxl.New(
+	list := memxl.New("test1",
 		[]xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
 		memxl.Config{})
 	list.AddIP4s([]string{"2.2.2.2"})
@@ -115,7 +115,7 @@ func TestLoadFile(t *testing.T) {
 }
 
 func TestLoadData(t *testing.T) {
-	list := memxl.New([]xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6}, memxl.Config{})
+	list := memxl.New("test1", []xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6}, memxl.Config{})
 	list.AddIP4s([]string{"2.2.2.2"})
 	data := []memxl.Data{
 		{Resource: xlist.IPv4, Format: xlist.Plain, Value: "11.22.33.44"},
@@ -163,7 +163,7 @@ func TestLoadData(t *testing.T) {
 }
 
 func TestLoadFileErrors(t *testing.T) {
-	list := memxl.New([]xlist.Resource{xlist.IPv4, xlist.Domain}, memxl.Config{})
+	list := memxl.New("test1", []xlist.Resource{xlist.IPv4, xlist.Domain}, memxl.Config{})
 	err := memxl.LoadFromFile(list, "noexistefichero.list", false)
 
 	if err == nil || !strings.Contains(err.Error(), "opening file") {
@@ -176,7 +176,7 @@ func TestLoadFileErrors(t *testing.T) {
 }
 
 func getFilledList(t *testing.T) *memxl.List {
-	list := memxl.New([]xlist.Resource{xlist.IPv4, xlist.Domain}, memxl.Config{})
+	list := memxl.New("test1", []xlist.Resource{xlist.IPv4, xlist.Domain}, memxl.Config{})
 	err := list.AddIP4s([]string{"10.54.1.1", "1.1.1.1", "192.168.1.3"})
 	if err != nil {
 		t.Fatalf("memxl.AddIP4s(): err=%v", err)

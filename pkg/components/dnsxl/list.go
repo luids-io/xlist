@@ -15,12 +15,14 @@ import (
 
 	"github.com/miekg/dns"
 
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
 )
 
 // DefaultConfig returns default configuration
 func DefaultConfig() Config {
 	return Config{
+		Logger:    yalogi.LogNull,
 		DoReverse: true,
 		Retries:   1,
 		Timeout:   1 * time.Second,
@@ -29,6 +31,7 @@ func DefaultConfig() Config {
 
 // Config options
 type Config struct {
+	Logger          yalogi.Logger
 	Timeout         time.Duration
 	ForceValidation bool
 	DoReverse       bool
@@ -63,6 +66,8 @@ func (src Config) Copy() Config {
 
 //List implements an xlist.List that checks against DNS blacklists
 type List struct {
+	id        string
+	logger    yalogi.Logger
 	opts      options
 	client    *dns.Client
 	resolver  Resolver
@@ -85,7 +90,7 @@ type options struct {
 }
 
 // New creates a new DNSxL based RBL
-func New(zone string, resources []xlist.Resource, cfg Config) (*List, error) {
+func New(id, zone string, resources []xlist.Resource, cfg Config) (*List, error) {
 	if zone == "" {
 		return nil, errors.New("zone parameter is required")
 	}
@@ -94,6 +99,8 @@ func New(zone string, resources []xlist.Resource, cfg Config) (*List, error) {
 		client.Timeout = cfg.Timeout
 	}
 	l := &List{
+		id:     id,
+		logger: cfg.Logger,
 		opts: options{
 			forceValidation: cfg.ForceValidation,
 			doReverse:       cfg.DoReverse,
@@ -143,10 +150,20 @@ func New(zone string, resources []xlist.Resource, cfg Config) (*List, error) {
 	return l, nil
 }
 
+// ID implements xlist.List interface
+func (l *List) ID() string {
+	return l.id
+}
+
+// Class implements xlist.List interface
+func (l *List) Class() string {
+	return BuildClass
+}
+
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
-		return xlist.Response{}, xlist.ErrNotImplemented
+		return xlist.Response{}, xlist.ErrNotSupported
 	}
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
@@ -168,13 +185,15 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	//get response
 	resp, err := l.getResponse(ctx, server, dnsrecord)
 	if err != nil {
-		return xlist.Response{}, fmt.Errorf("checking %s: %v", name, err)
+		l.logger.Warnf("%s: check '%s': %v", l.id, name, err)
+		return xlist.Response{}, xlist.ErrInternal
 	}
 	//if check and resolv reason...
 	if resp.Result && l.opts.resolveReason {
 		reason, err := l.getReason(ctx, server, dnsrecord)
 		if err != nil {
-			reason = fmt.Sprintf("error getting reason: %v", err)
+			l.logger.Warnf("%s: get reason '%s': %v", l.id, name, err)
+			reason = l.opts.reason
 		}
 		resp.Reason = reason
 	}
@@ -207,24 +226,9 @@ func (l *List) Ping() error {
 	return nil
 }
 
-// Append implements xlist.Writer interface
-func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Remove implements xlist.Writer interface
-func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Clear implements xlist.Writer interface
-func (l *List) Clear(ctx context.Context) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// ReadOnly implements xlist.Writer interface
-func (l *List) ReadOnly() (bool, error) {
-	return true, nil
+// ReadOnly implements xlist.List interface
+func (l *List) ReadOnly() bool {
+	return true
 }
 
 //getResponse get response from A records
@@ -336,7 +340,7 @@ func (l *List) pingRFC5782(r xlist.Resource, server string) error {
 	case xlist.Domain:
 		return l.pingDomain(server)
 	}
-	return xlist.ErrNotImplemented
+	return xlist.ErrNotSupported
 }
 
 //implementation of RFC5782 checks

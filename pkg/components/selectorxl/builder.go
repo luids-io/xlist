@@ -41,7 +41,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 			}
 			services[resource] = sl
 		}
-		return New(services, cfg), nil
+		return New(def.ID, services, cfg), nil
 	}
 }
 

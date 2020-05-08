@@ -15,7 +15,7 @@ const BuildClass = "logger"
 
 // Builder returns a builder for the wrapper component with the logger passed
 func Builder(defaultCfg Config) builder.BuildWrapperFn {
-	return func(b *builder.Builder, id string, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
+	return func(b *builder.Builder, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
 		cfg := defaultCfg
 		if def.Opts != nil {
 			var err error
@@ -24,7 +24,7 @@ func Builder(defaultCfg Config) builder.BuildWrapperFn {
 				return nil, err
 			}
 		}
-		cfg.Prefix = id
+		cfg.Prefix = list.ID()
 		return New(list, b.Logger(), cfg), nil
 	}
 }

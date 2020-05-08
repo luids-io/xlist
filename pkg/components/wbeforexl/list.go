@@ -30,16 +30,18 @@ type options struct {
 // whitelist, then it returns immediately with a negative result. If not
 // in the whitelist, then returns the response of the blacklist.
 type List struct {
+	id           string
 	opts         options
 	provides     []bool
 	resources    []xlist.Resource
-	white, black xlist.Checker
+	white, black xlist.List
 }
 
 // New constructs a new "white before" RBL, it receives the resource list that
 // RBL supports.
-func New(white, black xlist.Checker, resources []xlist.Resource, cfg Config) *List {
+func New(id string, white, black xlist.List, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
+		id: id,
 		opts: options{
 			forceValidation: cfg.ForceValidation,
 			reason:          cfg.Reason,
@@ -56,10 +58,20 @@ func New(white, black xlist.Checker, resources []xlist.Resource, cfg Config) *Li
 	return l
 }
 
+// ID implements xlist.List interface
+func (l *List) ID() string {
+	return l.id
+}
+
+// Class implements xlist.List interface
+func (l *List) Class() string {
+	return BuildClass
+}
+
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
-		return xlist.Response{}, xlist.ErrNotImplemented
+		return xlist.Response{}, xlist.ErrNotSupported
 	}
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
@@ -108,13 +120,13 @@ func (l *List) Ping() error {
 	if errWhite != nil || errBlack != nil {
 		var msgErr string
 		if errWhite != nil {
-			msgErr = fmt.Sprintf("wbefore[0]: %v", errWhite.Error())
+			msgErr = fmt.Sprintf("%s: %v", l.white.ID(), errWhite.Error())
 		}
 		if errBlack != nil {
 			if msgErr != "" {
 				msgErr = msgErr + ";"
 			}
-			msgErr = msgErr + fmt.Sprintf("wbefore[1]: %v", errBlack.Error())
+			msgErr = msgErr + fmt.Sprintf("%s: %v", l.black.ID(), errBlack.Error())
 		}
 		return errors.New(msgErr)
 	}
@@ -128,22 +140,7 @@ func (l *List) checks(r xlist.Resource) bool {
 	return false
 }
 
-// Append implements xlist.Writer interface
-func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Remove implements xlist.Writer interface
-func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Clear implements xlist.Writer interface
-func (l *List) Clear(ctx context.Context) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// ReadOnly implements xlist.Writer interface
-func (l *List) ReadOnly() (bool, error) {
-	return true, nil
+// ReadOnly implements xlist.List interface
+func (l *List) ReadOnly() bool {
+	return true
 }

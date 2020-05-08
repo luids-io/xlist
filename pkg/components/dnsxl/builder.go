@@ -38,7 +38,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 				cfg.Resolver = pool
 			}
 		}
-		return New(def.Source, def.Resources, cfg)
+		return New(def.ID, def.Source, def.Resources, cfg)
 	}
 }
 

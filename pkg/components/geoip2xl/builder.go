@@ -41,7 +41,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 		}
 
 		//create RBL list
-		bl := New(source, cfg)
+		bl := New(def.ID, source, cfg)
 
 		//register startup
 		b.OnStartup(func() error {
@@ -99,5 +99,5 @@ func fileExists(filename string) bool {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterListBuilder(BuildClass, Builder(DefaultConfig()))
 }

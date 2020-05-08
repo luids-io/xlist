@@ -47,7 +47,7 @@ func Builder() builder.BuildListFn {
 		b.OnShutdown(func() error {
 			return bl.Close()
 		})
-		return &grpclist{Checker: bl}, nil
+		return &grpclist{id: def.ID, Checker: bl}, nil
 	}
 }
 

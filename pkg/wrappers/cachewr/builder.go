@@ -15,7 +15,7 @@ const BuildClass = "cache"
 
 // Builder returns a builder for the wrapper component
 func Builder(defaultCfg Config) builder.BuildWrapperFn {
-	return func(b *builder.Builder, id string, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
+	return func(b *builder.Builder, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
 		cfg := defaultCfg
 		if def.Opts != nil {
 			var err error

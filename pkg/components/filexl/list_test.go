@@ -16,7 +16,7 @@ var testfile1 = "../../../test/testdata/testfile1.xlist"
 var testfileerr = "../../../test/testdata/testfile-err.xlist"
 
 func TestList_Check(t *testing.T) {
-	list := filexl.New(testfile1,
+	list := filexl.New("test1", testfile1,
 		[]xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
 		filexl.Config{},
 	)
@@ -55,7 +55,7 @@ func TestList_Check(t *testing.T) {
 }
 
 func TestList_New(t *testing.T) {
-	list := filexl.New(testfileerr,
+	list := filexl.New("test1", testfileerr,
 		[]xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
 		filexl.Config{},
 	)
@@ -64,13 +64,13 @@ func TestList_New(t *testing.T) {
 		t.Fatalf("filexl.Start(): expected error %v", err)
 	}
 
-	list = filexl.New(testfile1,
+	list = filexl.New("test2", testfile1,
 		[]xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
 		filexl.Config{},
 	)
 	err = list.Ping()
-	if err != xlist.ErrNotAvailable {
-		t.Errorf("filexl.Ping(): err=%v", err)
+	if err == nil {
+		t.Error("filexl.Ping(): expected error")
 	}
 	err = list.Open()
 	if err != nil {

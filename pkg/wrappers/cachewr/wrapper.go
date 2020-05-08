@@ -79,6 +79,16 @@ func New(list xlist.List, cfg Config) *Wrapper {
 	return c
 }
 
+// ID implements xlist.List interface
+func (c *Wrapper) ID() string {
+	return c.list.ID()
+}
+
+// Class implements xlist.List interface
+func (c *Wrapper) Class() string {
+	return BuildClass
+}
+
 // Check implements xlist.Checker interface
 func (c *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, c.opts.forceValidation)
@@ -106,36 +116,9 @@ func (c *Wrapper) Ping() error {
 	return c.list.Ping()
 }
 
-// Append implements xlist.Writer interface
-func (c *Wrapper) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	err := c.list.Append(ctx, name, r, f)
-	if err != nil {
-		c.cache.Flush()
-	}
-	return err
-}
-
-// Remove implements xlist.Writer interface
-func (c *Wrapper) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	err := c.list.Remove(ctx, name, r, f)
-	if err != nil {
-		c.cache.Flush()
-	}
-	return err
-}
-
-// Clear implements xlist.Writer interface
-func (c *Wrapper) Clear(ctx context.Context) error {
-	err := c.list.Clear(ctx)
-	if err != nil {
-		c.cache.Flush()
-	}
-	return err
-}
-
-// ReadOnly implements xlist.Writer interface
-func (c *Wrapper) ReadOnly() (bool, error) {
-	return c.list.ReadOnly()
+// ReadOnly implements xlist.List interface
+func (c *Wrapper) ReadOnly() bool {
+	return true
 }
 
 // Flush deletes all items from cache

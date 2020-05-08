@@ -29,31 +29,31 @@ func TestList_Check(t *testing.T) {
 
 	var tests = []struct {
 		resources []xlist.Resource
-		parallel  []xlist.Checker
+		parallel  []xlist.List
 		timeout   time.Duration
 		stoOnErr  bool
 
 		want    bool
 		wantErr bool
 	}{
-		{ip4, []xlist.Checker{}, 0, true, false, false},                                 //0
-		{ip4, []xlist.Checker{rblFalse}, 0, true, false, false},                         //1
-		{ip4, []xlist.Checker{rblTrue}, 0, true, true, false},                           //2
-		{ip4, []xlist.Checker{rblFalse, rblTrue}, 0, true, true, false},                 //3
-		{ip4, []xlist.Checker{rblTrue, rblFalse}, 0, true, true, false},                 //4
-		{ip4, []xlist.Checker{rblFalse, rblFalse, rblFalse}, 0, true, false, false},     //5
-		{ip4, []xlist.Checker{rblFalse, rblFalse, rblTrue}, 0, true, true, false},       //6
-		{ip4, []xlist.Checker{rblLazyF, rblFalse, rblLazyF}, t15ms, true, false, false}, //7
-		{ip4, []xlist.Checker{rblLazyF, rblLazyF, rblTrue}, t5ms, true, true, false},    //8
+		{ip4, []xlist.List{}, 0, true, false, false},                                 //0
+		{ip4, []xlist.List{rblFalse}, 0, true, false, false},                         //1
+		{ip4, []xlist.List{rblTrue}, 0, true, true, false},                           //2
+		{ip4, []xlist.List{rblFalse, rblTrue}, 0, true, true, false},                 //3
+		{ip4, []xlist.List{rblTrue, rblFalse}, 0, true, true, false},                 //4
+		{ip4, []xlist.List{rblFalse, rblFalse, rblFalse}, 0, true, false, false},     //5
+		{ip4, []xlist.List{rblFalse, rblFalse, rblTrue}, 0, true, true, false},       //6
+		{ip4, []xlist.List{rblLazyF, rblFalse, rblLazyF}, t15ms, true, false, false}, //7
+		{ip4, []xlist.List{rblLazyF, rblLazyF, rblTrue}, t5ms, true, true, false},    //8
 		// errors
-		{[]xlist.Resource{xlist.Domain}, []xlist.Checker{}, 0, true, false, true},     //9
-		{ip4, []xlist.Checker{rblLazyF, rblFail, rblLazyF}, 0, true, false, true},     //10
-		{ip4, []xlist.Checker{rblFalse, rblFail, rblTrue}, 0, false, true, false},     //11
-		{ip4, []xlist.Checker{rblLazyF, rblFail, rblLazyT}, 0, true, false, true},     //12
-		{ip4, []xlist.Checker{rblLazyT, rblLazyF, rblLazyT}, t5ms, true, false, true}, //13
+		{[]xlist.Resource{xlist.Domain}, []xlist.List{}, 0, true, false, true},     //9
+		{ip4, []xlist.List{rblLazyF, rblFail, rblLazyF}, 0, true, false, true},     //10
+		{ip4, []xlist.List{rblFalse, rblFail, rblTrue}, 0, false, true, false},     //11
+		{ip4, []xlist.List{rblLazyF, rblFail, rblLazyT}, 0, true, false, true},     //12
+		{ip4, []xlist.List{rblLazyT, rblLazyF, rblLazyT}, t5ms, true, false, true}, //13
 	}
 	for idx, test := range tests {
-		wpar := parallelxl.New(test.parallel, test.resources,
+		wpar := parallelxl.New("test", test.parallel, test.resources,
 			parallelxl.Config{
 				SkipErrors:    !test.stoOnErr,
 				FirstResponse: true,
@@ -86,7 +86,7 @@ func ExampleList() {
 		SkipErrors:    true,
 		FirstResponse: true,
 	}
-	childs := []xlist.Checker{
+	childs := []xlist.List{
 		&mockxl.List{Results: []bool{false}, ResourceList: ip4, Reason: "rbl1"},
 		&mockxl.List{Results: []bool{true, false}, ResourceList: ip4, Reason: "rbl2"},
 		&mockxl.List{Results: []bool{true}, Lazy: t5ms, ResourceList: ip4, Reason: "rbl3"},
@@ -95,7 +95,7 @@ func ExampleList() {
 	}
 
 	//constructs parallel rbl
-	rbl := parallelxl.New(childs, ip4, cfg)
+	rbl := parallelxl.New("test", childs, ip4, cfg)
 	for i := 0; i < 4; i++ {
 		resp, err := rbl.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if err != nil {

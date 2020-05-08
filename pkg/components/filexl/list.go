@@ -4,6 +4,7 @@ package filexl
 
 import (
 	"context"
+	"errors"
 	"os"
 	"sync"
 	"time"
@@ -41,6 +42,7 @@ type options struct {
 
 // List loads list from a file using internally a memxl.List
 type List struct {
+	id        string
 	opts      options
 	logger    yalogi.Logger
 	filename  string
@@ -57,8 +59,9 @@ type List struct {
 }
 
 // New creates a new List with the filename passed
-func New(filename string, resources []xlist.Resource, cfg Config) *List {
+func New(id, filename string, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
+		id:       id,
 		filename: filename,
 		opts: options{
 			forceValidation: cfg.ForceValidation,
@@ -71,7 +74,7 @@ func New(filename string, resources []xlist.Resource, cfg Config) *List {
 		resources: xlist.ClearResourceDups(resources),
 		close:     make(chan bool),
 	}
-	l.list = memxl.New(l.resources,
+	l.list = memxl.New(l.id, l.resources,
 		memxl.Config{
 			ForceValidation: l.opts.forceValidation,
 			Reason:          l.opts.reason,
@@ -83,10 +86,20 @@ func New(filename string, resources []xlist.Resource, cfg Config) *List {
 	return l
 }
 
+// ID implements xlist.List interface
+func (l *List) ID() string {
+	return l.id
+}
+
+// Class implements xlist.List interface
+func (l *List) Class() string {
+	return BuildClass
+}
+
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.started {
-		return xlist.Response{}, xlist.ErrNotAvailable
+		return xlist.Response{}, xlist.ErrUnavailable
 	}
 	//this mutex is for don't allow reload file while checking in memory
 	l.mu.RLock()
@@ -104,46 +117,19 @@ func (l *List) Resources() []xlist.Resource {
 // Ping implements xlist.Checker interface
 func (l *List) Ping() error {
 	if !l.started {
-		return xlist.ErrNotAvailable
+		return errors.New("list is closed")
 	}
 	return l.err
 }
 
-// Append implements xlist.Writer interface
-func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	if !l.started {
-		return xlist.ErrNotAvailable
-	}
-	return xlist.ErrReadOnlyMode
-}
-
-// Remove implements xlist.Writer interface
-func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	if !l.started {
-		return xlist.ErrNotAvailable
-	}
-	return xlist.ErrReadOnlyMode
-}
-
-// Clear implements xlist.Writer interface
-func (l *List) Clear(ctx context.Context) error {
-	if !l.started {
-		return xlist.ErrNotAvailable
-	}
-	return xlist.ErrReadOnlyMode
-}
-
-// ReadOnly implements xlist.Writer interface
-func (l *List) ReadOnly() (bool, error) {
-	if !l.started {
-		return false, xlist.ErrNotAvailable
-	}
-	return true, nil
+// ReadOnly implements xlist.List interface
+func (l *List) ReadOnly() bool {
+	return true
 }
 
 // Open loads file to memory
 func (l *List) Open() error {
-	l.logger.Debugf("opening source '%s'", l.filename)
+	l.logger.Debugf("%s: opening source '%s'", l.id, l.filename)
 	err := l.loadFile(l.list, false)
 	if err != nil {
 		return err
@@ -157,7 +143,7 @@ func (l *List) Open() error {
 
 // Close release memory
 func (l *List) Close() {
-	l.logger.Debugf("closing source '%s'", l.filename)
+	l.logger.Debugf("%s: closing source '%s'", l.id, l.filename)
 	if l.started {
 		if l.opts.autoreload {
 			l.close <- true
@@ -180,7 +166,7 @@ func (l *List) Reload() error {
 		return nil
 	}
 	//safe reload
-	list := memxl.New(l.resources,
+	list := memxl.New(l.id, l.resources,
 		memxl.Config{
 			ForceValidation: l.opts.forceValidation,
 			Reason:          l.opts.reason,
@@ -251,6 +237,6 @@ func (l *List) loadFile(hashlist *memxl.List, clear bool) error {
 func (l *List) setErr(err error) {
 	l.err = err
 	if err != nil {
-		l.logger.Warnf("%v", err)
+		l.logger.Warnf("%s: %v", l.id, err)
 	}
 }

@@ -14,13 +14,13 @@ var testdb1 = "../../../test/testdata/GeoIP2-Country-Test.mmdb"
 
 func TestList_New(t *testing.T) {
 	//test non existdb
-	geoip := geoip2xl.New("nonexistent.mmdb", geoip2xl.Config{})
+	geoip := geoip2xl.New("test1", "nonexistent.mmdb", geoip2xl.Config{})
 	err := geoip.Open()
 	if err == nil {
 		t.Errorf("geoip.Start(): expected error")
 	}
 	//test db
-	geoip = geoip2xl.New(testdb1,
+	geoip = geoip2xl.New("test1", testdb1,
 		geoip2xl.Config{
 			Countries: []string{"ES"},
 			Reverse:   true,
@@ -28,11 +28,11 @@ func TestList_New(t *testing.T) {
 
 	//test before start
 	err = geoip.Ping()
-	if err != xlist.ErrNotAvailable {
-		t.Errorf("geoip.Ping(): err=%v", err)
+	if err == nil {
+		t.Error("geoip.Ping(): expected error")
 	}
 	_, err = geoip.Check(context.Background(), "10.10.10.10", xlist.IPv4)
-	if err != xlist.ErrNotAvailable {
+	if err != xlist.ErrUnavailable {
 		t.Errorf("geoip.Check(): err=%v", err)
 	}
 	// test start
@@ -48,7 +48,7 @@ func TestList_New(t *testing.T) {
 	}
 	//test unsupported checks
 	_, err = geoip.Check(context.Background(), "www.google.com", xlist.Domain)
-	if err != xlist.ErrNotImplemented {
+	if err != xlist.ErrNotSupported {
 		t.Errorf("geoip.Check(): err=%v", err)
 	}
 }
@@ -68,7 +68,7 @@ func TestList_Check(t *testing.T) {
 		{geoip2xl.Config{Countries: []string{"ES", "GB"}, Reverse: true}, false},
 	}
 	for idx, test := range tests {
-		geoip := geoip2xl.New(testdb1, test.in)
+		geoip := geoip2xl.New("test1", testdb1, test.in)
 		err := geoip.Open()
 		if err != nil {
 			t.Fatalf("geoip.Start(): err=%v", err)

@@ -12,8 +12,8 @@ const BuildClass = "metrics"
 
 // Builder returns a builder for the component
 func Builder() builder.BuildWrapperFn {
-	return func(b *builder.Builder, id string, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
-		return New(list, id), nil
+	return func(b *builder.Builder, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
+		return New(list), nil
 	}
 }
 

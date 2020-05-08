@@ -21,9 +21,13 @@ func XListCheckAPI(cfg *config.XListCheckAPICfg, finder xlist.ListFinder, logger
 	if !ok {
 		return nil, fmt.Errorf("list '%s' not found", cfg.RootListID)
 	}
+	if !cfg.Log {
+		logger = yalogi.LogNull
+	}
 	svc := checkapi.NewService(list,
 		checkapi.DisclosureErrors(cfg.Disclosure),
 		checkapi.ExposePing(cfg.ExposePing),
+		checkapi.SetServiceLogger(logger),
 	)
 	return svc, nil
 }

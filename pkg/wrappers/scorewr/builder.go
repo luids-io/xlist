@@ -16,7 +16,7 @@ const BuildClass = "score"
 
 // Builder returns a builder for the component
 func Builder(defaultCfg Config) builder.BuildWrapperFn {
-	return func(b *builder.Builder, listID string, def builder.WrapperDef, bl xlist.List) (xlist.List, error) {
+	return func(b *builder.Builder, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
 		cfg := defaultCfg
 		score := 0
 		if def.Opts != nil {
@@ -32,7 +32,7 @@ func Builder(defaultCfg Config) builder.BuildWrapperFn {
 				return nil, err
 			}
 		}
-		return New(bl, score, cfg), nil
+		return New(list, score, cfg), nil
 	}
 }
 

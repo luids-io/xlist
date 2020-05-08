@@ -3,14 +3,21 @@
 package apicheckxl
 
 import (
-	"context"
-
 	"github.com/luids-io/core/xlist"
 )
 
 type apicheckList struct {
+	id        string
 	resources []xlist.Resource
 	xlist.Checker
+}
+
+func (l *apicheckList) ID() string {
+	return l.id
+}
+
+func (l *apicheckList) Class() string {
+	return BuildClass
 }
 
 // Resources wrappes api, is required in construction
@@ -20,22 +27,7 @@ func (l *apicheckList) Resources() []xlist.Resource {
 	return ret
 }
 
-// Append implements xlist.Writer interface
-func (l *apicheckList) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Remove implements xlist.Writer interface
-func (l *apicheckList) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Clear implements xlist.Writer interface
-func (l *apicheckList) Clear(ctx context.Context) error {
-	return xlist.ErrReadOnlyMode
-}
-
 // ReadOnly implements xlist.Writer interface
-func (l *apicheckList) ReadOnly() (bool, error) {
-	return true, nil
+func (l *apicheckList) ReadOnly() bool {
+	return true
 }

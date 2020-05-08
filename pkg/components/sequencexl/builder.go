@@ -22,7 +22,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 				return nil, err
 			}
 		}
-		childs := make([]xlist.Checker, 0, len(def.Contains))
+		childs := make([]xlist.List, 0, len(def.Contains))
 		for _, childDef := range def.Contains {
 			if childDef.Disabled {
 				continue
@@ -38,7 +38,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 			}
 			childs = append(childs, child)
 		}
-		return New(childs, def.Resources, cfg), nil
+		return New(def.ID, childs, def.Resources, cfg), nil
 	}
 }
 

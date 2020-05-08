@@ -9,17 +9,27 @@ package geoip2xl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
 
 	geoip2 "github.com/oschwald/geoip2-golang"
 
+	"github.com/luids-io/core/utils/yalogi"
 	"github.com/luids-io/core/xlist"
 )
 
+// DefaultConfig returns default configuration
+func DefaultConfig() Config {
+	return Config{
+		Logger: yalogi.LogNull,
+	}
+}
+
 // Config options
 type Config struct {
+	Logger   yalogi.Logger
 	Database string
 	// Countries is a list of country codes
 	Countries []string
@@ -47,7 +57,9 @@ type options struct {
 
 // List implements an RBL that uses a geoip database for checks
 type List struct {
+	id        string
 	opts      options
+	logger    yalogi.Logger
 	started   bool
 	dbPath    string
 	database  *geoip2.Reader
@@ -56,8 +68,10 @@ type List struct {
 }
 
 // New constructs a new List with dbpath as database and rules for logic
-func New(database string, cfg Config) *List {
+func New(id, database string, cfg Config) *List {
 	l := &List{
+		id:     id,
+		logger: cfg.Logger,
 		dbPath: database,
 		opts: options{
 			forceValidation: cfg.ForceValidation,
@@ -72,23 +86,37 @@ func New(database string, cfg Config) *List {
 	return l
 }
 
+// ID implements xlist.List interface
+func (l *List) ID() string {
+	return l.id
+}
+
+// Class implements xlist.List interface
+func (l *List) Class() string {
+	return BuildClass
+}
+
 // Check implements xlist.Checker interface
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.started {
-		return xlist.Response{}, xlist.ErrNotAvailable
+		return xlist.Response{}, xlist.ErrUnavailable
 	}
 	if resource != xlist.IPv4 {
-		return xlist.Response{}, xlist.ErrNotImplemented
+		return xlist.Response{}, xlist.ErrNotSupported
 	}
 	name, _, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
 	resp, err := l.checkRules(net.ParseIP(name))
-	if err == nil && l.opts.reason != "" {
+	if err != nil {
+		l.logger.Warnf("%s: check rules %s: %v", l.id, name, err)
+		return xlist.Response{}, err
+	}
+	if l.opts.reason != "" {
 		resp.Reason = l.opts.reason
 	}
-	return resp, err
+	return resp, nil
 }
 
 // Resources implements xlist.Checker interface
@@ -99,41 +127,14 @@ func (l *List) Resources() []xlist.Resource {
 // Ping implements xlist.Checker interface
 func (l *List) Ping() error {
 	if !l.started {
-		return xlist.ErrNotAvailable
+		return errors.New("list is closed")
 	}
 	return nil
 }
 
-// Append implements xlist.Writer interface
-func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	if !l.started {
-		return xlist.ErrNotAvailable
-	}
-	return xlist.ErrReadOnlyMode
-}
-
-// Remove implements xlist.Writer interface
-func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	if !l.started {
-		return xlist.ErrNotAvailable
-	}
-	return xlist.ErrReadOnlyMode
-}
-
-// Clear implements xlist.Writer interface
-func (l *List) Clear(ctx context.Context) error {
-	if !l.started {
-		return xlist.ErrNotAvailable
-	}
-	return xlist.ErrReadOnlyMode
-}
-
-// ReadOnly implements xlist.Writer interface
-func (l *List) ReadOnly() (bool, error) {
-	if !l.started {
-		return true, xlist.ErrNotAvailable
-	}
-	return true, nil
+// ReadOnly implements xlist.List interface
+func (l *List) ReadOnly() bool {
+	return true
 }
 
 // Open opens database file

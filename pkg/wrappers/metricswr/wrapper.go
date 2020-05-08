@@ -33,11 +33,21 @@ var stats struct {
 type options struct{}
 
 // New returns a Wrapper, it recevies the listID used for the metrics
-func New(list xlist.List, listID string) *Wrapper {
+func New(list xlist.List) *Wrapper {
 	return &Wrapper{
-		listID: listID,
 		list:   list,
+		listID: list.ID(),
 	}
+}
+
+// ID implements xlist.List interface
+func (w *Wrapper) ID() string {
+	return w.listID
+}
+
+// Class implements xlist.List interface
+func (w *Wrapper) Class() string {
+	return BuildClass
 }
 
 // Check implements xlist.Checker interface
@@ -77,24 +87,9 @@ func (w *Wrapper) Resources() []xlist.Resource {
 	return w.list.Resources()
 }
 
-// Append implements xlist.Writer interface
-func (w *Wrapper) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return w.list.Append(ctx, name, r, f)
-}
-
-// Remove implements xlist.Writer interface
-func (w *Wrapper) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return w.list.Remove(ctx, name, r, f)
-}
-
-// Clear implements xlist.Writer interface
-func (w *Wrapper) Clear(ctx context.Context) error {
-	return w.list.Clear(ctx)
-}
-
-// ReadOnly implements xlist.Writer interface
-func (w *Wrapper) ReadOnly() (bool, error) {
-	return w.list.ReadOnly()
+// ReadOnly implements xlist.List interface
+func (w *Wrapper) ReadOnly() bool {
+	return true
 }
 
 func init() {

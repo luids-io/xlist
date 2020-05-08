@@ -22,32 +22,29 @@ func TestList_Check(t *testing.T) {
 
 	var tests = []struct {
 		resources []xlist.Resource
-		sequence  []xlist.Checker
+		sequence  []xlist.List
 		timeout   time.Duration
 		stoOnErr  bool
 		want      bool
 		wantErr   bool
 	}{
-		{onlyIPv4, []xlist.Checker{}, 0, true, false, false},
-		{onlyIPv4, []xlist.Checker{rblFalse}, 0, true, false, false},
-		{onlyIPv4, []xlist.Checker{rblTrue}, 0, true, true, false},
-		{onlyIPv4, []xlist.Checker{rblFalse, rblTrue}, 0, true, true, false},
-		{onlyIPv4, []xlist.Checker{rblTrue, rblFalse}, 0, true, true, false},
-		{onlyIPv4, []xlist.Checker{rblFalse, rblFalse, rblFalse}, 0, true, false, false},
-		{onlyIPv4, []xlist.Checker{rblFalse, rblFalse, rblTrue}, 0, true, true, false},
+		{onlyIPv4, []xlist.List{}, 0, true, false, false},
+		{onlyIPv4, []xlist.List{rblFalse}, 0, true, false, false},
+		{onlyIPv4, []xlist.List{rblTrue}, 0, true, true, false},
+		{onlyIPv4, []xlist.List{rblFalse, rblTrue}, 0, true, true, false},
+		{onlyIPv4, []xlist.List{rblTrue, rblFalse}, 0, true, true, false},
+		{onlyIPv4, []xlist.List{rblFalse, rblFalse, rblFalse}, 0, true, false, false},
+		{onlyIPv4, []xlist.List{rblFalse, rblFalse, rblTrue}, 0, true, true, false},
 		// errors
-		{[]xlist.Resource{xlist.Domain}, []xlist.Checker{}, 0, true, false, true},
-		{onlyIPv4, []xlist.Checker{rblFalse, rblFail, rblTrue}, 0, true, false, true},
-		{onlyIPv4, []xlist.Checker{rblFalse, rblFail, rblTrue}, 0, false, true, false},
-		{onlyIPv4, []xlist.Checker{rblLazy, rblFalse, rblTrue},
-			19 * time.Millisecond, true, true, false},
-		{onlyIPv4, []xlist.Checker{rblLazy, rblLazy, rblTrue},
-			19 * time.Millisecond, true, false, true},
-		{onlyIPv4, []xlist.Checker{rblLazy, rblLazy, rblTrue},
-			19 * time.Millisecond, false, false, true},
+		{[]xlist.Resource{xlist.Domain}, []xlist.List{}, 0, true, false, true},
+		{onlyIPv4, []xlist.List{rblFalse, rblFail, rblTrue}, 0, true, false, true},
+		{onlyIPv4, []xlist.List{rblFalse, rblFail, rblTrue}, 0, false, true, false},
+		{onlyIPv4, []xlist.List{rblLazy, rblFalse, rblTrue}, 19 * time.Millisecond, true, true, false},
+		{onlyIPv4, []xlist.List{rblLazy, rblLazy, rblTrue}, 19 * time.Millisecond, true, false, true},
+		{onlyIPv4, []xlist.List{rblLazy, rblLazy, rblTrue}, 19 * time.Millisecond, false, false, true},
 	}
 	for idx, test := range tests {
-		wseq := sequencexl.New(test.sequence, test.resources,
+		wseq := sequencexl.New("test", test.sequence, test.resources,
 			sequencexl.Config{
 				FirstResponse: true,
 				SkipErrors:    !test.stoOnErr,
@@ -75,22 +72,26 @@ func TestList_Check(t *testing.T) {
 func ExampleList() {
 	resources := []xlist.Resource{xlist.IPv4}
 
-	childs := []xlist.Checker{
+	childs := []xlist.List{
 		&mockxl.List{
+			Identifier:   "rbl1",
 			ResourceList: resources,
 			Results:      []bool{true, false},
 			Reason:       "rbl1",
 		},
 		&mockxl.List{
+			Identifier:   "rbl2",
 			ResourceList: resources,
 			Fail:         true,
 		},
 		&mockxl.List{
+			Identifier:   "rbl3",
 			ResourceList: resources,
 			Results:      []bool{true, false},
 			Reason:       "rbl3",
 		},
 		&mockxl.List{
+			Identifier:   "rbl4",
 			ResourceList: resources,
 			Results:      []bool{true, false},
 			Reason:       "rbl4",
@@ -98,7 +99,7 @@ func ExampleList() {
 	}
 
 	//constructs sequence rbl
-	rbl := sequencexl.New(childs, resources,
+	rbl := sequencexl.New("test", childs, resources,
 		sequencexl.Config{
 			SkipErrors:    true,
 			FirstResponse: true,

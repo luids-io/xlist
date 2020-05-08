@@ -16,7 +16,7 @@ const BuildClass = "policy"
 
 // Builder returns a builder for the component
 func Builder(defaultCfg Config) builder.BuildWrapperFn {
-	return func(b *builder.Builder, listID string, def builder.WrapperDef, bl xlist.List) (xlist.List, error) {
+	return func(b *builder.Builder, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
 		cfg := defaultCfg
 		policy := reason.NewPolicy()
 		if def.Opts != nil {
@@ -35,7 +35,7 @@ func Builder(defaultCfg Config) builder.BuildWrapperFn {
 				}
 			}
 		}
-		w := New(bl, policy, cfg)
+		w := New(list, policy, cfg)
 		return w, nil
 	}
 }

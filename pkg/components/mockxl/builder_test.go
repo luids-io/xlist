@@ -163,7 +163,7 @@ func ExampleBuilder() {
 	fmt.Println("check ip4 rbl1:", resp.Result, resp.Reason)
 
 	resp, err = rbl1.Check(context.Background(), "www.google.com", xlist.Domain)
-	if err != xlist.ErrNotImplemented {
+	if err != xlist.ErrNotSupported {
 		log.Fatalln("this should not happen")
 	}
 	fmt.Println("check domain rbl1:", err)
@@ -185,13 +185,13 @@ func ExampleBuilder() {
 	}
 
 	resp, err = rbl2.Check(context.Background(), "www.google.com", xlist.Domain)
-	if err != xlist.ErrNotAvailable {
+	if err != xlist.ErrInternal {
 		log.Fatalln("this should not happen")
 	}
 	fmt.Println("check domain rbl2:", err)
 
 	// Output:
 	// check ip4 rbl1: true The resource is on the mockup list
-	// check domain rbl1: not implemented
-	// check domain rbl2: not available
+	// check domain rbl1: resource not supported
+	// check domain rbl2: internal error
 }

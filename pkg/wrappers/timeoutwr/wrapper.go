@@ -28,6 +28,16 @@ func New(list xlist.List, timeout time.Duration) *Wrapper {
 	}
 }
 
+// ID implements xlist.List interface
+func (w *Wrapper) ID() string {
+	return w.list.ID()
+}
+
+// Class implements xlist.List interface
+func (w *Wrapper) Class() string {
+	return BuildClass
+}
+
 // Check implements xlist.Checker interface
 func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	ctxChild, cancel := context.WithTimeout(ctx, w.timeout)
@@ -45,22 +55,7 @@ func (w *Wrapper) Ping() error {
 	return w.list.Ping()
 }
 
-// Append implements xlist.Writer interface
-func (w *Wrapper) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return w.list.Append(ctx, name, r, f)
-}
-
-// Remove implements xlist.Writer interface
-func (w *Wrapper) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return w.list.Remove(ctx, name, r, f)
-}
-
-// Clear implements xlist.Writer interface
-func (w *Wrapper) Clear(ctx context.Context) error {
-	return w.list.Clear(ctx)
-}
-
 // ReadOnly implements xlist.Writer interface
-func (w *Wrapper) ReadOnly() (bool, error) {
-	return w.list.ReadOnly()
+func (w *Wrapper) ReadOnly() bool {
+	return true
 }

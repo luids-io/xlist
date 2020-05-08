@@ -3,32 +3,26 @@
 package grpcxl
 
 import (
-	"context"
-
 	"github.com/luids-io/core/xlist"
 )
 
 //TODO
 type grpclist struct {
+	id string
 	xlist.Checker
 }
 
-// Append implements xlist.Writer interface
-func (l *grpclist) Append(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
+// ID implements xlist.List interface
+func (l *grpclist) ID() string {
+	return l.id
 }
 
-// Remove implements xlist.Writer interface
-func (l *grpclist) Remove(ctx context.Context, name string, r xlist.Resource, f xlist.Format) error {
-	return xlist.ErrReadOnlyMode
-}
-
-// Clear implements xlist.Writer interface
-func (l *grpclist) Clear(ctx context.Context) error {
-	return xlist.ErrReadOnlyMode
+// Class implements xlist.List interface
+func (l *grpclist) Class() string {
+	return BuildClass
 }
 
 // ReadOnly implements xlist.Writer interface
-func (l *grpclist) ReadOnly() (bool, error) {
-	return true, nil
+func (l *grpclist) ReadOnly() bool {
+	return true
 }

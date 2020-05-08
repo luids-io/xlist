@@ -15,16 +15,16 @@ const BuildClass = "response"
 
 // Builder returns a builder for the component
 func Builder(defaultCfg Config) builder.BuildWrapperFn {
-	return func(b *builder.Builder, listID string, def builder.WrapperDef, bl xlist.List) (xlist.List, error) {
+	return func(b *builder.Builder, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
 		cfg := defaultCfg
 		if def.Opts != nil {
 			var err error
-			cfg, err = parseOptions(cfg, def.Opts, listID)
+			cfg, err = parseOptions(cfg, def.Opts, list.ID())
 			if err != nil {
 				return nil, err
 			}
 		}
-		return New(bl, cfg), nil
+		return New(list, cfg), nil
 	}
 }
 

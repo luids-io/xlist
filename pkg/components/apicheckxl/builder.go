@@ -31,6 +31,7 @@ func Builder() builder.BuildListFn {
 			return nil, fmt.Errorf("service '%s' is not an xlist.Checker", sname)
 		}
 		return &apicheckList{
+			id:        def.ID,
 			Checker:   list,
 			resources: xlist.ClearResourceDups(def.Resources),
 		}, nil

@@ -34,7 +34,7 @@ type BuildListFn func(builder *Builder, parents []string, def ListDef) (xlist.Li
 
 // BuildWrapperFn defines a function that constructs a wrapper and returns
 // the checker wrapped
-type BuildWrapperFn func(builder *Builder, listID string, def WrapperDef, list xlist.List) (xlist.List, error)
+type BuildWrapperFn func(builder *Builder, def WrapperDef, list xlist.List) (xlist.List, error)
 
 // Option is used for builder configuration
 type Option func(*options)
@@ -113,7 +113,7 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (xlist.List, error) 
 		if def.Wrappers != nil && len(def.Wrappers) > 0 {
 			var err error
 			for _, w := range def.Wrappers {
-				bl, err = b.buildWrapper(def.ID, w, bl)
+				bl, err = b.buildWrapper(w, bl)
 				if err != nil {
 					return nil, fmt.Errorf("building aliased '%s': %v", def.ID, err)
 				}
@@ -144,7 +144,7 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (xlist.List, error) 
 	// create with wrappers
 	if def.Wrappers != nil && len(def.Wrappers) > 0 {
 		for _, w := range def.Wrappers {
-			bl, err = b.buildWrapper(def.ID, w, bl)
+			bl, err = b.buildWrapper(w, bl)
 			if err != nil {
 				return nil, fmt.Errorf("building '%s': '%s': %v", def.ID, w.Class, err)
 			}
@@ -155,13 +155,13 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (xlist.List, error) 
 	return bl, nil
 }
 
-func (b *Builder) buildWrapper(listID string, def WrapperDef, bl xlist.List) (xlist.List, error) {
-	b.logger.Debugf("building '%s' wrapper '%s'", listID, def.Class)
+func (b *Builder) buildWrapper(def WrapperDef, bl xlist.List) (xlist.List, error) {
+	b.logger.Debugf("building '%s' wrapper '%s'", bl.ID(), def.Class)
 	customb, ok := regWrapperBuilder[def.Class] //get a builder for related class
 	if !ok {
 		return nil, errors.New("can't find a builder")
 	}
-	blc, err := customb(b, listID, def, bl) //builds wrapper
+	blc, err := customb(b, def, bl) //builds wrapper
 	if err != nil {
 		return nil, err
 	}

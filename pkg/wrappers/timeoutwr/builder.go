@@ -18,7 +18,7 @@ const BuildClass = "timeout"
 
 // Builder returns a builder for the component
 func Builder(timeout time.Duration) builder.BuildWrapperFn {
-	return func(b *builder.Builder, id string, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
+	return func(b *builder.Builder, def builder.WrapperDef, list xlist.List) (xlist.List, error) {
 		if def.Opts != nil {
 			v, ok, err := option.Int(def.Opts, "timeout")
 			if err != nil {
