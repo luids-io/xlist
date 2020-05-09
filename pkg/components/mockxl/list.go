@@ -67,7 +67,7 @@ func (l *List) Check(ctx context.Context, name string, res xlist.Resource) (xlis
 		case <-time.After(l.Lazy):
 			break
 		case <-ctx.Done():
-			return xlist.Response{}, ctx.Err()
+			return xlist.Response{}, xlist.ErrCanceledRequest
 		}
 	} else if l.Sleep > 0 {
 		time.Sleep(l.Sleep)

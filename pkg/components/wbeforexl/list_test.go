@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"testing"
 	"time"
 
@@ -76,7 +75,7 @@ func TestList_CheckCancel(t *testing.T) {
 	if err == nil {
 		t.Error("wbefore.Check expected error")
 	}
-	if !strings.Contains(err.Error(), "deadline exceeded") {
+	if err != xlist.ErrCanceledRequest {
 		t.Errorf("wbefore.Check unexpected error: %v", err)
 	}
 }

@@ -98,7 +98,7 @@ LOOPCHILDS:
 		// check if a cancellation has been done
 		select {
 		case <-ctx.Done():
-			return xlist.Response{}, ctx.Err()
+			return xlist.Response{}, xlist.ErrCanceledRequest
 		default:
 			if r.Result {
 				if !result {

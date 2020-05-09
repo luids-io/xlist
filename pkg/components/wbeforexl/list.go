@@ -88,7 +88,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	}
 	select {
 	case <-ctx.Done():
-		return xlist.Response{}, ctx.Err()
+		return xlist.Response{}, xlist.ErrCanceledRequest
 	default:
 		if l.black != nil {
 			resp, err := l.black.Check(ctx, name, resource)

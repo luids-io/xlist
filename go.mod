@@ -6,9 +6,9 @@ require (
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/luids-io/api v0.0.0-20200508085923-702ec1869b51
+	github.com/luids-io/api v0.0.0-20200508095709-f766eecd342e
 	github.com/luids-io/common v0.0.0-20200424154549-b9f88f4b7ee2
-	github.com/luids-io/core v0.0.0-20200508080643-e348bd0a8224
+	github.com/luids-io/core v0.0.0-20200508095649-0645f277477f
 	github.com/miekg/dns v1.1.29
 	github.com/oschwald/geoip2-golang v1.4.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible

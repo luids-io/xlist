@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"testing"
 	"time"
 
@@ -100,7 +99,7 @@ func TestMockupLazy(t *testing.T) {
 	_, err = mock.Check(ctx2, "10.10.10.10", xlist.IPv4)
 	if err == nil {
 		t.Error("mock.Check idx[test2] expected error")
-	} else if !strings.Contains(err.Error(), "deadline exceed") {
+	} else if err != xlist.ErrCanceledRequest {
 		t.Errorf("mock.Check idx[test1] unexpected error: %v", err)
 	}
 }
@@ -168,5 +167,5 @@ func ExampleList() {
 	// check 1: true hey, it's on the list
 	// check 2: false
 	// check 3: false
-	// check 4: context deadline exceeded
+	// check 4: canceled request
 }

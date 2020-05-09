@@ -316,7 +316,7 @@ func (l *List) queryDNS(ctx context.Context, server, dnsquery string, dnstype ui
 	for count < l.opts.retries && !success {
 		select {
 		case <-ctx.Done():
-			return r, ctx.Err()
+			return r, xlist.ErrCanceledRequest
 		default:
 		}
 		r, _, err = l.client.ExchangeContext(ctx, m, server)

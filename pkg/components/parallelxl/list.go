@@ -135,7 +135,7 @@ RESULTLOOP:
 				}
 			}
 		case <-ctx.Done():
-			err = ctx.Err()
+			err = xlist.ErrCanceledRequest
 			break RESULTLOOP
 		}
 	}
