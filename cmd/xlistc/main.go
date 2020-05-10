@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/xlist/cmd/xlistc/config"
 )
 

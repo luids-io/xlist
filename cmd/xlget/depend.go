@@ -5,7 +5,7 @@ package main
 import (
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 	iconfig "github.com/luids-io/xlist/internal/config"
 	ifactory "github.com/luids-io/xlist/internal/factory"
 	"github.com/luids-io/xlist/pkg/xlget"

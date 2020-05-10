@@ -5,7 +5,7 @@ package xlget
 import (
 	"time"
 
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
 )
 
 // State type defines available states for Response

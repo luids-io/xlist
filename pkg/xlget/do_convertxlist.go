@@ -9,8 +9,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/luids-io/core/utils/yalogi"
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
+	"github.com/luids-io/core/yalogi"
 )
 
 // XListConv implements a converter from an xlist format

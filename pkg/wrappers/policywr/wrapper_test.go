@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/core/xlist/reason"
+	"github.com/luids-io/api/xlist"
+	"github.com/luids-io/api/xlist/reason"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
 	"github.com/luids-io/xlist/pkg/wrappers/policywr"
 )

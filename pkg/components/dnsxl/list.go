@@ -15,8 +15,8 @@ import (
 
 	"github.com/miekg/dns"
 
-	"github.com/luids-io/core/utils/yalogi"
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
+	"github.com/luids-io/core/yalogi"
 )
 
 // DefaultConfig returns default configuration

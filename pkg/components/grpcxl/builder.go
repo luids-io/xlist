@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	checkapi "github.com/luids-io/api/xlist/check"
-	"github.com/luids-io/core/utils/grpctls"
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
+	checkapi "github.com/luids-io/api/xlist/grpc/check"
+	"github.com/luids-io/core/grpctls"
 	"github.com/luids-io/xlist/pkg/builder"
 )
 

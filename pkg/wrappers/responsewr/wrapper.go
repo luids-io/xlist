@@ -9,8 +9,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/luids-io/core/xlist"
-	"github.com/luids-io/core/xlist/reason"
+	"github.com/luids-io/api/xlist"
+	"github.com/luids-io/api/xlist/reason"
 )
 
 // Config options

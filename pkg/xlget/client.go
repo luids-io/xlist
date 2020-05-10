@@ -12,7 +12,7 @@ import (
 
 	"github.com/cavaliercoder/grab"
 
-	"github.com/luids-io/core/utils/yalogi"
+	"github.com/luids-io/core/yalogi"
 )
 
 // Client downloads requests

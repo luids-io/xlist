@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
 )
 
 // Data is used for bulk insertions

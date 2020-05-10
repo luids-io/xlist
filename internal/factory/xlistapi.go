@@ -5,9 +5,9 @@ package factory
 import (
 	"fmt"
 
-	checkapi "github.com/luids-io/api/xlist/check"
-	"github.com/luids-io/core/utils/yalogi"
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
+	checkapi "github.com/luids-io/api/xlist/grpc/check"
+	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/xlist/internal/config"
 )
 

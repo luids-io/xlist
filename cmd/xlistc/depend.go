@@ -3,11 +3,11 @@
 package main
 
 import (
-	"github.com/luids-io/api/xlist/check"
+	"github.com/luids-io/api/xlist"
+	"github.com/luids-io/api/xlist/grpc/check"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
-	"github.com/luids-io/core/utils/yalogi"
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/core/yalogi"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {

@@ -11,7 +11,7 @@ import (
 
 	cliprom "github.com/prometheus/client_golang/prometheus"
 
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
 )
 
 // Wrapper implements an xlist.Checker wrapper for metrics

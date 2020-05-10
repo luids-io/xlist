@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
 )
 
 var defaultReason = "The resource is on the mockup list"

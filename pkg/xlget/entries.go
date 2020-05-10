@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
 )
 
 // Entry defines configuration entries format

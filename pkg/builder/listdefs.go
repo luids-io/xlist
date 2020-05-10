@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
 )
 
 // ListDef stores metadata info about RBL services.

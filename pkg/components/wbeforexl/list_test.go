@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/luids-io/core/xlist"
+	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/xlist/pkg/components/mockxl"
 	"github.com/luids-io/xlist/pkg/components/wbeforexl"
 )
