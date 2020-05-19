@@ -91,11 +91,17 @@ func main() {
 		return
 	}
 
-	remoteResources := client.Resources()
+	//get resources and set guess order for arguments
+	resources := client.Resources()
+	guessOrder := make([]xlist.Resource, 0, len(resources))
+	for i := len(resources) - 1; i >= 0; i-- {
+		guessOrder = append(guessOrder, resources[i])
+	}
+
 	//reads from args
 	if !inStdin && inFile == "" {
 		for _, arg := range pflag.Args() {
-			t, err := xlist.ResourceType(arg, remoteResources)
+			t, err := xlist.ResourceType(arg, guessOrder)
 			if err != nil {
 				logger.Fatalf("invalid name '%s': %v", arg, err)
 			}
@@ -130,7 +136,7 @@ func main() {
 			continue
 		}
 		arg := fields[0]
-		t, err := xlist.ResourceType(arg, remoteResources)
+		t, err := xlist.ResourceType(arg, guessOrder)
 		if err != nil {
 			logger.Fatalf("invalid name '%s': %v", arg, err)
 			continue
