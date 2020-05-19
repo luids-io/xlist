@@ -19,7 +19,7 @@ BUILDLDFLAGS=-ldflags '-s -w -X main.Version=$(VERSION) -X main.Revision=$(REVIS
 # Print output
 WHALE = "+"
 
-.PHONY: all binaries database clean docker
+.PHONY: all binaries clean docker
 all: binaries
 
 
@@ -35,11 +35,6 @@ bin/%: cmd/% FORCE
 
 binaries: $(BINARIES)
 	@echo "$(WHALE) $@"
-
-database:
-	@echo "$(WHALE) $@"
-	database/scripts/update_csv.sh
-	database/scripts/update_readme.sh
 
 clean:
 	@echo "$(WHALE) $@"

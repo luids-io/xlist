@@ -50,8 +50,6 @@ build:
 			SYSTEM="GOOS=linux GOARCH=$$arch" CHECKS="" BUILDOPTS="" ;\
 		done ; \
 	done
-	@echo Building: database - $(VERSION)
-	$(MAKE) database
 
 .PHONY: tar
 tar:
@@ -63,7 +61,7 @@ tar:
 	for arch in $(LINUX_ARCH); do \
 		tar -zcf release/$(NAME)_$(VERSION)_linux_$$arch.tgz -C build/linux/$$arch . ;\
 	done
-	tar -zcf release/database_$(VERSION).tgz -C database .
+
 .PHONY: version
 version:
 	@echo $(VERSION)
