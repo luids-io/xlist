@@ -94,8 +94,11 @@ func main() {
 	//get resources and set guess order for arguments
 	resources := client.Resources()
 	guessOrder := make([]xlist.Resource, 0, len(resources))
-	for i := len(resources) - 1; i >= 0; i-- {
-		guessOrder = append(guessOrder, resources[i])
+	allOrdered := []xlist.Resource{xlist.IPv4, xlist.IPv6, xlist.MD5, xlist.SHA1, xlist.SHA256, xlist.Domain}
+	for _, r := range allOrdered {
+		if r.InArray(resources) {
+			guessOrder = append(guessOrder, r)
+		}
 	}
 
 	//reads from args
