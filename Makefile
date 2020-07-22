@@ -43,8 +43,10 @@ clean:
 
 docker:
 	@echo "$(WHALE) $@"
-	docker build -t xlistd -f Dockerfile.xlistd .
-	docker build -t xlget -f Dockerfile.xlget .
+	docker build -t xlistd -f Dockerfile.xlistd \
+		--build-arg github_user=${github_user} --build-arg github_token=${github_token} .
+	docker build -t xlget -f Dockerfile.xlget \
+		--build-arg github_user=${github_user} --build-arg github_token=${github_token} .
 
 ## Targets for Makefile.release
 .PHONY: release
