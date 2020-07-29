@@ -11,7 +11,7 @@ import (
 	"regexp"
 
 	"github.com/luids-io/api/xlist"
-	"github.com/luids-io/api/xlist/reason"
+	"github.com/luids-io/core/reason"
 )
 
 // Config options
