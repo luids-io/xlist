@@ -6,7 +6,7 @@ require (
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/luids-io/api v0.0.0-20200602045058-90970a60186d
+	github.com/luids-io/api v0.0.0-20200730070055-3674e409436e
 	github.com/luids-io/common v0.0.0-20200510171107-c796758176cb
 	github.com/luids-io/core v0.0.0-20200729141657-1a2e3655d06f
 	github.com/miekg/dns v1.1.29
@@ -16,5 +16,5 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/yl2chen/cidranger v1.0.0
-	google.golang.org/grpc v1.28.1
+	google.golang.org/grpc v1.29.1
 )
