@@ -58,18 +58,16 @@ release:
 		    go build $(BUILDOPTS) ${BUILDLDFLAGS} -o $(BINARY) ./cmd/$(COMMAND)
 
 # tests
-.PHONY: test test-core test-plugin
-test: test-core test-plugin
+.PHONY: test test-xlistd test-xlget
+test: test-xlistd test-xlget
 	@echo "$(WHALE) $@"
 
 
-test-core:
+test-xlistd:
 	@echo "$(WHALE) $@"
-	( cd pkg/builder ; GO111MODULE=on go test -v -race ./...)
+	( cd pkg/xlistd ; GO111MODULE=on go test -v -race ./...)
 
 
-test-plugin:
+test-xlget:
 	@echo "$(WHALE) $@"
-	( cd pkg/components ; GO111MODULE=on go test -v -race ./... )
-	( cd pkg/wrappers ; GO111MODULE=on go test -v -race ./... )
-
+	( cd pkg/xlget ; GO111MODULE=on go test -v -race ./... )

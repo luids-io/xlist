@@ -5,19 +5,19 @@ package factory
 import (
 	"fmt"
 
-	"github.com/luids-io/api/xlist"
 	checkapi "github.com/luids-io/api/xlist/grpc/check"
 	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/xlist/internal/config"
+	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
 // XListCheckAPI creates grpc service
-func XListCheckAPI(cfg *config.XListCheckAPICfg, finder xlist.ListFinder, logger yalogi.Logger) (*checkapi.Service, error) {
+func XListCheckAPI(cfg *config.XListCheckAPICfg, finder xlistd.Finder, logger yalogi.Logger) (*checkapi.Service, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	list, ok := finder.FindListByID(cfg.RootListID)
+	list, ok := finder.List(cfg.RootListID)
 	if !ok {
 		return nil, fmt.Errorf("list '%s' not found", cfg.RootListID)
 	}

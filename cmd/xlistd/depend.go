@@ -12,7 +12,6 @@ import (
 
 	"github.com/luids-io/api/event"
 	"github.com/luids-io/api/event/notifybuffer"
-	"github.com/luids-io/api/xlist"
 	checkapi "github.com/luids-io/api/xlist/grpc/check"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
@@ -21,7 +20,8 @@ import (
 	"github.com/luids-io/core/yalogi"
 	iconfig "github.com/luids-io/xlist/internal/config"
 	ifactory "github.com/luids-io/xlist/internal/factory"
-	"github.com/luids-io/xlist/pkg/builder"
+	"github.com/luids-io/xlist/pkg/xlistd"
+	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
@@ -95,7 +95,7 @@ func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalog
 	return builder, nil
 }
 
-func createCheckAPI(gsrv *grpc.Server, finder xlist.ListFinder, msrv *serverd.Manager, logger yalogi.Logger) error {
+func createCheckAPI(gsrv *grpc.Server, finder xlistd.Finder, msrv *serverd.Manager, logger yalogi.Logger) error {
 	cfgCheck := cfg.Data("xlist.api.check").(*iconfig.XListCheckAPICfg)
 	gsvc, err := ifactory.XListCheckAPI(cfgCheck, finder, logger)
 	if err != nil {
@@ -103,7 +103,7 @@ func createCheckAPI(gsrv *grpc.Server, finder xlist.ListFinder, msrv *serverd.Ma
 	}
 	checkapi.RegisterServer(gsrv, gsvc)
 	//get root list to monitor
-	rootList, ok := finder.FindListByID(cfgCheck.RootListID)
+	rootList, ok := finder.List(cfgCheck.RootListID)
 	if !ok {
 		return fmt.Errorf("rootlist '%s' not found", cfgCheck.RootListID)
 	}

@@ -10,8 +10,8 @@ import (
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/xlist/internal/config"
-	"github.com/luids-io/xlist/pkg/builder"
-	"github.com/luids-io/xlist/pkg/components/dnsxl"
+	"github.com/luids-io/xlist/pkg/xlistd/builder"
+	"github.com/luids-io/xlist/pkg/xlistd/components/dnsxl"
 )
 
 //some defaults
