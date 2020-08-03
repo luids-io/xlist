@@ -15,8 +15,8 @@ import (
 
 // XLGetCfg stores xlget preferences
 type XLGetCfg struct {
-	ConfigDirs  []string
-	ConfigFiles []string
+	SourceDirs  []string
+	SourceFiles []string
 	OutputDir   string
 	CacheDir    string
 }
@@ -28,14 +28,14 @@ func (cfg *XLGetCfg) SetPFlags(short bool, prefix string) {
 		aprefix = prefix + "."
 	}
 	if short {
-		pflag.StringSliceVarP(&cfg.ConfigDirs, aprefix+"dirs", "S", cfg.ConfigDirs, "Source dirs.")
-		pflag.StringSliceVarP(&cfg.ConfigFiles, aprefix+"files", "s", cfg.ConfigFiles, "Source files.")
+		pflag.StringSliceVarP(&cfg.SourceDirs, aprefix+"source.dirs", "S", cfg.SourceDirs, "Source dirs.")
+		pflag.StringSliceVarP(&cfg.SourceFiles, aprefix+"source.files", "s", cfg.SourceFiles, "Source files.")
 	} else {
-		pflag.StringSliceVar(&cfg.ConfigDirs, aprefix+"dirs", cfg.ConfigDirs, "Source dirs.")
-		pflag.StringSliceVar(&cfg.ConfigFiles, aprefix+"files", cfg.ConfigFiles, "Source files.")
+		pflag.StringSliceVar(&cfg.SourceDirs, aprefix+"source.dirs", cfg.SourceDirs, "Source dirs.")
+		pflag.StringSliceVar(&cfg.SourceFiles, aprefix+"source.files", cfg.SourceFiles, "Source files.")
 	}
-	pflag.StringVar(&cfg.OutputDir, aprefix+"output", cfg.OutputDir, "Output dir.")
-	pflag.StringVar(&cfg.CacheDir, aprefix+"cache", cfg.CacheDir, "Cache dir.")
+	pflag.StringVar(&cfg.OutputDir, aprefix+"outputdir", cfg.OutputDir, "Output dir.")
+	pflag.StringVar(&cfg.CacheDir, aprefix+"cachedir", cfg.CacheDir, "Cache dir.")
 }
 
 // BindViper setups posix flags for commandline configuration and bind to viper
@@ -44,10 +44,10 @@ func (cfg *XLGetCfg) BindViper(v *viper.Viper, prefix string) {
 	if prefix != "" {
 		aprefix = prefix + "."
 	}
-	util.BindViper(v, aprefix+"dirs")
-	util.BindViper(v, aprefix+"files")
-	util.BindViper(v, aprefix+"output")
-	util.BindViper(v, aprefix+"cache")
+	util.BindViper(v, aprefix+"source.dirs")
+	util.BindViper(v, aprefix+"source.files")
+	util.BindViper(v, aprefix+"outputdir")
+	util.BindViper(v, aprefix+"cachedir")
 }
 
 // FromViper fill values from viper
@@ -56,18 +56,18 @@ func (cfg *XLGetCfg) FromViper(v *viper.Viper, prefix string) {
 	if prefix != "" {
 		aprefix = prefix + "."
 	}
-	cfg.ConfigDirs = v.GetStringSlice(aprefix + "dirs")
-	cfg.ConfigFiles = v.GetStringSlice(aprefix + "files")
-	cfg.OutputDir = v.GetString(aprefix + "output")
-	cfg.CacheDir = v.GetString(aprefix + "cache")
+	cfg.SourceDirs = v.GetStringSlice(aprefix + "source.dirs")
+	cfg.SourceFiles = v.GetStringSlice(aprefix + "source.files")
+	cfg.OutputDir = v.GetString(aprefix + "outputdir")
+	cfg.CacheDir = v.GetString(aprefix + "cachedir")
 }
 
 // Empty returns true if configuration is empty
 func (cfg XLGetCfg) Empty() bool {
-	if len(cfg.ConfigDirs) > 0 {
+	if len(cfg.SourceDirs) > 0 {
 		return false
 	}
-	if len(cfg.ConfigFiles) > 0 {
+	if len(cfg.SourceFiles) > 0 {
 		return false
 	}
 	return true
@@ -75,10 +75,10 @@ func (cfg XLGetCfg) Empty() bool {
 
 // Validate checks that configuration is ok
 func (cfg XLGetCfg) Validate() error {
-	if len(cfg.ConfigFiles) == 0 && len(cfg.ConfigDirs) == 0 {
+	if len(cfg.SourceFiles) == 0 && len(cfg.SourceDirs) == 0 {
 		return errors.New("config required")
 	}
-	for _, file := range cfg.ConfigFiles {
+	for _, file := range cfg.SourceFiles {
 		if !strings.HasSuffix(file, ".json") {
 			return fmt.Errorf("config file '%s' without .json extension", file)
 		}
@@ -86,7 +86,7 @@ func (cfg XLGetCfg) Validate() error {
 			return fmt.Errorf("config file '%v' doesn't exists", file)
 		}
 	}
-	for _, dir := range cfg.ConfigDirs {
+	for _, dir := range cfg.SourceDirs {
 		if !util.DirExists(dir) {
 			return fmt.Errorf("config dir '%v' doesn't exists", dir)
 		}

@@ -23,7 +23,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 		if def.Source == "" {
 			return nil, errors.New("'source' is required")
 		}
-		source := b.SourcePath(def.Source)
+		source := b.DataPath(def.Source)
 		if !fileExists(source) {
 			return nil, fmt.Errorf("geoip2 database file '%s' doesn't exists", source)
 		}

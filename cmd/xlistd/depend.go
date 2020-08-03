@@ -46,13 +46,13 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 }
 
 func createAPIServices(msrv *serverd.Manager, logger yalogi.Logger) (apiservice.Discover, error) {
-	cfgServices := cfg.Data("ids.api").(*cconfig.APIServicesCfg)
+	cfgServices := cfg.Data("apiservice").(*cconfig.APIServicesCfg)
 	registry, err := cfactory.APIAutoloader(cfgServices, logger)
 	if err != nil {
 		return nil, err
 	}
 	msrv.Register(serverd.Service{
-		Name:     "apiservices.service",
+		Name:     "apiservice.service",
 		Ping:     registry.Ping,
 		Shutdown: func() { registry.CloseAll() },
 	})
@@ -60,7 +60,7 @@ func createAPIServices(msrv *serverd.Manager, logger yalogi.Logger) (apiservice.
 }
 
 func setupEventNotify(registry apiservice.Discover, msrv *serverd.Manager, logger yalogi.Logger) error {
-	cfgEvent := cfg.Data("ids.event").(*cconfig.EventNotifyCfg)
+	cfgEvent := cfg.Data("apiservice.event").(*cconfig.EventNotifyCfg)
 	if !cfgEvent.Empty() {
 		client, err := cfactory.EventNotify(cfgEvent, registry)
 		if err != nil {
@@ -68,7 +68,7 @@ func setupEventNotify(registry apiservice.Discover, msrv *serverd.Manager, logge
 		}
 		ebuffer := notifybuffer.New(client, cfgEvent.Buffer, notifybuffer.SetLogger(logger))
 		msrv.Register(serverd.Service{
-			Name:     "event-notify.service",
+			Name:     "apiservice.event",
 			Shutdown: func() { ebuffer.Close() },
 		})
 		event.SetBuffer(ebuffer)
@@ -81,6 +81,14 @@ func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalog
 	builder, err := ifactory.ListBuilder(cfgList, apisvc, logger)
 	if err != nil {
 		return nil, err
+	}
+	//setup plugins
+	cfgDNSxl := cfg.Data("xlist.plugin.dnsxl").(*iconfig.DNSxLCfg)
+	if !cfgDNSxl.Empty() {
+		err := ifactory.SetupDNSxL(cfgDNSxl)
+		if err != nil {
+			return nil, err
+		}
 	}
 	//create lists
 	err = ifactory.Lists(cfgList, builder, logger)
@@ -96,7 +104,7 @@ func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalog
 }
 
 func createCheckAPI(gsrv *grpc.Server, finder xlistd.Finder, msrv *serverd.Manager, logger yalogi.Logger) error {
-	cfgCheck := cfg.Data("xlist.api.check").(*iconfig.XListCheckAPICfg)
+	cfgCheck := cfg.Data("api.xlist.check").(*iconfig.XListCheckAPICfg)
 	gsvc, err := ifactory.XListCheckAPI(cfgCheck, finder, logger)
 	if err != nil {
 		return err

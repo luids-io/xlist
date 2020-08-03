@@ -14,6 +14,7 @@ import (
 
 // XListCheckAPICfg stores check service preferences
 type XListCheckAPICfg struct {
+	Enable     bool
 	RootListID string
 	ExposePing bool
 	Disclosure bool
@@ -26,6 +27,7 @@ func (cfg *XListCheckAPICfg) SetPFlags(short bool, prefix string) {
 	if prefix != "" {
 		aprefix = prefix + "."
 	}
+	pflag.BoolVar(&cfg.Enable, aprefix+"enable", cfg.Enable, "Enable xlist api check.")
 	pflag.StringVar(&cfg.RootListID, aprefix+"rootid", cfg.RootListID, "Root list ID for check service.")
 	pflag.BoolVar(&cfg.ExposePing, aprefix+"exposeping", cfg.ExposePing, "Exposes internal ping in the service.")
 	pflag.BoolVar(&cfg.Disclosure, aprefix+"disclosure", cfg.Disclosure, "Disclosure internal errors.")
@@ -38,6 +40,7 @@ func (cfg *XListCheckAPICfg) BindViper(v *viper.Viper, prefix string) {
 	if prefix != "" {
 		aprefix = prefix + "."
 	}
+	util.BindViper(v, aprefix+"enable")
 	util.BindViper(v, aprefix+"rootid")
 	util.BindViper(v, aprefix+"exposeping")
 	util.BindViper(v, aprefix+"disclosure")
@@ -50,6 +53,7 @@ func (cfg *XListCheckAPICfg) FromViper(v *viper.Viper, prefix string) {
 	if prefix != "" {
 		aprefix = prefix + "."
 	}
+	cfg.Enable = v.GetBool(aprefix + "enable")
 	cfg.RootListID = v.GetString(aprefix + "rootid")
 	cfg.ExposePing = v.GetBool(aprefix + "exposeping")
 	cfg.Disclosure = v.GetBool(aprefix + "disclosure")
@@ -58,7 +62,7 @@ func (cfg *XListCheckAPICfg) FromViper(v *viper.Viper, prefix string) {
 
 // Empty returns true if configuration is empty
 func (cfg XListCheckAPICfg) Empty() bool {
-	if cfg.RootListID != "" {
+	if cfg.Enable && cfg.RootListID != "" {
 		return false
 	}
 	return true

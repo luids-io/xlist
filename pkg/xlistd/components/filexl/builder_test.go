@@ -62,7 +62,7 @@ func TestBuild(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid testdir %s", testdir)
 	}
-	b := builder.New(apiservice.NewRegistry(), builder.SourcesDir(tdir))
+	b := builder.New(apiservice.NewRegistry(), builder.DataDir(tdir))
 	//define and do tests
 	var tests = []struct {
 		listid  string

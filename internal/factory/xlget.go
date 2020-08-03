@@ -17,7 +17,7 @@ func XLGet(cfg *config.XLGetCfg, logger yalogi.Logger) (*xlget.Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
 	}
-	dbfiles, err := util.GetFilesDB("json", cfg.ConfigFiles, cfg.ConfigDirs)
+	dbfiles, err := util.GetFilesDB("json", cfg.SourceFiles, cfg.SourceDirs)
 	if err != nil {
 		return nil, fmt.Errorf("loading dbfiles: %v", err)
 	}

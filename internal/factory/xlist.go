@@ -27,22 +27,15 @@ func ListBuilder(cfg *config.XListCfg, apisvc apiservice.Discover, logger yalogi
 		return nil, err
 	}
 	b := builder.New(apisvc,
-		builder.SourcesDir(cfg.SourcesDir),
+		builder.DataDir(cfg.DataDir),
 		builder.CertsDir(cfg.CertsDir),
 		builder.SetLogger(logger),
 	)
-	//modules default options
-	if !cfg.DNSxL.Empty() {
-		err := setupDNSxL(cfg.DNSxL)
-		if err != nil {
-			return nil, err
-		}
-	}
 	return b, nil
 }
 
-// setupDNSxL configures module
-func setupDNSxL(cfg config.DNSxLCfg) error {
+// SetupDNSxL configures module
+func SetupDNSxL(cfg *config.DNSxLCfg) error {
 	err := cfg.Validate()
 	if err != nil {
 		return err
@@ -76,7 +69,7 @@ func Lists(cfg *config.XListCfg, builder *builder.Builder, logger yalogi.Logger)
 	if err != nil {
 		return fmt.Errorf("bad config: %v", err)
 	}
-	dbfiles, err := util.GetFilesDB("json", cfg.ConfigFiles, cfg.ConfigDirs)
+	dbfiles, err := util.GetFilesDB("json", cfg.ServiceFiles, cfg.ServiceDirs)
 	if err != nil {
 		return fmt.Errorf("loading dbfiles: %v", err)
 	}

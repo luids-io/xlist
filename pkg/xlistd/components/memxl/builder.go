@@ -22,7 +22,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 		cfg := defaultCfg
 		source := ""
 		if def.Source != "" {
-			source = b.SourcePath(def.Source)
+			source = b.DataPath(def.Source)
 			if !fileExists(source) {
 				return nil, fmt.Errorf("file '%s' doesn't exists", source)
 			}

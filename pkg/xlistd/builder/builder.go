@@ -39,17 +39,17 @@ type BuildWrapperFn func(builder *Builder, def WrapperDef, list xlistd.List) (xl
 type Option func(*options)
 
 type options struct {
-	certsDir   string
-	sourcesDir string
-	logger     yalogi.Logger
+	certsDir string
+	dataDir  string
+	logger   yalogi.Logger
 }
 
 var defaultOptions = options{logger: yalogi.LogNull}
 
-// SourcesDir sets source dir
-func SourcesDir(s string) Option {
+// DataDir sets source dir
+func DataDir(s string) Option {
 	return func(o *options) {
-		o.sourcesDir = s
+		o.dataDir = s
 	}
 }
 
@@ -208,14 +208,14 @@ func (b Builder) APIService(name string) (apiservice.Service, bool) {
 	return b.services.GetService(name)
 }
 
-// SourcePath returns path for source
-func (b Builder) SourcePath(source string) string {
+// DataPath returns path for source
+func (b Builder) DataPath(source string) string {
 	if path.IsAbs(source) {
 		return source
 	}
 	output := source
-	if b.opts.sourcesDir != "" {
-		output = b.opts.sourcesDir + string(os.PathSeparator) + output
+	if b.opts.dataDir != "" {
+		output = b.opts.dataDir + string(os.PathSeparator) + output
 	}
 	return output
 }
