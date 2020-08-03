@@ -31,7 +31,7 @@ func (cfg *XListCheckAPICfg) SetPFlags(short bool, prefix string) {
 	pflag.StringVar(&cfg.RootListID, aprefix+"rootid", cfg.RootListID, "Root list ID for check service.")
 	pflag.BoolVar(&cfg.ExposePing, aprefix+"exposeping", cfg.ExposePing, "Exposes internal ping in the service.")
 	pflag.BoolVar(&cfg.Disclosure, aprefix+"disclosure", cfg.Disclosure, "Disclosure internal errors.")
-	pflag.BoolVar(&cfg.Log, aprefix+"log", cfg.Log, "Enable log service.")
+	pflag.BoolVar(&cfg.Log, aprefix+"log", cfg.Log, "Enable log in service.")
 }
 
 // BindViper setups posix flags for commandline configuration and bind to viper

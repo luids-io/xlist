@@ -24,7 +24,7 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.DNSxLCfg{},
 		},
 		goconfig.Section{
-			Name:     "api.xlist.check",
+			Name:     "service.xlist.check",
 			Required: true,
 			Short:    true,
 			Data: &iconfig.XListCheckAPICfg{
@@ -34,12 +34,12 @@ func Default(program string) *goconfig.Config {
 			},
 		},
 		goconfig.Section{
-			Name:     "apiservice",
+			Name:     "ids.api",
 			Required: false,
 			Data:     &cconfig.APIServicesCfg{},
 		},
 		goconfig.Section{
-			Name:     "apiservice.event",
+			Name:     "ids.event",
 			Required: false,
 			Data: &cconfig.EventNotifyCfg{
 				Buffer: 100,

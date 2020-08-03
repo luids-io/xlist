@@ -46,13 +46,13 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 }
 
 func createAPIServices(msrv *serverd.Manager, logger yalogi.Logger) (apiservice.Discover, error) {
-	cfgServices := cfg.Data("apiservice").(*cconfig.APIServicesCfg)
+	cfgServices := cfg.Data("ids.api").(*cconfig.APIServicesCfg)
 	registry, err := cfactory.APIAutoloader(cfgServices, logger)
 	if err != nil {
 		return nil, err
 	}
 	msrv.Register(serverd.Service{
-		Name:     "apiservice.service",
+		Name:     "ids.api",
 		Ping:     registry.Ping,
 		Shutdown: func() { registry.CloseAll() },
 	})
@@ -60,7 +60,7 @@ func createAPIServices(msrv *serverd.Manager, logger yalogi.Logger) (apiservice.
 }
 
 func setupEventNotify(registry apiservice.Discover, msrv *serverd.Manager, logger yalogi.Logger) error {
-	cfgEvent := cfg.Data("apiservice.event").(*cconfig.EventNotifyCfg)
+	cfgEvent := cfg.Data("ids.event").(*cconfig.EventNotifyCfg)
 	if !cfgEvent.Empty() {
 		client, err := cfactory.EventNotify(cfgEvent, registry)
 		if err != nil {
@@ -68,7 +68,7 @@ func setupEventNotify(registry apiservice.Discover, msrv *serverd.Manager, logge
 		}
 		ebuffer := notifybuffer.New(client, cfgEvent.Buffer, notifybuffer.SetLogger(logger))
 		msrv.Register(serverd.Service{
-			Name:     "apiservice.event",
+			Name:     "ids.event",
 			Shutdown: func() { ebuffer.Close() },
 		})
 		event.SetBuffer(ebuffer)
@@ -104,7 +104,7 @@ func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalog
 }
 
 func createCheckAPI(gsrv *grpc.Server, finder xlistd.Finder, msrv *serverd.Manager, logger yalogi.Logger) error {
-	cfgCheck := cfg.Data("api.xlist.check").(*iconfig.XListCheckAPICfg)
+	cfgCheck := cfg.Data("service.xlist.check").(*iconfig.XListCheckAPICfg)
 	gsvc, err := ifactory.XListCheckAPI(cfgCheck, finder, logger)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func createCheckAPI(gsrv *grpc.Server, finder xlistd.Finder, msrv *serverd.Manag
 		return fmt.Errorf("rootlist '%s' not found", cfgCheck.RootListID)
 	}
 	msrv.Register(serverd.Service{
-		Name: "xlist.api.check",
+		Name: "service.xlist.check",
 		Ping: rootList.Ping,
 	})
 	return nil
@@ -132,7 +132,7 @@ func createServer(msrv *serverd.Manager) (*grpc.Server, error) {
 		grpc_prometheus.Register(gsrv)
 	}
 	msrv.Register(serverd.Service{
-		Name:     fmt.Sprintf("[%s].server", cfgServer.ListenURI),
+		Name:     fmt.Sprintf("server.[%s]", cfgServer.ListenURI),
 		Start:    func() error { go gsrv.Serve(glis); return nil },
 		Shutdown: gsrv.GracefulStop,
 		Stop:     gsrv.Stop,
