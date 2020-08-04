@@ -33,8 +33,9 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 			if err != nil {
 				return nil, fmt.Errorf("constructing child '%s': %v", sublist.ID, err)
 			}
+			childres := child.Resources()
 			for _, r := range def.Resources {
-				if !r.InArray(child.Resources()) {
+				if !r.InArray(childres) {
 					return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", sublist.ID, r)
 				}
 			}

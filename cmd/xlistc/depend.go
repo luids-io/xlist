@@ -3,7 +3,6 @@
 package main
 
 import (
-	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/api/xlist/grpc/check"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
@@ -23,6 +22,6 @@ func createClient(logger yalogi.Logger) (*check.Client, error) {
 		return nil, err
 	}
 	//create grpc client
-	client := check.NewClient(dial, []xlist.Resource{}, check.SetLogger(logger))
+	client := check.NewClient(dial, check.SetLogger(logger))
 	return client, nil
 }

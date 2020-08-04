@@ -25,8 +25,9 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 		if err != nil {
 			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[0].ID, err)
 		}
+		whiteres := whitelist.Resources()
 		for _, r := range def.Resources {
-			if !r.InArray(whitelist.Resources()) {
+			if !r.InArray(whiteres) {
 				return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", def.Contains[0].ID, r)
 			}
 		}
@@ -34,8 +35,9 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 		if err != nil {
 			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[1].ID, err)
 		}
+		blackres := blacklist.Resources()
 		for _, r := range def.Resources {
-			if !r.InArray(blacklist.Resources()) {
+			if !r.InArray(blackres) {
 				return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", def.Contains[1].ID, r)
 			}
 		}

@@ -38,7 +38,7 @@ func Builder() builder.BuildListFn {
 		if err != nil {
 			return nil, fmt.Errorf("dialing: %v", err)
 		}
-		bl := checkapi.NewClient(dial, def.Resources, checkapi.SetLogger(b.Logger()))
+		bl := checkapi.NewClient(dial, checkapi.SetLogger(b.Logger()))
 		if err != nil {
 			return nil, fmt.Errorf("creating rpcxl: %v", err)
 		}
