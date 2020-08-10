@@ -11,6 +11,12 @@ ENV github_token=$github_token
 # Install git and certificates
 RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certificates
 
+# create user for service
+RUN adduser -D -g 'luids' luxlist \
+    && mkdir -p /var/lib/luids/xlist \
+    && touch /var/lib/luids/xlist/.keep \
+    && chown -R luxlist /var/lib/luids/xlist
+
 WORKDIR /app
 
 ## config git
@@ -28,24 +34,18 @@ COPY . .
 RUN make binaries SYSTEM="GOOS=linux GOARCH=${arch}"
 
 ## create docker
-FROM alpine
+FROM scratch
 
 LABEL maintainer="Luis Guillén Civera <luisguillenc@gmail.com>"
 
-RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
-
-# create user for service
-RUN adduser -D -g 'luids' luxlist && \
-	mkdir -p /var/lib/luids/xlist && \
-	chown luxlist /var/lib/luids/xlist && \
-	mkdir -p /var/cache/luids/xlist && \
-	chown luxlist /var/cache/luids/xlist
+# Import the user and group files from the builder.
+COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/xlget /bin/
-COPY --from=build-env /app/configs/docker/xlget/* /etc/luids/xlist/
+COPY --from=build-env /app/configs/docker/xlistd/*  /etc/luids/xlist/
+COPY --from=build-env /var/lib/luids /var/lib/luids
 
 USER luxlist
-
 VOLUME [ "/etc/luids", "/var/lib/luids/xlist" ]
-
 CMD [ "/bin/xlget", "--auto", "--config", "/etc/luids/xlist/xlget.toml" ]

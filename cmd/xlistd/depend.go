@@ -37,7 +37,7 @@ func createHealthSrv(msrv *serverd.Manager, logger yalogi.Logger) error {
 			return err
 		}
 		msrv.Register(serverd.Service{
-			Name:     "health.server",
+			Name:     fmt.Sprintf("health.[%s]", cfgHealth.ListenURI),
 			Start:    func() error { go health.Serve(hlis); return nil },
 			Shutdown: func() { health.Close() },
 		})
@@ -96,7 +96,7 @@ func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalog
 		return nil, err
 	}
 	msrv.Register(serverd.Service{
-		Name:     "xlist",
+		Name:     "xlist.service",
 		Start:    builder.Start,
 		Shutdown: func() { builder.Shutdown() },
 	})

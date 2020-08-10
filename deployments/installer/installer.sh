@@ -403,55 +403,13 @@ create_service_config() {
 	if [ ! -f $ETC_DIR/$NAME/xlistd.toml ]; then
 		log "creating $ETC_DIR/$NAME/xlistd.toml"
 		{ cat > $ETC_DIR/$NAME/xlistd.toml <<EOF
-######################
-## Service settings ##
-######################
 [xlist]
 certsdir   = "${ETC_DIR}/ssl"
-sourcesdir = "${VAR_DIR}/${NAME}"
+datadir    = "${VAR_DIR}/${NAME}"
 
-[xlist.db]
+[xlist.service]
 files      = [ "${ETC_DIR}/${NAME}/services.json" ]
-#dirs       = [ "${ETC_DIR}/${NAME}/services.d" ]
 
-#[xlist.dnsxl]
-#resolvers  = [ "8.8.8.8", "8.8.4.4" ]
-#resolvconf = false
-
-#[xlist.api.check]
-#rootid     = "root"
-#disclosure = false
-#exposeping = false
-
-#####################
-## Server settings ##
-#####################
-## By default only serves grpc API and listen in localhost
-#[server]
-#listenuri  = "tcp://0.0.0.0:5801"
-#certca     = "${ETC_DIR}/ssl/certs/CA.crt"
-#certfile   = "${ETC_DIR}/ssl/certs/server.crt"
-#keyfile    = "${ETC_DIR}/ssl/private/server.key"
-#clientauth = false
-#allowed    = [ "127.0.0.1", "192.168.0.0/16" ]
-#metrics    = false
-
-#####################
-## Health settings ##
-#####################
-## By default health service is disabled
-## uncoment this for metrics and monitoring
-#[health]
-#listenuri  = "tcp://127.0.0.1:8081"
-#metrics    = true
-#allowed    = [ "127.0.0.1" ]
-
-##################
-## Log settings ##
-##################
-[log]
-format  = "log"
-level   = "info"
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
@@ -471,10 +429,12 @@ EOF
 		log "creating $ETC_DIR/$NAME/xlget.toml"
 		{ cat > $ETC_DIR/$NAME/xlget.toml <<EOF
 [xlget]
+outputdir = "${VAR_DIR}/${NAME}"
+cachedir  = "${CACHE_DIR}/${NAME}"
+
+[xlget.source]
 files     = [ "${ETC_DIR}/${NAME}/sources.json" ]
-#dirs      = [ "${ETC_DIR}/${NAME}/sources.d" ]
-output    = "${VAR_DIR}/${NAME}"
-cache     = "${CACHE_DIR}/${NAME}"
+
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1

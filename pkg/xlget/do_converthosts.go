@@ -85,8 +85,23 @@ func (p HostsConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (ma
 			}
 		}
 		if len(fields) > 1 {
+			added := false
 			_, isDefault := hostDefaults[fields[1]]
-			if p.checks(xlist.Domain) && xlist.ValidResource(fields[1], xlist.Domain) {
+			if p.checks(xlist.IPv4) && xlist.ValidResource(fields[1], xlist.IPv4) {
+				if !isDefault || (isDefault && p.WithDefaults) {
+					account[xlist.IPv4] = account[xlist.IPv4] + 1
+					fmt.Fprintf(out, "ip4,plain,%s\n", fields[1])
+					added = true
+				}
+			}
+			if p.checks(xlist.IPv6) && xlist.ValidResource(fields[1], xlist.IPv6) && !added {
+				if !isDefault || (isDefault && p.WithDefaults) {
+					account[xlist.IPv6] = account[xlist.IPv6] + 1
+					fmt.Fprintf(out, "ip6,plain,%s\n", fields[1])
+					added = true
+				}
+			}
+			if p.checks(xlist.Domain) && xlist.ValidResource(fields[1], xlist.Domain) && !added {
 				if !isDefault || (isDefault && p.WithDefaults) {
 					// apply opts
 					if p.Opts.MinDomain > 0 {
