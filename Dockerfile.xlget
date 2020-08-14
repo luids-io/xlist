@@ -14,8 +14,11 @@ RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certi
 # create user for service
 RUN adduser -D -g 'luids' luxlist \
     && mkdir -p /var/lib/luids/xlist \
+    && mkdir -p /var/cache/luids/xlist \
     && touch /var/lib/luids/xlist/.keep \
-    && chown -R luxlist /var/lib/luids/xlist
+    && touch /var/cache/luids/xlist/.keep \
+    && chown -R luxlist /var/lib/luids/xlist \
+    && chown -R luxlist /var/cache/luids/xlist
 
 WORKDIR /app
 
@@ -45,7 +48,8 @@ COPY --from=build-env /etc/passwd /etc/passwd
 COPY --from=build-env /app/bin/xlget /bin/
 COPY --from=build-env /app/configs/docker/xlistd/*  /etc/luids/xlist/
 COPY --from=build-env /var/lib/luids /var/lib/luids
+COPY --from=build-env /var/cache/luids /var/cache/luids
 
 USER luxlist
-VOLUME [ "/etc/luids", "/var/lib/luids/xlist" ]
+VOLUME [ "/etc/luids", "/var/lib/luids/xlist", "/var/cache/luids/xlist" ]
 CMD [ "/bin/xlget", "--auto", "--config", "/etc/luids/xlist/xlget.toml" ]
