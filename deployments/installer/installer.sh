@@ -2,8 +2,8 @@
 
 ## Configuration variables. 
 NAME="xlist"
-RELEASE="v0.0.1"
-ARCH="amd64"
+RELEASE="RELEASE"
+ARCH="${ARCH:-amd64}"
 
 ## Base dirs
 BIN_DIR=/usr/local/bin
