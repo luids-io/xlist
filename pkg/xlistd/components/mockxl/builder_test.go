@@ -192,6 +192,6 @@ func ExampleBuilder() {
 
 	// Output:
 	// check ip4 rbl1: true The resource is on the mockup list
-	// check domain rbl1: resource not supported
-	// check domain rbl2: internal error
+	// check domain rbl1: xlist: resource not supported
+	// check domain rbl2: xlist: internal error
 }
