@@ -14,6 +14,9 @@ import (
 	"github.com/luids-io/api/xlist"
 )
 
+// ComponentClass registered
+const ComponentClass = "mock"
+
 var defaultReason = "The resource is on the mockup list"
 
 // List is a mockup list that implements xlist.Checker, see examples.
@@ -47,7 +50,7 @@ func (l *List) ID() string {
 
 // Class implements xlistd.List interface
 func (l *List) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // Check implements xlist.Checker

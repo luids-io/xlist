@@ -13,8 +13,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines default class for component builder
-const BuildClass = "mem"
 
 // Builder returns a list builder function
 func Builder(defaultCfg Config) builder.BuildListFn {
@@ -110,5 +108,5 @@ func getData(opts map[string]interface{}) ([]Data, error) {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterListBuilder(ComponentClass, Builder(Config{}))
 }

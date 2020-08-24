@@ -14,6 +14,9 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// WrapperClass registered
+const WrapperClass = "response"
+
 // Config options
 type Config struct {
 	Clean        bool
@@ -28,41 +31,16 @@ type Config struct {
 
 // Wrapper implements an xlist.Checker wrapper for change responses
 type Wrapper struct {
-	opts options
+	cfg  Config
 	list xlistd.List
 }
-
-type options struct {
-	clean        bool
-	aggregate    bool
-	negate       bool
-	reason       string
-	preffix      string
-	ttl          int
-	useThreshold bool
-	score        int
-}
-
-var defaultOptions = options{}
 
 // New returns a new Wrapper
 func New(list xlistd.List, cfg Config) *Wrapper {
 	if cfg.TTL < xlist.NeverCache {
 		cfg.TTL = 0
 	}
-	return &Wrapper{
-		opts: options{
-			clean:        cfg.Clean,
-			aggregate:    cfg.Aggregate,
-			negate:       cfg.Negate,
-			reason:       cfg.Reason,
-			preffix:      cfg.Preffix,
-			ttl:          cfg.TTL,
-			useThreshold: cfg.UseThreshold,
-			score:        cfg.Score,
-		},
-		list: list,
-	}
+	return &Wrapper{cfg: cfg, list: list}
 }
 
 // ID implements xlistd.List interface
@@ -72,7 +50,7 @@ func (w *Wrapper) ID() string {
 
 // Class implements xlistd.List interface
 func (w *Wrapper) Class() string {
-	return BuildClass
+	return w.list.Class()
 }
 
 // Check implements xlist.Checker interface
@@ -84,15 +62,15 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 			if err != nil {
 				return resp, err
 			}
-			if w.opts.aggregate {
+			if w.cfg.Aggregate {
 				resp.Reason = reason.WithScore(score, rest)
 			}
-			if w.opts.useThreshold && w.opts.score >= score {
+			if w.cfg.UseThreshold && w.cfg.Score >= score {
 				resp.Result = false
 				resp.Reason = ""
 			}
 		}
-		if w.opts.negate {
+		if w.cfg.Negate {
 			if resp.Result {
 				resp.Result = false
 				resp.Reason = ""
@@ -100,17 +78,17 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 				resp.Result = true
 			}
 		}
-		if resp.Result && w.opts.reason != "" {
-			resp.Reason = w.opts.reason
+		if resp.Result && w.cfg.Reason != "" {
+			resp.Reason = w.cfg.Reason
 		}
-		if resp.Result && w.opts.preffix != "" {
-			resp.Reason = fmt.Sprintf("%s: %s", w.opts.preffix, resp.Reason)
+		if resp.Result && w.cfg.Preffix != "" {
+			resp.Reason = fmt.Sprintf("%s: %s", w.cfg.Preffix, resp.Reason)
 		}
-		if resp.Result && w.opts.clean {
+		if resp.Result && w.cfg.Clean {
 			resp.Reason = reason.Clean(resp.Reason)
 		}
-		if w.opts.ttl != 0 {
-			resp.TTL = w.opts.ttl
+		if w.cfg.TTL != 0 {
+			resp.TTL = w.cfg.TTL
 		}
 	}
 	return resp, err

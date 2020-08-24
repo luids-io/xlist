@@ -15,6 +15,9 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// WrapperClass defines default class name of component builder
+const WrapperClass = "score"
+
 // Config options
 type Config struct {
 	Scores []ScoreExpr
@@ -61,7 +64,7 @@ func (w *Wrapper) ID() string {
 
 // Class implements xlistd.List interface
 func (w *Wrapper) Class() string {
-	return BuildClass
+	return w.list.Class()
 }
 
 // Check implements xlist.Checker interface

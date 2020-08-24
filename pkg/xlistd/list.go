@@ -11,7 +11,6 @@ type List interface {
 	ID() string
 	Class() string
 	xlist.Checker
-	ReadOnly() bool
 }
 
 // Finder interface for lists

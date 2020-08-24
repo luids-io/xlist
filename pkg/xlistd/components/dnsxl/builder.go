@@ -11,9 +11,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines default class for component builder
-const BuildClass = "dnsxl"
-
 // Builder returns a builder for component dnsxl
 func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
@@ -38,7 +35,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 				cfg.Resolver = pool
 			}
 		}
-		return New(def.ID, def.Source, def.Resources, cfg)
+		return New(def.ID, def.Source, def.Resources, cfg, b.Logger())
 	}
 }
 
@@ -154,5 +151,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder(DefaultConfig()))
+	builder.RegisterListBuilder(ComponentClass, Builder(DefaultConfig()))
 }

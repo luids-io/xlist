@@ -14,6 +14,9 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// WrapperClass registered
+const WrapperClass = "timeout"
+
 // Wrapper implements an xlist.Checker wrapper for include a timeout in check
 // requests
 type Wrapper struct {
@@ -36,7 +39,7 @@ func (w *Wrapper) ID() string {
 
 // Class implements xlistd.List interface
 func (w *Wrapper) Class() string {
-	return BuildClass
+	return w.list.Class()
 }
 
 // Check implements xlist.Checker interface

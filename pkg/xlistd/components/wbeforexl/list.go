@@ -15,15 +15,13 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// ComponentClass registered
+const ComponentClass = "wbefore"
+
 // Config options
 type Config struct {
 	ForceValidation bool
 	Reason          string
-}
-
-type options struct {
-	forceValidation bool
-	reason          string
 }
 
 // List implements a composite RBL that checks a whtelist before checking
@@ -32,7 +30,7 @@ type options struct {
 // in the whitelist, then returns the response of the blacklist.
 type List struct {
 	id           string
-	opts         options
+	cfg          Config
 	provides     []bool
 	resources    []xlist.Resource
 	white, black xlistd.List
@@ -42,11 +40,8 @@ type List struct {
 // RBL supports.
 func New(id string, white, black xlistd.List, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
-		id: id,
-		opts: options{
-			forceValidation: cfg.ForceValidation,
-			reason:          cfg.Reason,
-		},
+		id:        id,
+		cfg:       cfg,
 		white:     white,
 		black:     black,
 		resources: xlist.ClearResourceDups(resources),
@@ -66,7 +61,7 @@ func (l *List) ID() string {
 
 // Class implements xlistd.List interface
 func (l *List) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // Check implements xlist.Checker interface
@@ -74,7 +69,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
 	}
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.cfg.ForceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
@@ -93,8 +88,8 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	default:
 		if l.black != nil {
 			resp, err := l.black.Check(ctx, name, resource)
-			if err == nil && resp.Result && l.opts.reason != "" {
-				resp.Reason = l.opts.reason
+			if err == nil && resp.Result && l.cfg.Reason != "" {
+				resp.Reason = l.cfg.Reason
 			}
 			return resp, err
 		}

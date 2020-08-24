@@ -20,12 +20,8 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
-// DefaultConfig returns default configuration
-func DefaultConfig() Config {
-	return Config{
-		Logger: yalogi.LogNull,
-	}
-}
+// ComponentClass registered
+const ComponentClass = "geoip2"
 
 // Config options
 type Config struct {
@@ -68,10 +64,10 @@ type List struct {
 }
 
 // New constructs a new List with dbpath as database and rules for logic
-func New(id, database string, cfg Config) *List {
+func New(id, database string, cfg Config, logger yalogi.Logger) *List {
 	l := &List{
 		id:     id,
-		logger: cfg.Logger,
+		logger: logger,
 		dbPath: database,
 		opts: options{
 			forceValidation: cfg.ForceValidation,
@@ -93,7 +89,7 @@ func (l *List) ID() string {
 
 // Class implements xlistd.List interface
 func (l *List) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // Check implements xlist.Checker interface

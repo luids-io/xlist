@@ -11,9 +11,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines class name for component builder
-const BuildClass = "cache"
-
 // Builder returns a builder for the wrapper component
 func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	return func(b *builder.Builder, def builder.WrapperDef, list xlistd.List) (xlistd.List, error) {
@@ -57,5 +54,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterWrapperBuilder(BuildClass, Builder(DefaultConfig()))
+	builder.RegisterWrapperBuilder(WrapperClass, Builder(DefaultConfig()))
 }

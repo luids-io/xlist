@@ -7,8 +7,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines class name for component builder
-const BuildClass = "metrics"
 
 // Builder returns a builder for the component
 func Builder() builder.BuildWrapperFn {
@@ -18,5 +16,5 @@ func Builder() builder.BuildWrapperFn {
 }
 
 func init() {
-	builder.RegisterWrapperBuilder(BuildClass, Builder())
+	builder.RegisterWrapperBuilder(WrapperClass, Builder())
 }

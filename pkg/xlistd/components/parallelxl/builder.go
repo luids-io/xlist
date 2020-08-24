@@ -10,8 +10,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines default class for component builder
-const BuildClass = "parallel"
 
 // Builder returns a builder for parallel List component
 func Builder(defaultCfg Config) builder.BuildListFn {
@@ -72,5 +70,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterListBuilder(ComponentClass, Builder(Config{}))
 }

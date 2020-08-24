@@ -6,6 +6,9 @@ import (
 	"github.com/luids-io/api/xlist"
 )
 
+// ComponentClass registered
+const ComponentClass = "apicheck"
+
 type apicheckList struct {
 	id        string
 	resources []xlist.Resource
@@ -17,7 +20,7 @@ func (l *apicheckList) ID() string {
 }
 
 func (l *apicheckList) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // Resources wrappes api, is required in construction
@@ -25,9 +28,4 @@ func (l *apicheckList) Resources() []xlist.Resource {
 	ret := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(ret, l.resources)
 	return ret
-}
-
-// ReadOnly implements xlist.Writer interface
-func (l *apicheckList) ReadOnly() bool {
-	return true
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/luids-io/api/xlist"
+	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/xlist/pkg/xlistd/components/geoip2xl"
 )
 
@@ -14,7 +15,7 @@ var testdb1 = "../../../../test/testdata/GeoIP2-Country-Test.mmdb"
 
 func TestList_New(t *testing.T) {
 	//test non existdb
-	geoip := geoip2xl.New("test1", "nonexistent.mmdb", geoip2xl.Config{})
+	geoip := geoip2xl.New("test1", "nonexistent.mmdb", geoip2xl.Config{}, yalogi.LogNull)
 	err := geoip.Open()
 	if err == nil {
 		t.Errorf("geoip.Start(): expected error")
@@ -24,7 +25,7 @@ func TestList_New(t *testing.T) {
 		geoip2xl.Config{
 			Countries: []string{"ES"},
 			Reverse:   true,
-		})
+		}, yalogi.LogNull)
 
 	//test before start
 	err = geoip.Ping()
@@ -68,7 +69,7 @@ func TestList_Check(t *testing.T) {
 		{geoip2xl.Config{Countries: []string{"ES", "GB"}, Reverse: true}, false},
 	}
 	for idx, test := range tests {
-		geoip := geoip2xl.New("test1", testdb1, test.in)
+		geoip := geoip2xl.New("test1", testdb1, test.in, yalogi.LogNull)
 		err := geoip.Open()
 		if err != nil {
 			t.Fatalf("geoip.Start(): err=%v", err)

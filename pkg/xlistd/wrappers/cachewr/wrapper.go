@@ -18,6 +18,9 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// WrapperClass registered
+const WrapperClass = "cache"
+
 // DefaultConfig returns default configuration
 func DefaultConfig() Config {
 	return Config{
@@ -40,18 +43,9 @@ type Config struct {
 
 // Wrapper implements a cache for list checkers
 type Wrapper struct {
-	opts  options
+	cfg   Config
 	list  xlistd.List
 	cache *cacheimpl.Cache
-}
-
-type options struct {
-	ttl             int
-	negativettl     int
-	cleanups        time.Duration
-	randomSeconds   int
-	doStats         bool
-	forceValidation bool
 }
 
 var (
@@ -62,19 +56,11 @@ var (
 
 // New returns a new wrapper
 func New(list xlistd.List, cfg Config) *Wrapper {
-	opts := options{
-		ttl:             cfg.TTL,
-		negativettl:     cfg.NegativeTTL,
-		cleanups:        cfg.Cleanups,
-		randomSeconds:   cfg.RandomSeconds,
-		doStats:         cfg.DoStats,
-		forceValidation: cfg.ForceValidation,
-	}
 	//randomize cache cleanups
-	rands := time.Duration(rand.Intn(opts.randomSeconds)) * time.Second
+	rands := time.Duration(rand.Intn(cfg.RandomSeconds)) * time.Second
 	c := &Wrapper{
-		opts:  opts,
-		cache: cacheimpl.New(time.Duration(opts.ttl)*time.Second, opts.cleanups+rands),
+		cfg:   cfg,
+		cache: cacheimpl.New(time.Duration(cfg.TTL)*time.Second, cfg.Cleanups+rands),
 		list:  list,
 	}
 	return c
@@ -87,12 +73,12 @@ func (c *Wrapper) ID() string {
 
 // Class implements xlistd.List interface
 func (c *Wrapper) Class() string {
-	return BuildClass
+	return c.list.Class()
 }
 
 // Check implements xlist.Checker interface
 func (c *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, c.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, c.cfg.ForceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
@@ -147,13 +133,13 @@ func (c *Wrapper) get(name string, resource xlist.Resource) (xlist.Response, boo
 
 func (c *Wrapper) set(name string, resource xlist.Resource, r xlist.Response) xlist.Response {
 	//if don't cache
-	if (r.TTL == xlist.NeverCache) || (!r.Result && c.opts.negativettl == xlist.NeverCache) {
+	if (r.TTL == xlist.NeverCache) || (!r.Result && c.cfg.NegativeTTL == xlist.NeverCache) {
 		return r
 	}
 	//sets cache
-	ttl := c.opts.ttl
-	if !r.Result && c.opts.negativettl > 0 {
-		ttl = c.opts.negativettl
+	ttl := c.cfg.TTL
+	if !r.Result && c.cfg.NegativeTTL > 0 {
+		ttl = c.cfg.NegativeTTL
 	}
 	if r.TTL < ttl { //minor than cachettl
 		r.TTL = ttl //sets reponse to cachettl

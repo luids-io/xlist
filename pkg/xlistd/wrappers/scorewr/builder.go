@@ -11,8 +11,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines default class name of component builder
-const BuildClass = "score"
 
 // Builder returns a builder for the component
 func Builder(defaultCfg Config) builder.BuildWrapperFn {
@@ -65,5 +63,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterWrapperBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterWrapperBuilder(WrapperClass, Builder(Config{}))
 }

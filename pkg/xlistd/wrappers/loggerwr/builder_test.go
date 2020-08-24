@@ -22,43 +22,43 @@ var (
 
 var testdatabase1 = []builder.ListDef{
 	{ID: "list1",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers:  []builder.WrapperDef{{Class: "logger"}}},
 	{ID: "list2",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: loggerwr.BuildClass,
+			{Class: loggerwr.WrapperClass,
 				Opts: map[string]interface{}{"showpeer": true}}}},
 	{ID: "list3",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: loggerwr.BuildClass,
+			{Class: loggerwr.WrapperClass,
 				Opts: map[string]interface{}{"showpeer": "aa"}}}},
 	{ID: "list4",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: loggerwr.BuildClass,
+			{Class: loggerwr.WrapperClass,
 				Opts: map[string]interface{}{
 					"found":    "warn",
 					"notfound": "disable",
 					"error":    "error"}}}},
 	{ID: "list5",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: loggerwr.BuildClass,
+			{Class: loggerwr.WrapperClass,
 				Opts: map[string]interface{}{
 					"found":    5,
 					"notfound": "disable"}}}},
 	{ID: "list6",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: loggerwr.BuildClass,
+			{Class: loggerwr.WrapperClass,
 				Opts: map[string]interface{}{
 					"found":    "warn",
 					"notfound": "noexiste"}}}},

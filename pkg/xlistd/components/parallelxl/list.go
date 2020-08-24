@@ -17,6 +17,9 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// ComponentClass registered
+const ComponentClass = "parallel"
+
 // Config options
 type Config struct {
 	FirstResponse   bool
@@ -73,7 +76,7 @@ func (l *List) ID() string {
 
 // Class implements xlistd.List interface
 func (l *List) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // AddChecker adds a checker to the RBL

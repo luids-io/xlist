@@ -10,9 +10,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines default class for component builder
-const BuildClass = "apicheck"
-
 // Builder resturns a rpcxl builder
 func Builder() builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
@@ -40,5 +37,5 @@ func Builder() builder.BuildListFn {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder())
+	builder.RegisterListBuilder(ComponentClass, Builder())
 }

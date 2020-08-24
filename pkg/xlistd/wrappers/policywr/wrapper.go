@@ -15,6 +15,9 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// WrapperClass defines class name for component builder
+const WrapperClass = "policy"
+
 // Config options
 type Config struct {
 	Merge        bool
@@ -24,25 +27,15 @@ type Config struct {
 
 // Wrapper implements an xlistd.List wrapper for insert policies
 type Wrapper struct {
-	opts   options
+	cfg    Config
 	policy reason.Policy
 	list   xlistd.List
-}
-
-type options struct {
-	merge        bool
-	useThreshold bool
-	score        int
 }
 
 // New returns a new Wrapper
 func New(list xlistd.List, p reason.Policy, cfg Config) *Wrapper {
 	return &Wrapper{
-		opts: options{
-			merge:        cfg.Merge,
-			useThreshold: cfg.UseThreshold,
-			score:        cfg.Score,
-		},
+		cfg:    cfg,
 		policy: p,
 		list:   list,
 	}
@@ -55,23 +48,23 @@ func (w *Wrapper) ID() string {
 
 // Class implements xlistd.List interface
 func (w *Wrapper) Class() string {
-	return BuildClass
+	return w.list.Class()
 }
 
 // Check implements xlist.Checker interface
 func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	resp, err := w.list.Check(ctx, name, resource)
 	if err == nil && resp.Result {
-		if w.opts.useThreshold {
+		if w.cfg.UseThreshold {
 			score, _, err := reason.ExtractScore(resp.Reason)
 			if err != nil {
 				return resp, err
 			}
-			if w.opts.score >= score {
+			if w.cfg.Score >= score {
 				return resp, nil
 			}
 		}
-		if w.opts.merge {
+		if w.cfg.Merge {
 			p, r, merr := reason.ExtractPolicy(resp.Reason)
 			if merr != nil {
 				//do nothing

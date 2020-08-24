@@ -13,9 +13,6 @@ import (
 // DefaultTimeout sets default timeout in construction
 const DefaultTimeout = 1 * time.Second
 
-// BuildClass defines class name for component builder
-const BuildClass = "timeout"
-
 // Builder returns a builder for the component
 func Builder(timeout time.Duration) builder.BuildWrapperFn {
 	return func(b *builder.Builder, def builder.WrapperDef, list xlistd.List) (xlistd.List, error) {
@@ -33,5 +30,5 @@ func Builder(timeout time.Duration) builder.BuildWrapperFn {
 }
 
 func init() {
-	builder.RegisterWrapperBuilder(BuildClass, Builder(DefaultTimeout))
+	builder.RegisterWrapperBuilder(WrapperClass, Builder(DefaultTimeout))
 }

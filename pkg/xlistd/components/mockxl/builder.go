@@ -14,9 +14,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines default class for component builder
-const BuildClass = "mock"
-
 // Builder returns a list builder function that constructs mockups
 func Builder() builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
@@ -93,5 +90,5 @@ func configMockupFromOpts(mockup *List, opts map[string]interface{}) error {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder())
+	builder.RegisterListBuilder(ComponentClass, Builder())
 }

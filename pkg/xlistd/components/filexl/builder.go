@@ -12,9 +12,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines default class for component builder
-const BuildClass = "file"
-
 // Builder returns a list builder function
 func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
@@ -26,7 +23,6 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 		if !fileExists(source) {
 			return nil, fmt.Errorf("file '%s' doesn't exists", source)
 		}
-		cfg.Logger = b.Logger()
 		if def.Opts != nil {
 			var err error
 			cfg, err = parseOptions(cfg, def.Opts)
@@ -35,7 +31,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 			}
 		}
 
-		bl := New(def.ID, source, def.Resources, cfg)
+		bl := New(def.ID, source, def.Resources, cfg, b.Logger())
 		//register startup
 		b.OnStartup(func() error {
 			return bl.Open()
@@ -96,5 +92,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder(DefaultConfig()))
+	builder.RegisterListBuilder(ComponentClass, Builder(DefaultConfig()))
 }

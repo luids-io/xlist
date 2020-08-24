@@ -14,21 +14,19 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// ComponentClass registered
+const ComponentClass = "mem"
+
 // Config options
 type Config struct {
 	ForceValidation bool
 	Reason          string
 }
 
-type options struct {
-	forceValidation bool
-	reason          string
-}
-
 // List stores all items in memory
 type List struct {
-	id   string
-	opts options
+	id  string
+	cfg Config
 	//lock
 	mu sync.RWMutex
 	//resource lists
@@ -43,11 +41,8 @@ type List struct {
 // New returns a new List
 func New(id string, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
-		id: id,
-		opts: options{
-			forceValidation: cfg.ForceValidation,
-			reason:          cfg.Reason,
-		},
+		id:        id,
+		cfg:       cfg,
 		resources: xlist.ClearResourceDups(resources),
 		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
@@ -66,7 +61,7 @@ func (l *List) ID() string {
 
 // Class implements xlistd.List interface
 func (l *List) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 func (l *List) init() {
@@ -86,7 +81,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
 	}
-	name, _, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
+	name, _, err := xlist.DoValidation(ctx, name, resource, l.cfg.ForceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
@@ -106,7 +101,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	}
 	reason := ""
 	if result {
-		reason = l.opts.reason
+		reason = l.cfg.Reason
 	}
 	return xlist.Response{Result: result, Reason: reason}, nil
 }

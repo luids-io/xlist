@@ -19,10 +19,12 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
+// ComponentClass registered
+const ComponentClass = "dnsxl"
+
 // DefaultConfig returns default configuration
 func DefaultConfig() Config {
 	return Config{
-		Logger:    yalogi.LogNull,
 		DoReverse: true,
 		Retries:   1,
 		Timeout:   1 * time.Second,
@@ -31,7 +33,6 @@ func DefaultConfig() Config {
 
 // Config options
 type Config struct {
-	Logger          yalogi.Logger
 	Timeout         time.Duration
 	ForceValidation bool
 	DoReverse       bool
@@ -68,7 +69,7 @@ func (src Config) Copy() Config {
 type List struct {
 	id        string
 	logger    yalogi.Logger
-	opts      options
+	cfg       Config
 	client    *dns.Client
 	resolver  Resolver
 	zone      string
@@ -78,19 +79,8 @@ type List struct {
 	provides  []bool
 }
 
-type options struct {
-	forceValidation bool
-	doReverse       bool
-	halfPing        bool
-	resolveReason   bool
-	authToken       string
-	reason          string
-	pingDNS         string
-	retries         int
-}
-
 // New creates a new DNSxL based RBL
-func New(id, zone string, resources []xlist.Resource, cfg Config) (*List, error) {
+func New(id, zone string, resources []xlist.Resource, cfg Config, logger yalogi.Logger) (*List, error) {
 	if zone == "" {
 		return nil, errors.New("zone parameter is required")
 	}
@@ -99,18 +89,9 @@ func New(id, zone string, resources []xlist.Resource, cfg Config) (*List, error)
 		client.Timeout = cfg.Timeout
 	}
 	l := &List{
-		id:     id,
-		logger: cfg.Logger,
-		opts: options{
-			forceValidation: cfg.ForceValidation,
-			doReverse:       cfg.DoReverse,
-			halfPing:        cfg.HalfPing,
-			resolveReason:   cfg.ResolveReason,
-			authToken:       cfg.AuthToken,
-			reason:          cfg.Reason,
-			pingDNS:         cfg.PingDNS,
-			retries:         cfg.Retries,
-		},
+		id:       id,
+		logger:   logger,
+		cfg:      cfg,
 		resolver: defaultResolver,
 		client:   client,
 		zone:     zone,
@@ -157,7 +138,7 @@ func (l *List) ID() string {
 
 // Class implements xlistd.List interface
 func (l *List) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // Check implements xlist.Checker interface
@@ -165,7 +146,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
 	}
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.cfg.ForceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
@@ -176,11 +157,11 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	if resource == xlist.IPv6 {
 		dnsrecord = ip6ToRecord(name)
 	}
-	if l.opts.doReverse {
+	if l.cfg.DoReverse {
 		dnsrecord = reverse(dnsrecord)
 	}
-	if l.opts.authToken != "" {
-		dnsrecord = fmt.Sprintf("%s.%s", l.opts.authToken, dnsrecord)
+	if l.cfg.AuthToken != "" {
+		dnsrecord = fmt.Sprintf("%s.%s", l.cfg.AuthToken, dnsrecord)
 	}
 	//get response
 	resp, err := l.getResponse(ctx, server, dnsrecord)
@@ -189,11 +170,11 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 		return xlist.Response{}, xlist.ErrInternal
 	}
 	//if check and resolv reason...
-	if resp.Result && l.opts.resolveReason {
+	if resp.Result && l.cfg.ResolveReason {
 		reason, err := l.getReason(ctx, server, dnsrecord)
 		if err != nil {
 			l.logger.Warnf("%s: get reason '%s': %v", l.id, name, err)
-			reason = l.opts.reason
+			reason = l.cfg.Reason
 		}
 		resp.Reason = reason
 	}
@@ -213,8 +194,8 @@ func (l *List) Resources() []xlist.Resource {
 
 // Ping implements xlist.Checker interface
 func (l *List) Ping() error {
-	if l.opts.pingDNS != "" {
-		return l.resolver.Ping(l.opts.pingDNS)
+	if l.cfg.PingDNS != "" {
+		return l.resolver.Ping(l.cfg.PingDNS)
 	}
 	server := l.resolver.Resolver()
 	for _, r := range l.Resources() {
@@ -269,8 +250,8 @@ func (l *List) getResponse(ctx context.Context, server, dnsrecord string) (xlist
 		}
 	}
 	// if fixed reason
-	if l.opts.reason != "" {
-		return xlist.Response{Result: true, Reason: l.opts.reason, TTL: int(ttl)}, nil
+	if l.cfg.Reason != "" {
+		return xlist.Response{Result: true, Reason: l.cfg.Reason, TTL: int(ttl)}, nil
 	}
 	// mix reasons
 	retReason := strings.Join(reasons, ";")
@@ -313,7 +294,7 @@ func (l *List) queryDNS(ctx context.Context, server, dnsquery string, dnstype ui
 	var err error
 	success := false
 	count := 0
-	for count < l.opts.retries && !success {
+	for count < l.cfg.Retries && !success {
 		select {
 		case <-ctx.Done():
 			return r, xlist.ErrCanceledRequest
@@ -347,7 +328,7 @@ func (l *List) pingRFC5782(r xlist.Resource, server string) error {
 func (l *List) pingIPv4(server string) error {
 	//127.0.0.2 must exists
 	dnsrecord := "127.0.0.2"
-	if l.opts.doReverse {
+	if l.cfg.DoReverse {
 		dnsrecord = reverse(dnsrecord)
 	}
 	resp, err := l.getResponse(context.Background(), server, dnsrecord)
@@ -357,12 +338,12 @@ func (l *List) pingIPv4(server string) error {
 	if !resp.Result {
 		return fmt.Errorf("%v seems not be available: check 127.0.0.2 failed", l.zone)
 	}
-	if l.opts.halfPing {
+	if l.cfg.HalfPing {
 		return nil
 	}
 	//127.0.0.1 must NOT exists
 	dnsrecord = "127.0.0.1"
-	if l.opts.doReverse {
+	if l.cfg.DoReverse {
 		dnsrecord = reverse(dnsrecord)
 	}
 	resp, err = l.getResponse(context.Background(), server, dnsrecord)
@@ -378,7 +359,7 @@ func (l *List) pingIPv4(server string) error {
 func (l *List) pingIPv6(server string) error {
 	//::FFFF:7F00:2 must exists
 	dnsrecord := ip6ToRecord("::FFFF:7F00:2")
-	if l.opts.doReverse {
+	if l.cfg.DoReverse {
 		dnsrecord = reverse(dnsrecord)
 	}
 	resp, err := l.getResponse(context.Background(), server, dnsrecord)
@@ -388,12 +369,12 @@ func (l *List) pingIPv6(server string) error {
 	if !resp.Result {
 		return fmt.Errorf("%v seems not be available: check ::FFFF:7F00:2 failed", l.zone)
 	}
-	if l.opts.halfPing {
+	if l.cfg.HalfPing {
 		return nil
 	}
 	//::FFFF:7F00:1 must NOT exists
 	dnsrecord = ip6ToRecord("::FFFF:7F00:1")
-	if l.opts.doReverse {
+	if l.cfg.DoReverse {
 		dnsrecord = reverse(dnsrecord)
 	}
 	resp, err = l.getResponse(context.Background(), server, dnsrecord)
@@ -416,7 +397,7 @@ func (l *List) pingDomain(server string) error {
 	if !resp.Result {
 		return fmt.Errorf("%v seems not be available: check TEST domain failed", l.zone)
 	}
-	if l.opts.halfPing {
+	if l.cfg.HalfPing {
 		return nil
 	}
 	//INVALID must NOT exists

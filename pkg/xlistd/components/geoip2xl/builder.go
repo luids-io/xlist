@@ -13,9 +13,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines class name for component builder
-const BuildClass = "geoip2"
-
 // Builder returns a list builder function
 func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
@@ -42,7 +39,7 @@ func Builder(defaultCfg Config) builder.BuildListFn {
 		}
 
 		//create RBL list
-		bl := New(def.ID, source, cfg)
+		bl := New(def.ID, source, cfg, b.Logger())
 
 		//register startup
 		b.OnStartup(func() error {
@@ -100,5 +97,5 @@ func fileExists(filename string) bool {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder(DefaultConfig()))
+	builder.RegisterListBuilder(ComponentClass, Builder(Config{}))
 }

@@ -14,17 +14,18 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/components/memxl"
 )
 
+// ComponentClass defines default class for component builder
+const ComponentClass = "file"
+
 // DefaultConfig returns default configuration
 func DefaultConfig() Config {
 	return Config{
-		Logger:     yalogi.LogNull,
 		ReloadTime: 30 * time.Second,
 	}
 }
 
 // Config options
 type Config struct {
-	Logger          yalogi.Logger
 	ForceValidation bool
 	Reason          string
 	UnsafeReload    bool
@@ -32,18 +33,10 @@ type Config struct {
 	ReloadTime      time.Duration
 }
 
-type options struct {
-	forceValidation bool
-	reason          string
-	unsafeReload    bool
-	autoreload      bool
-	reloadTime      time.Duration
-}
-
 // List loads list from a file using internally a memxl.List
 type List struct {
 	id        string
-	opts      options
+	cfg       Config
 	logger    yalogi.Logger
 	filename  string
 	resources []xlist.Resource
@@ -59,25 +52,19 @@ type List struct {
 }
 
 // New creates a new List with the filename passed
-func New(id, filename string, resources []xlist.Resource, cfg Config) *List {
+func New(id, filename string, resources []xlist.Resource, cfg Config, logger yalogi.Logger) *List {
 	l := &List{
-		id:       id,
-		filename: filename,
-		opts: options{
-			forceValidation: cfg.ForceValidation,
-			reason:          cfg.Reason,
-			unsafeReload:    cfg.UnsafeReload,
-			autoreload:      cfg.Autoreload,
-			reloadTime:      cfg.ReloadTime,
-		},
-		logger:    cfg.Logger,
+		id:        id,
+		filename:  filename,
+		cfg:       cfg,
+		logger:    logger,
 		resources: xlist.ClearResourceDups(resources),
 		close:     make(chan bool),
 	}
 	l.list = memxl.New(l.id, l.resources,
 		memxl.Config{
-			ForceValidation: l.opts.forceValidation,
-			Reason:          l.opts.reason,
+			ForceValidation: l.cfg.ForceValidation,
+			Reason:          l.cfg.Reason,
 		})
 
 	if l.logger == nil {
@@ -93,7 +80,7 @@ func (l *List) ID() string {
 
 // Class implements xlistd.List interface
 func (l *List) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // Check implements xlist.Checker interface
@@ -134,7 +121,7 @@ func (l *List) Open() error {
 	if err != nil {
 		return err
 	}
-	if l.opts.autoreload {
+	if l.cfg.Autoreload {
 		go l.doReload()
 	}
 	l.started = true
@@ -145,7 +132,7 @@ func (l *List) Open() error {
 func (l *List) Close() {
 	l.logger.Debugf("%s: closing source '%s'", l.id, l.filename)
 	if l.started {
-		if l.opts.autoreload {
+		if l.cfg.Autoreload {
 			l.close <- true
 		}
 		l.started = false
@@ -156,7 +143,7 @@ func (l *List) Close() {
 // Reload forces a reload from the file
 func (l *List) Reload() error {
 	l.logger.Debugf("reloading source '%s'", l.filename)
-	if l.opts.unsafeReload {
+	if l.cfg.UnsafeReload {
 		l.mu.Lock()
 		defer l.mu.Unlock()
 		err := l.loadFile(l.list, true)
@@ -168,8 +155,8 @@ func (l *List) Reload() error {
 	//safe reload
 	list := memxl.New(l.id, l.resources,
 		memxl.Config{
-			ForceValidation: l.opts.forceValidation,
-			Reason:          l.opts.reason,
+			ForceValidation: l.cfg.ForceValidation,
+			Reason:          l.cfg.Reason,
 		})
 	err := l.loadFile(list, false)
 	if err != nil {
@@ -185,7 +172,7 @@ func (l *List) Reload() error {
 }
 
 func (l *List) doReload() {
-	ticker := time.NewTicker(l.opts.reloadTime)
+	ticker := time.NewTicker(l.cfg.ReloadTime)
 	for {
 		select {
 		case <-l.close:

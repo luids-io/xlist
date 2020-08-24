@@ -6,6 +6,9 @@ import (
 	"github.com/luids-io/api/xlist"
 )
 
+// ComponentClass registered
+const ComponentClass = "grpc"
+
 //TODO
 type grpclist struct {
 	id string
@@ -19,7 +22,7 @@ func (l *grpclist) ID() string {
 
 // Class implements xlistd.List interface
 func (l *grpclist) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // ReadOnly implements xlist.Writer interface

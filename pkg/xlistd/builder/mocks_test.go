@@ -143,10 +143,6 @@ func (w mockWrapper) Resources() []xlist.Resource {
 	return w.list.Resources()
 }
 
-func (w mockWrapper) ReadOnly() bool {
-	return w.list.ReadOnly()
-}
-
 func testBuilderList() builder.BuildListFn {
 	return func(builder *builder.Builder, parents []string, list builder.ListDef) (xlistd.List, error) {
 		response := xlist.Response{}

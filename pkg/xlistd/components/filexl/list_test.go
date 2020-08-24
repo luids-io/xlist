@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/luids-io/core/yalogi"
+
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/xlist/pkg/xlistd/components/filexl"
 )
@@ -18,7 +20,7 @@ var testfileerr = "../../../../test/testdata/testfile-err.xlist"
 func TestList_Check(t *testing.T) {
 	list := filexl.New("test1", testfile1,
 		[]xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
-		filexl.Config{},
+		filexl.Config{}, yalogi.LogNull,
 	)
 	err := list.Open()
 	if err != nil {
@@ -57,7 +59,7 @@ func TestList_Check(t *testing.T) {
 func TestList_New(t *testing.T) {
 	list := filexl.New("test1", testfileerr,
 		[]xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
-		filexl.Config{},
+		filexl.Config{}, yalogi.LogNull,
 	)
 	err := list.Open()
 	if err == nil || !strings.Contains(err.Error(), "ip4,cidr,-10.5.0.0/16") {
@@ -66,7 +68,7 @@ func TestList_New(t *testing.T) {
 
 	list = filexl.New("test2", testfile1,
 		[]xlist.Resource{xlist.IPv4, xlist.Domain, xlist.IPv6},
-		filexl.Config{},
+		filexl.Config{}, yalogi.LogNull,
 	)
 	err = list.Ping()
 	if err == nil {

@@ -17,6 +17,9 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// WrapperClass registered
+const WrapperClass = "logger"
+
 // DefaultConfig returns default configuration
 func DefaultConfig() Config {
 	return Config{
@@ -68,7 +71,7 @@ func (w *Wrapper) ID() string {
 
 // Class implements xlistd.List interface
 func (w *Wrapper) Class() string {
-	return BuildClass
+	return w.list.Class()
 }
 
 // Check implements xlist.Checker interface

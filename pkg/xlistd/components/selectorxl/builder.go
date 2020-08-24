@@ -12,9 +12,6 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// BuildClass defines default class for component builder
-const BuildClass = "selector"
-
 // Builder returns a builder for selector List component
 func Builder(defaultCfg Config) builder.BuildListFn {
 	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
@@ -59,5 +56,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterListBuilder(BuildClass, Builder(Config{}))
+	builder.RegisterListBuilder(ComponentClass, Builder(Config{}))
 }

@@ -16,6 +16,9 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
+// ComponentClass registered
+const ComponentClass = "sequence"
+
 // Config options
 type Config struct {
 	FirstResponse   bool
@@ -24,18 +27,11 @@ type Config struct {
 	Reason          string
 }
 
-type options struct {
-	firstResponse   bool
-	skipErrors      bool
-	forceValidation bool
-	reason          string
-}
-
 // List implements a composite RBL that checks a group of lists in
 // the order in which they were added
 type List struct {
 	id        string
-	opts      options
+	cfg       Config
 	childs    []xlistd.List
 	provides  []bool
 	resources []xlist.Resource
@@ -44,13 +40,8 @@ type List struct {
 // New creates a new sequence
 func New(id string, childs []xlistd.List, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
-		id: id,
-		opts: options{
-			firstResponse:   cfg.FirstResponse,
-			skipErrors:      cfg.SkipErrors,
-			forceValidation: cfg.ForceValidation,
-			reason:          cfg.Reason,
-		},
+		id:        id,
+		cfg:       cfg,
 		resources: xlist.ClearResourceDups(resources),
 		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
@@ -73,7 +64,7 @@ func (l *List) ID() string {
 
 // Class implements xlistd.List interface
 func (l *List) Class() string {
-	return BuildClass
+	return ComponentClass
 }
 
 // Check implements xlist.Checker interface
@@ -81,7 +72,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
 	}
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.cfg.ForceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
@@ -93,7 +84,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 LOOPCHILDS:
 	for _, child := range l.childs {
 		r, err := child.Check(ctx, name, resource)
-		if err != nil && !l.opts.skipErrors {
+		if err != nil && !l.cfg.SkipErrors {
 			return r, err
 		}
 		// check if a cancellation has been done
@@ -109,7 +100,7 @@ LOOPCHILDS:
 					ttl = r.TTL
 				}
 				reasons = append(reasons, r.Reason)
-				if l.opts.firstResponse {
+				if l.cfg.FirstResponse {
 					break LOOPCHILDS
 				}
 			}
@@ -121,10 +112,10 @@ LOOPCHILDS:
 		if ttl > 0 {
 			resp.TTL = ttl
 		}
-		if l.opts.reason == "" {
+		if l.cfg.Reason == "" {
 			resp.Reason = strings.Join(reasons, ";")
 		} else {
-			resp.Reason = l.opts.reason
+			resp.Reason = l.cfg.Reason
 		}
 	}
 	return resp, nil

@@ -22,39 +22,39 @@ var (
 
 var testdatabase1 = []builder.ListDef{
 	{ID: "list1",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
-		Wrappers:  []builder.WrapperDef{{Class: responsewr.BuildClass}}},
+		Wrappers:  []builder.WrapperDef{{Class: responsewr.WrapperClass}}},
 	{ID: "list2",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: responsewr.BuildClass,
+			{Class: responsewr.WrapperClass,
 				Opts: map[string]interface{}{
 					"negate":  true,
 					"ttl":     10,
 					"reason":  "razon",
 					"preffix": "prefijo"}}}},
 	{ID: "list3",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: responsewr.BuildClass, Opts: map[string]interface{}{"preffixid": true}}}},
+			{Class: responsewr.WrapperClass, Opts: map[string]interface{}{"preffixid": true}}}},
 	{ID: "list4",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: responsewr.BuildClass, Opts: map[string]interface{}{"ttl": "akk"}}}},
+			{Class: responsewr.WrapperClass, Opts: map[string]interface{}{"ttl": "akk"}}}},
 	{ID: "list5",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: responsewr.BuildClass, Opts: map[string]interface{}{"negate": "akk"}}}},
+			{Class: responsewr.WrapperClass, Opts: map[string]interface{}{"negate": "akk"}}}},
 	{ID: "list6",
-		Class:     mockxl.BuildClass,
+		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
 		Wrappers: []builder.WrapperDef{
-			{Class: responsewr.BuildClass, Opts: map[string]interface{}{"preffixid": "akk"}}}},
+			{Class: responsewr.WrapperClass, Opts: map[string]interface{}{"preffixid": "akk"}}}},
 }
 
 func TestBuild(t *testing.T) {

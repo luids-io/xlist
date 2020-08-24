@@ -15,14 +15,8 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// Wrapper implements an xlist.Checker wrapper for metrics
-type Wrapper struct {
-	listID string
-	list   xlistd.List
-}
-
-// Option is used for component configuration
-type Option func(*options)
+// WrapperClass registered
+const WrapperClass = "metrics"
 
 //stats is a global structure
 var stats struct {
@@ -31,7 +25,11 @@ var stats struct {
 	durations *cliprom.SummaryVec
 }
 
-type options struct{}
+// Wrapper implements an xlist.Checker wrapper for metrics
+type Wrapper struct {
+	listID string
+	list   xlistd.List
+}
 
 // New returns a Wrapper, it recevies the listID used for the metrics
 func New(list xlistd.List) *Wrapper {
@@ -48,7 +46,7 @@ func (w *Wrapper) ID() string {
 
 // Class implements xlistd.List interface
 func (w *Wrapper) Class() string {
-	return BuildClass
+	return w.list.Class()
 }
 
 // Check implements xlist.Checker interface
