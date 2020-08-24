@@ -3,6 +3,7 @@
 package policywr
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/luids-io/core/option"
@@ -15,22 +16,23 @@ import (
 func Builder(defaultCfg Config) builder.BuildWrapperFn {
 	return func(b *builder.Builder, def builder.WrapperDef, list xlistd.List) (xlistd.List, error) {
 		cfg := defaultCfg
+		if def.Opts == nil {
+			return nil, errors.New("'value' option is required")
+		}
+		//gets value policy
+		value, ok, err := option.String(def.Opts, "value")
+		if !ok || value == "" {
+			return nil, errors.New("'value' option is required")
+		}
 		policy := reason.NewPolicy()
-		if def.Opts != nil {
-			var err error
-			cfg, err = parseOptions(cfg, def.Opts)
-			if err != nil {
-				return nil, err
-			}
-			for k, v := range def.Opts {
-				if k == "merge" || k == "threshold" {
-					continue
-				}
-				err := policy.Set(k, fmt.Sprintf("%v", v))
-				if err != nil {
-					return nil, fmt.Errorf("invalid policy: %v", err)
-				}
-			}
+		err = policy.FromString(fmt.Sprintf("[policy]%s[/policy]", value))
+		if err != nil {
+			return nil, fmt.Errorf("'value' invalid: %v", err)
+		}
+		//gets config
+		cfg, err = parseOptions(cfg, def.Opts)
+		if err != nil {
+			return nil, err
 		}
 		w := New(list, policy, cfg)
 		return w, nil
