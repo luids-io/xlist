@@ -10,8 +10,6 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"google.golang.org/grpc"
 
-	"github.com/luids-io/api/event"
-	"github.com/luids-io/api/event/notifybuffer"
 	checkapi "github.com/luids-io/api/xlist/grpc/check"
 	cconfig "github.com/luids-io/common/config"
 	cfactory "github.com/luids-io/common/factory"
@@ -57,23 +55,6 @@ func createAPIServices(msrv *serverd.Manager, logger yalogi.Logger) (apiservice.
 		Shutdown: func() { registry.CloseAll() },
 	})
 	return registry, nil
-}
-
-func setupEventNotify(registry apiservice.Discover, msrv *serverd.Manager, logger yalogi.Logger) error {
-	cfgEvent := cfg.Data("ids.event").(*cconfig.EventNotifyCfg)
-	if !cfgEvent.Empty() {
-		client, err := cfactory.EventNotify(cfgEvent, registry)
-		if err != nil {
-			return err
-		}
-		ebuffer := notifybuffer.New(client, cfgEvent.Buffer, notifybuffer.SetLogger(logger))
-		msrv.Register(serverd.Service{
-			Name:     "ids.event",
-			Shutdown: func() { ebuffer.Close() },
-		})
-		event.SetBuffer(ebuffer)
-	}
-	return nil
 }
 
 func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder, error) {

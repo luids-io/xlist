@@ -39,13 +39,6 @@ func Default(program string) *goconfig.Config {
 			Data:     &cconfig.APIServicesCfg{},
 		},
 		goconfig.Section{
-			Name:     "ids.event",
-			Required: false,
-			Data: &cconfig.EventNotifyCfg{
-				Buffer: 100,
-			},
-		},
-		goconfig.Section{
 			Name:     "server",
 			Required: true,
 			Short:    true,

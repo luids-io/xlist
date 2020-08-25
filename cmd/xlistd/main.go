@@ -80,12 +80,6 @@ func main() {
 		logger.Fatalf("couldn't create api registry: %v", err)
 	}
 
-	//setup event notifier
-	err = setupEventNotify(apisvc, msrv, logger)
-	if err != nil {
-		logger.Fatalf("couldn't create event notify: %v", err)
-	}
-
 	// create lists
 	lists, err := createLists(apisvc, msrv, logger)
 	if err != nil {
