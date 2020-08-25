@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/cavaliercoder/grab v2.0.0+incompatible
-	github.com/gorilla/mux v1.7.4 // indirect
+	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/luids-io/api v0.0.0-20200825093018-7a02be49018a
 	github.com/luids-io/common v0.0.0-20200825093111-d4971b452a3b
