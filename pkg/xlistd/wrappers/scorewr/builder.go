@@ -8,13 +8,11 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-
-// Builder returns a builder for the component
-func Builder(defaultCfg Config) builder.BuildWrapperFn {
-	return func(b *builder.Builder, def builder.WrapperDef, list xlistd.List) (xlistd.List, error) {
+// Builder returns a builder function.
+func Builder(defaultCfg Config) xlistd.BuildWrapperFn {
+	return func(b *xlistd.Builder, def xlistd.WrapperDef, list xlistd.List) (xlistd.List, error) {
 		cfg := defaultCfg
 		score := 0
 		if def.Opts != nil {
@@ -63,5 +61,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterWrapperBuilder(WrapperClass, Builder(Config{}))
+	xlistd.RegisterWrapperBuilder(WrapperClass, Builder(Config{}))
 }

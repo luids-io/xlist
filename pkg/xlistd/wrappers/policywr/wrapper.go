@@ -15,7 +15,7 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// WrapperClass defines class name for component builder
+// WrapperClass defines class name for component builder.
 const WrapperClass = "policy"
 
 // Config options
@@ -25,14 +25,14 @@ type Config struct {
 	Score        int
 }
 
-// Wrapper implements an xlistd.List wrapper for insert policies
+// Wrapper implements an xlistd.List wrapper for insert policies.
 type Wrapper struct {
 	cfg    Config
 	policy reason.Policy
 	list   xlistd.List
 }
 
-// New returns a new Wrapper
+// New returns a new Wrapper.
 func New(list xlistd.List, p reason.Policy, cfg Config) *Wrapper {
 	return &Wrapper{
 		cfg:    cfg,
@@ -41,17 +41,17 @@ func New(list xlistd.List, p reason.Policy, cfg Config) *Wrapper {
 	}
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (w *Wrapper) ID() string {
 	return w.list.ID()
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (w *Wrapper) Class() string {
 	return w.list.Class()
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	resp, err := w.list.Check(ctx, name, resource)
 	if err == nil && resp.Result {
@@ -79,17 +79,12 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 	return resp, err
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (w *Wrapper) Resources() []xlist.Resource {
 	return w.list.Resources()
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (w *Wrapper) Ping() error {
 	return w.list.Ping()
-}
-
-// ReadOnly implements xlistd.List interface
-func (w *Wrapper) ReadOnly() bool {
-	return true
 }

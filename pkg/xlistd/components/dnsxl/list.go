@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-// Package dnsxl provides a xlist.Checker implementation that uses a dns zone
+// Package dnsxl provides a xlistd.List implementation that uses a dns zone
 // as a source for its checks.
 //
 // This package is a work in progress and makes no API stability promises.
@@ -19,10 +19,10 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
-// ComponentClass registered
+// ComponentClass registered.
 const ComponentClass = "dnsxl"
 
-// DefaultConfig returns default configuration
+// DefaultConfig returns default configuration.
 func DefaultConfig() Config {
 	return Config{
 		DoReverse: true,
@@ -31,7 +31,7 @@ func DefaultConfig() Config {
 	}
 }
 
-// Config options
+// Config options.
 type Config struct {
 	Timeout         time.Duration
 	ForceValidation bool
@@ -47,7 +47,7 @@ type Config struct {
 	ErrCodes        map[string]string
 }
 
-// Copy configuration
+// Copy configuration.
 func (src Config) Copy() Config {
 	dst := src
 	if len(src.DNSCodes) > 0 {
@@ -65,7 +65,7 @@ func (src Config) Copy() Config {
 	return dst
 }
 
-//List implements an xlistd.List that checks against DNS blacklists
+//List implements an xlistd.List that checks against DNS blacklists.
 type List struct {
 	id        string
 	logger    yalogi.Logger
@@ -79,7 +79,7 @@ type List struct {
 	provides  []bool
 }
 
-// New creates a new DNSxL based RBL
+// New creates a new DNSxL based RBL.
 func New(id, zone string, resources []xlist.Resource, cfg Config, logger yalogi.Logger) (*List, error) {
 	if zone == "" {
 		return nil, errors.New("zone parameter is required")
@@ -102,7 +102,7 @@ func New(id, zone string, resources []xlist.Resource, cfg Config, logger yalogi.
 	//set resource types that provides
 	l.provides = make([]bool, len(xlist.Resources), len(xlist.Resources))
 	l.resources = make([]xlist.Resource, 0, 3)
-	for _, r := range xlist.ClearResourceDups(resources) {
+	for _, r := range xlist.ClearResourceDups(resources, true) {
 		if r < xlist.IPv4 || r > xlist.Domain {
 			return nil, fmt.Errorf("resource '%v' not supported", r)
 		}
@@ -131,17 +131,17 @@ func New(id, zone string, resources []xlist.Resource, cfg Config, logger yalogi.
 	return l, nil
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (l *List) ID() string {
 	return l.id
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (l *List) Class() string {
 	return ComponentClass
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
@@ -181,7 +181,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	return resp, nil
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (l *List) Resources() []xlist.Resource {
 	resources := make([]xlist.Resource, 0, len(xlist.Resources))
 	for _, r := range xlist.Resources {
@@ -192,7 +192,7 @@ func (l *List) Resources() []xlist.Resource {
 	return resources
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (l *List) Ping() error {
 	if l.cfg.PingDNS != "" {
 		return l.resolver.Ping(l.cfg.PingDNS)
@@ -205,11 +205,6 @@ func (l *List) Ping() error {
 		}
 	}
 	return nil
-}
-
-// ReadOnly implements xlistd.List interface
-func (l *List) ReadOnly() bool {
-	return true
 }
 
 //getResponse get response from A records

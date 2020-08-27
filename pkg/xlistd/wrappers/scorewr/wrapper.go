@@ -15,21 +15,21 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// WrapperClass defines default class name of component builder
+// WrapperClass defines default class name of component builder.
 const WrapperClass = "score"
 
-// Config options
+// Config options.
 type Config struct {
 	Scores []ScoreExpr
 }
 
-// ScoreExpr defines score matching
+// ScoreExpr defines score matching.
 type ScoreExpr struct {
 	RegExp *regexp.Regexp
 	Score  int
 }
 
-// Match returns true if matching
+// Match returns true if matching.
 func (e ScoreExpr) Match(s string) bool {
 	if e.RegExp != nil && e.RegExp.MatchString(s) {
 		return true
@@ -37,14 +37,14 @@ func (e ScoreExpr) Match(s string) bool {
 	return false
 }
 
-// Wrapper implements an xlist.Checker wrapper for insert scores
+// Wrapper implements an xlist.Checker wrapper for insert scores.
 type Wrapper struct {
 	score      int
 	exprScores []ScoreExpr
 	list       xlistd.List
 }
 
-// New returns a new Wrapper
+// New returns a new Wrapper.
 func New(list xlistd.List, score int, cfg Config) *Wrapper {
 	w := &Wrapper{
 		score: score,
@@ -57,17 +57,17 @@ func New(list xlistd.List, score int, cfg Config) *Wrapper {
 	return w
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (w *Wrapper) ID() string {
 	return w.list.ID()
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (w *Wrapper) Class() string {
 	return w.list.Class()
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	resp, err := w.list.Check(ctx, name, resource)
 	if err == nil && resp.Result {
@@ -88,17 +88,12 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 	return resp, err
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (w *Wrapper) Resources() []xlist.Resource {
 	return w.list.Resources()
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (w *Wrapper) Ping() error {
 	return w.list.Ping()
-}
-
-// ReadOnly implements xlistd.List interface
-func (w *Wrapper) ReadOnly() bool {
-	return true
 }

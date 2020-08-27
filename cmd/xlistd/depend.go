@@ -19,7 +19,6 @@ import (
 	iconfig "github.com/luids-io/xlist/internal/config"
 	ifactory "github.com/luids-io/xlist/internal/factory"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
 func createLogger(debug bool) (yalogi.Logger, error) {
@@ -57,14 +56,14 @@ func createAPIServices(msrv *serverd.Manager, logger yalogi.Logger) (apiservice.
 	return registry, nil
 }
 
-func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalogi.Logger) (*builder.Builder, error) {
-	cfgList := cfg.Data("xlist").(*iconfig.XListCfg)
+func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalogi.Logger) (*xlistd.Builder, error) {
+	cfgList := cfg.Data("xlistd").(*iconfig.XListCfg)
 	builder, err := ifactory.ListBuilder(cfgList, apisvc, logger)
 	if err != nil {
 		return nil, err
 	}
 	//setup plugins
-	cfgDNSxl := cfg.Data("xlist.plugin.dnsxl").(*iconfig.DNSxLCfg)
+	cfgDNSxl := cfg.Data("xlistd.plugin.dnsxl").(*iconfig.DNSxLCfg)
 	if !cfgDNSxl.Empty() {
 		err := ifactory.SetupDNSxL(cfgDNSxl)
 		if err != nil {
@@ -77,14 +76,14 @@ func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalog
 		return nil, err
 	}
 	msrv.Register(serverd.Service{
-		Name:     "xlist.service",
+		Name:     "xlistd.service",
 		Start:    builder.Start,
 		Shutdown: func() { builder.Shutdown() },
 	})
 	return builder, nil
 }
 
-func createCheckAPI(gsrv *grpc.Server, finder xlistd.Finder, msrv *serverd.Manager, logger yalogi.Logger) error {
+func createCheckAPI(gsrv *grpc.Server, finder *xlistd.Builder, msrv *serverd.Manager, logger yalogi.Logger) error {
 	cfgCheck := cfg.Data("service.xlist.check").(*iconfig.XListCheckAPICfg)
 	gsvc, err := ifactory.XListCheckAPI(cfgCheck, finder, logger)
 	if err != nil {

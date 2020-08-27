@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-// Format stores the type of available formats for lists
+// Format stores the type of available formats for lists.
 type Format int
 
-// List of formats
+// List of formats.
 const (
 	Plain Format = iota
 	CIDR
@@ -30,7 +30,7 @@ func (f Format) string() string {
 	}
 }
 
-// String implements stringer interface
+// String implements stringer interface.
 func (f Format) String() string {
 	s := f.string()
 	if s == "" {
@@ -39,7 +39,7 @@ func (f Format) String() string {
 	return s
 }
 
-// ToFormat returns the format type from its string representation
+// ToFormat returns the format type from its string representation.
 func ToFormat(s string) (Format, error) {
 	switch strings.ToLower(s) {
 	case "plain":

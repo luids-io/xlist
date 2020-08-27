@@ -7,12 +7,11 @@ import (
 
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// Builder returns a builder for the wrapper component with the logger passed
-func Builder(defaultCfg Config) builder.BuildWrapperFn {
-	return func(b *builder.Builder, def builder.WrapperDef, list xlistd.List) (xlistd.List, error) {
+// Builder returns a builder function.
+func Builder(defaultCfg Config) xlistd.BuildWrapperFn {
+	return func(b *xlistd.Builder, def xlistd.WrapperDef, list xlistd.List) (xlistd.List, error) {
 		cfg := defaultCfg
 		if def.Opts != nil {
 			var err error
@@ -76,5 +75,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterWrapperBuilder(WrapperClass, Builder(DefaultConfig()))
+	xlistd.RegisterWrapperBuilder(WrapperClass, Builder(DefaultConfig()))
 }

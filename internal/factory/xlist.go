@@ -10,7 +10,7 @@ import (
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/xlist/internal/config"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
+	"github.com/luids-io/xlist/pkg/xlistd"
 	"github.com/luids-io/xlist/pkg/xlistd/components/dnsxl"
 )
 
@@ -21,15 +21,15 @@ var (
 )
 
 // ListBuilder is a factory for an xlist builder
-func ListBuilder(cfg *config.XListCfg, apisvc apiservice.Discover, logger yalogi.Logger) (*builder.Builder, error) {
+func ListBuilder(cfg *config.XListCfg, apisvc apiservice.Discover, logger yalogi.Logger) (*xlistd.Builder, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, err
 	}
-	b := builder.New(apisvc,
-		builder.DataDir(cfg.DataDir),
-		builder.CertsDir(cfg.CertsDir),
-		builder.SetLogger(logger),
+	b := xlistd.NewBuilder(apisvc,
+		xlistd.DataDir(cfg.DataDir),
+		xlistd.CertsDir(cfg.CertsDir),
+		xlistd.SetLogger(logger),
 	)
 	return b, nil
 }
@@ -59,12 +59,12 @@ func SetupDNSxL(cfg *config.DNSxLCfg) error {
 	if cfg.TimeoutMSecs > 0 {
 		dnsCfg.Timeout = time.Duration(cfg.TimeoutMSecs) * time.Millisecond
 	}
-	builder.RegisterListBuilder(dnsxl.ComponentClass, dnsxl.Builder(dnsCfg))
+	xlistd.RegisterListBuilder(dnsxl.ComponentClass, dnsxl.Builder(dnsCfg))
 	return nil
 }
 
 //Lists creates lists from configuration files
-func Lists(cfg *config.XListCfg, builder *builder.Builder, logger yalogi.Logger) error {
+func Lists(cfg *config.XListCfg, builder *xlistd.Builder, logger yalogi.Logger) error {
 	err := cfg.Validate()
 	if err != nil {
 		return fmt.Errorf("bad config: %v", err)
@@ -89,10 +89,10 @@ func Lists(cfg *config.XListCfg, builder *builder.Builder, logger yalogi.Logger)
 	return nil
 }
 
-func loadListDefs(dbFiles []string) ([]builder.ListDef, error) {
-	loadedDB := make([]builder.ListDef, 0)
+func loadListDefs(dbFiles []string) ([]xlistd.ListDef, error) {
+	loadedDB := make([]xlistd.ListDef, 0)
 	for _, file := range dbFiles {
-		entries, err := builder.DefsFromFile(file)
+		entries, err := xlistd.ListDefsFromFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("couln't load database: %v", err)
 		}

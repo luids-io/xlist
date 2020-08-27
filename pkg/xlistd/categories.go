@@ -11,7 +11,7 @@ import (
 // Category type is used for RBL classification.
 type Category int
 
-// Constants used for categories allowed
+// Constants used for categories allowed.
 const (
 	Blacklist Category = iota //blacklist
 	Whitelist                 //whitelist
@@ -19,10 +19,10 @@ const (
 	Infolist                  //information
 )
 
-// Categories is a vector that constains all category types
+// Categories is a vector that constains all category types.
 var Categories = []Category{Blacklist, Whitelist, Mixedlist, Infolist}
 
-// IsValid returns true if resource code is a valid
+// IsValid returns true if resource code is a valid.
 func (c Category) IsValid() bool {
 	v := int(c)
 	if v >= int(Blacklist) && v <= int(Infolist) {
@@ -31,7 +31,6 @@ func (c Category) IsValid() bool {
 	return false
 }
 
-// String implements interface
 func (c Category) String() string {
 	switch c {
 	case Blacklist:
@@ -46,7 +45,7 @@ func (c Category) String() string {
 	return fmt.Sprintf("unkown(%d)", c)
 }
 
-// MarshalJSON implements interface for struct marshalling
+// MarshalJSON implements interface for struct marshalling.
 func (c Category) MarshalJSON() ([]byte, error) {
 	s := ""
 	switch c {
@@ -64,7 +63,7 @@ func (c Category) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// UnmarshalJSON implements interface for struct unmarshalling
+// UnmarshalJSON implements interface for struct unmarshalling.
 func (c *Category) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
@@ -88,7 +87,7 @@ func (c *Category) UnmarshalJSON(data []byte) error {
 	}
 }
 
-// ToCategory returns the category from its string representation
+// ToCategory returns the category from its string representation.
 func ToCategory(s string) (Category, error) {
 	switch strings.ToLower(s) {
 	case "blacklist":

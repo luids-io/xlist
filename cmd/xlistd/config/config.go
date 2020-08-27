@@ -12,13 +12,13 @@ import (
 func Default(program string) *goconfig.Config {
 	cfg, err := goconfig.New(program,
 		goconfig.Section{
-			Name:     "xlist",
+			Name:     "xlistd",
 			Required: true,
 			Short:    true,
 			Data:     &iconfig.XListCfg{},
 		},
 		goconfig.Section{
-			Name:     "xlist.plugin.dnsxl",
+			Name:     "xlistd.plugin.dnsxl",
 			Required: false,
 			Short:    false,
 			Data:     &iconfig.DNSxLCfg{},

@@ -8,7 +8,7 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/apiservice"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
+	"github.com/luids-io/xlist/pkg/xlistd"
 	"github.com/luids-io/xlist/pkg/xlistd/components/mockxl"
 	"github.com/luids-io/xlist/pkg/xlistd/components/parallelxl"
 )
@@ -20,7 +20,7 @@ var (
 	onlyDomain = []xlist.Resource{xlist.Domain}
 )
 
-var testmocks = []builder.ListDef{
+var testmocks = []xlistd.ListDef{
 	{ID: "mock1",
 		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4},
@@ -46,44 +46,44 @@ var testmocks = []builder.ListDef{
 		Resources: onlyDomain},
 }
 
-var testparallel1 = []builder.ListDef{
+var testparallel1 = []xlistd.ListDef{
 	{ID: "list1",
 		Class:     parallelxl.ComponentClass,
 		Resources: onlyIPv4,
-		Contains:  []builder.ListDef{{ID: "mock1"}}},
+		Contains:  []xlistd.ListDef{{ID: "mock1"}}},
 	{ID: "list2",
 		Class:     parallelxl.ComponentClass,
 		Resources: onlyIPv4,
-		Contains:  []builder.ListDef{{ID: "mock1"}, {ID: "mock2"}}},
+		Contains:  []xlistd.ListDef{{ID: "mock1"}, {ID: "mock2"}}},
 	{ID: "list3",
 		Class: parallelxl.ComponentClass},
 	{ID: "list4",
 		Class:     parallelxl.ComponentClass,
 		Resources: onlyIP,
-		Contains:  []builder.ListDef{{ID: "mock1"}, {ID: "mock2"}}},
+		Contains:  []xlistd.ListDef{{ID: "mock1"}, {ID: "mock2"}}},
 	{ID: "list5",
 		Class:     parallelxl.ComponentClass,
 		Resources: onlyIP,
-		Contains:  []builder.ListDef{{ID: "mock1"}, {ID: "mock5"}}},
+		Contains:  []xlistd.ListDef{{ID: "mock1"}, {ID: "mock5"}}},
 	{ID: "list6",
 		Class:     parallelxl.ComponentClass,
 		Resources: onlyIPv4,
 		Opts:      map[string]interface{}{"reason": 10},
-		Contains:  []builder.ListDef{{ID: "mock1"}}},
+		Contains:  []xlistd.ListDef{{ID: "mock1"}}},
 	{ID: "list7",
 		Class:     parallelxl.ComponentClass,
 		Resources: onlyIPv4,
 		Opts:      map[string]interface{}{"reason": "hey", "stoponerror": true},
-		Contains:  []builder.ListDef{{ID: "mock1"}}},
+		Contains:  []xlistd.ListDef{{ID: "mock1"}}},
 	{ID: "list8",
 		Class:     parallelxl.ComponentClass,
 		Resources: onlyIPv4,
 		Opts:      map[string]interface{}{"reason": "hey", "stoponerror": true},
-		Contains:  []builder.ListDef{{ID: "mock1"}, {ID: "mock6"}}},
+		Contains:  []xlistd.ListDef{{ID: "mock1"}, {ID: "mock6"}}},
 }
 
 func TestBuild(t *testing.T) {
-	b := builder.New(apiservice.NewRegistry())
+	b := xlistd.NewBuilder(apiservice.NewRegistry())
 
 	//create mocks
 	for _, defmock := range testmocks {
@@ -107,7 +107,7 @@ func TestBuild(t *testing.T) {
 		{"list8", "doesn't checks resource"},
 	}
 	for _, test := range tests {
-		def, _ := builder.FilterID(test.listid, testparallel1)
+		def, _ := xlistd.FilterID(test.listid, testparallel1)
 		_, err := b.Build(def)
 		switch {
 		case test.wantErr == "" && err == nil:

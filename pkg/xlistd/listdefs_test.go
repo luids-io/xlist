@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package builder_test
+package xlistd_test
 
 import (
 	"sort"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
 func TestCategoryIsValid(t *testing.T) {
@@ -49,7 +48,7 @@ func TestCategoryString(t *testing.T) {
 	}
 }
 
-var testfilters1 = []builder.ListDef{
+var testfilters1 = []xlistd.ListDef{
 	{
 		ID:        "list1",
 		Class:     "class1",
@@ -86,17 +85,17 @@ var testfilters1 = []builder.ListDef{
 
 func TestFilterID(t *testing.T) {
 	var tests = []struct {
-		database []builder.ListDef
+		database []xlistd.ListDef
 		listID   string
 		want     bool
-		wantList builder.ListDef
+		wantList xlistd.ListDef
 	}{
-		{testfilters1, "noexiste", false, builder.ListDef{}},
+		{testfilters1, "noexiste", false, xlistd.ListDef{}},
 		{testfilters1, "list2", true, testfilters1[1]},
 		{testfilters1, "list4", true, testfilters1[3]},
 	}
 	for _, test := range tests {
-		gotList, got := builder.FilterID(test.listID, test.database)
+		gotList, got := xlistd.FilterID(test.listID, test.database)
 		if test.want != got {
 			t.Errorf("FilterID(%v, database) = (%v, %v)", test.listID, gotList, got)
 		} else {
@@ -109,17 +108,17 @@ func TestFilterID(t *testing.T) {
 
 func TestFilterResource(t *testing.T) {
 	var tests = []struct {
-		database  []builder.ListDef
+		database  []xlistd.ListDef
 		resource  xlist.Resource
 		want      int
-		wantLists []builder.ListDef
+		wantLists []xlistd.ListDef
 	}{
-		{testfilters1, xlist.Domain, 0, []builder.ListDef{}},
-		{testfilters1, xlist.IPv6, 1, []builder.ListDef{testfilters1[2]}},
+		{testfilters1, xlist.Domain, 0, []xlistd.ListDef{}},
+		{testfilters1, xlist.IPv6, 1, []xlistd.ListDef{testfilters1[2]}},
 		{testfilters1, xlist.IPv4, 4, testfilters1},
 	}
 	for _, test := range tests {
-		gotLists := builder.FilterResource(test.resource, test.database)
+		gotLists := xlistd.FilterResource(test.resource, test.database)
 		if len(gotLists) != test.want {
 			t.Errorf("FilterResource(%v, database) = len(%v)", test.resource, len(gotLists))
 		} else {
@@ -132,18 +131,18 @@ func TestFilterResource(t *testing.T) {
 
 func TestFilterClass(t *testing.T) {
 	var tests = []struct {
-		database  []builder.ListDef
+		database  []xlistd.ListDef
 		class     string
 		want      int
-		wantLists []builder.ListDef
+		wantLists []xlistd.ListDef
 	}{
-		{testfilters1, "class69", 0, []builder.ListDef{}},
-		{testfilters1, "class1", 1, []builder.ListDef{testfilters1[0]}},
+		{testfilters1, "class69", 0, []xlistd.ListDef{}},
+		{testfilters1, "class1", 1, []xlistd.ListDef{testfilters1[0]}},
 		{testfilters1, "class2", 3,
-			[]builder.ListDef{testfilters1[1], testfilters1[2], testfilters1[3]}},
+			[]xlistd.ListDef{testfilters1[1], testfilters1[2], testfilters1[3]}},
 	}
 	for _, test := range tests {
-		gotLists := builder.FilterClass(test.class, test.database)
+		gotLists := xlistd.FilterClass(test.class, test.database)
 		if len(gotLists) != test.want {
 			t.Errorf("FilterClass(%v, database) = len(%v)", test.class, len(gotLists))
 		} else {
@@ -156,18 +155,18 @@ func TestFilterClass(t *testing.T) {
 
 func TestFilterCategory(t *testing.T) {
 	var tests = []struct {
-		database  []builder.ListDef
+		database  []xlistd.ListDef
 		category  xlistd.Category
 		want      int
-		wantLists []builder.ListDef
+		wantLists []xlistd.ListDef
 	}{
-		{testfilters1, xlistd.Mixedlist, 0, []builder.ListDef{}},
-		{testfilters1, xlistd.Whitelist, 1, []builder.ListDef{testfilters1[3]}},
+		{testfilters1, xlistd.Mixedlist, 0, []xlistd.ListDef{}},
+		{testfilters1, xlistd.Whitelist, 1, []xlistd.ListDef{testfilters1[3]}},
 		{testfilters1, xlistd.Blacklist, 3,
-			[]builder.ListDef{testfilters1[0], testfilters1[1], testfilters1[2]}},
+			[]xlistd.ListDef{testfilters1[0], testfilters1[1], testfilters1[2]}},
 	}
 	for _, test := range tests {
-		gotLists := builder.FilterCategory(test.category, test.database)
+		gotLists := xlistd.FilterCategory(test.category, test.database)
 		if len(gotLists) != test.want {
 			t.Errorf("FilterCategory(%v, database) = len(%v)", test.category, len(gotLists))
 		} else {
@@ -180,18 +179,18 @@ func TestFilterCategory(t *testing.T) {
 
 func TestFilterTag(t *testing.T) {
 	var tests = []struct {
-		database  []builder.ListDef
+		database  []xlistd.ListDef
 		tag       string
 		want      int
-		wantLists []builder.ListDef
+		wantLists []xlistd.ListDef
 	}{
-		{testfilters1, "noexiste", 0, []builder.ListDef{}},
-		{testfilters1, "", 1, []builder.ListDef{testfilters1[3]}},
-		{testfilters1, "botnet", 2, []builder.ListDef{testfilters1[0], testfilters1[1]}},
-		{testfilters1, "spam", 2, []builder.ListDef{testfilters1[0], testfilters1[2]}},
+		{testfilters1, "noexiste", 0, []xlistd.ListDef{}},
+		{testfilters1, "", 1, []xlistd.ListDef{testfilters1[3]}},
+		{testfilters1, "botnet", 2, []xlistd.ListDef{testfilters1[0], testfilters1[1]}},
+		{testfilters1, "spam", 2, []xlistd.ListDef{testfilters1[0], testfilters1[2]}},
 	}
 	for _, test := range tests {
-		gotLists := builder.FilterTag(test.tag, test.database)
+		gotLists := xlistd.FilterTag(test.tag, test.database)
 		if len(gotLists) != test.want {
 			t.Errorf("FilterTag(%v, database) = len(%v)", test.tag, len(gotLists))
 		} else {
@@ -204,16 +203,16 @@ func TestFilterTag(t *testing.T) {
 
 func TestSortedListDefsByID(t *testing.T) {
 	var tests = []struct {
-		input []builder.ListDef
-		want  []builder.ListDef
+		input []xlistd.ListDef
+		want  []xlistd.ListDef
 	}{
 		{testfilters1, testfilters1},
-		{[]builder.ListDef{
+		{[]xlistd.ListDef{
 			testfilters1[1], testfilters1[0],
 			testfilters1[2], testfilters1[3]}, testfilters1},
 	}
 	for _, test := range tests {
-		gotLists := builder.ListDefsByID(test.input)
+		gotLists := xlistd.ListDefsByID(test.input)
 		sort.Sort(&gotLists)
 		if !cmpListDefs(gotLists, test.want) {
 			t.Error("ListDefsByID() missmatch")
@@ -223,22 +222,22 @@ func TestSortedListDefsByID(t *testing.T) {
 
 func TestSortedListDefsByName(t *testing.T) {
 	var tests = []struct {
-		input []builder.ListDef
-		want  []builder.ListDef
+		input []xlistd.ListDef
+		want  []xlistd.ListDef
 	}{
-		{testfilters1, []builder.ListDef{
+		{testfilters1, []xlistd.ListDef{
 			testfilters1[1], testfilters1[2],
 			testfilters1[0], testfilters1[3]}},
 
-		{[]builder.ListDef{
+		{[]xlistd.ListDef{
 			testfilters1[3], testfilters1[2],
 			testfilters1[1], testfilters1[0]},
-			[]builder.ListDef{
+			[]xlistd.ListDef{
 				testfilters1[1], testfilters1[2],
 				testfilters1[0], testfilters1[3]}},
 	}
 	for _, test := range tests {
-		gotLists := builder.ListDefsByName(test.input)
+		gotLists := xlistd.ListDefsByName(test.input)
 		sort.Sort(&gotLists)
 		if !cmpListDefs(gotLists, test.want) {
 			t.Error("ListDefsByName() missmatch")
@@ -248,7 +247,7 @@ func TestSortedListDefsByName(t *testing.T) {
 
 //TODO check ListDefsFromFile
 
-func cmpListDefs(a, b []builder.ListDef) bool {
+func cmpListDefs(a, b []xlistd.ListDef) bool {
 	if len(a) != len(b) {
 		return false
 	}

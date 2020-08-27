@@ -8,7 +8,7 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/apiservice"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
+	"github.com/luids-io/xlist/pkg/xlistd"
 	"github.com/luids-io/xlist/pkg/xlistd/components/mockxl"
 	"github.com/luids-io/xlist/pkg/xlistd/wrappers/responsewr"
 )
@@ -20,15 +20,15 @@ var (
 	onlyDomain = []xlist.Resource{xlist.Domain}
 )
 
-var testdatabase1 = []builder.ListDef{
+var testdatabase1 = []xlistd.ListDef{
 	{ID: "list1",
 		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
-		Wrappers:  []builder.WrapperDef{{Class: responsewr.WrapperClass}}},
+		Wrappers:  []xlistd.WrapperDef{{Class: responsewr.WrapperClass}}},
 	{ID: "list2",
 		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
-		Wrappers: []builder.WrapperDef{
+		Wrappers: []xlistd.WrapperDef{
 			{Class: responsewr.WrapperClass,
 				Opts: map[string]interface{}{
 					"negate":  true,
@@ -38,27 +38,27 @@ var testdatabase1 = []builder.ListDef{
 	{ID: "list3",
 		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
-		Wrappers: []builder.WrapperDef{
+		Wrappers: []xlistd.WrapperDef{
 			{Class: responsewr.WrapperClass, Opts: map[string]interface{}{"preffixid": true}}}},
 	{ID: "list4",
 		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
-		Wrappers: []builder.WrapperDef{
+		Wrappers: []xlistd.WrapperDef{
 			{Class: responsewr.WrapperClass, Opts: map[string]interface{}{"ttl": "akk"}}}},
 	{ID: "list5",
 		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
-		Wrappers: []builder.WrapperDef{
+		Wrappers: []xlistd.WrapperDef{
 			{Class: responsewr.WrapperClass, Opts: map[string]interface{}{"negate": "akk"}}}},
 	{ID: "list6",
 		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
-		Wrappers: []builder.WrapperDef{
+		Wrappers: []xlistd.WrapperDef{
 			{Class: responsewr.WrapperClass, Opts: map[string]interface{}{"preffixid": "akk"}}}},
 }
 
 func TestBuild(t *testing.T) {
-	b := builder.New(apiservice.NewRegistry())
+	b := xlistd.NewBuilder(apiservice.NewRegistry())
 
 	//define and do tests
 	var tests = []struct {
@@ -73,7 +73,7 @@ func TestBuild(t *testing.T) {
 		{"list6", "invalid 'preffixid'"},
 	}
 	for _, test := range tests {
-		def, ok := builder.FilterID(test.listid, testdatabase1)
+		def, ok := xlistd.FilterID(test.listid, testdatabase1)
 		if !ok {
 			t.Errorf("can't find id %s in database tests", test.listid)
 			continue

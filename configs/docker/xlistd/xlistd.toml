@@ -1,7 +1,7 @@
-[xlist]
+[xlistd]
 datadir = "/var/lib/luids/xlist"
 
-[xlist.service]
+[xlistd.service]
 files      = [ "/etc/luids/xlist/service.json" ]
 
 [server]

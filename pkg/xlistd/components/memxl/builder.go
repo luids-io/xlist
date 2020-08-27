@@ -10,13 +10,11 @@ import (
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-
-// Builder returns a list builder function
-func Builder(defaultCfg Config) builder.BuildListFn {
-	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
+// Builder returns a builder function.
+func Builder(defaultCfg Config) xlistd.BuildListFn {
+	return func(b *xlistd.Builder, parents []string, def xlistd.ListDef) (xlistd.List, error) {
 		cfg := defaultCfg
 		source := ""
 		if def.Source != "" {
@@ -108,5 +106,5 @@ func getData(opts map[string]interface{}) ([]Data, error) {
 }
 
 func init() {
-	builder.RegisterListBuilder(ComponentClass, Builder(Config{}))
+	xlistd.RegisterListBuilder(ComponentClass, Builder(Config{}))
 }

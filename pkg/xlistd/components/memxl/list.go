@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-// Package memxl provides a xlist.Checker implementation that uses main
+// Package memxl provides a xlistd.List implementation that uses main
 // memory for storage.
 //
 // This package is a work in progress and makes no API stability promises.
@@ -14,7 +14,7 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// ComponentClass registered
+// ComponentClass registered.
 const ComponentClass = "mem"
 
 // Config options
@@ -23,7 +23,7 @@ type Config struct {
 	Reason          string
 }
 
-// List stores all items in memory
+// List stores all items in memory.
 type List struct {
 	id  string
 	cfg Config
@@ -38,12 +38,12 @@ type List struct {
 	resources []xlist.Resource
 }
 
-// New returns a new List
+// New returns a new List.
 func New(id string, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
 		id:        id,
 		cfg:       cfg,
-		resources: xlist.ClearResourceDups(resources),
+		resources: xlist.ClearResourceDups(resources, true),
 		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
 	//set resource types that providess
@@ -54,12 +54,12 @@ func New(id string, resources []xlist.Resource, cfg Config) *List {
 	return l
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (l *List) ID() string {
 	return l.id
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (l *List) Class() string {
 	return ComponentClass
 }
@@ -76,7 +76,7 @@ func (l *List) init() {
 	}
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
@@ -106,14 +106,14 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	return xlist.Response{Result: result, Reason: reason}, nil
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (l *List) Resources() []xlist.Resource {
 	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(resources, l.resources)
 	return resources
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (l *List) Ping() error {
 	return nil
 }
@@ -236,12 +236,12 @@ func (l *List) remove(r xlist.Resource, f xlistd.Format, s string) error {
 	return err
 }
 
-// AddIP4 add ip4
+// AddIP4 add ip4.
 func (l *List) AddIP4(ip string) error {
 	return l.AddIP4s([]string{ip})
 }
 
-// AddIP4s add a list of ip4
+// AddIP4s add a list of ip4.
 func (l *List) AddIP4s(ips []string) error {
 	if !l.checks(xlist.IPv4) {
 		return xlist.ErrNotSupported
@@ -257,12 +257,12 @@ func (l *List) AddIP4s(ips []string) error {
 	return nil
 }
 
-// AddIP6 add ip6
+// AddIP6 add ip6.
 func (l *List) AddIP6(ip string) error {
 	return l.AddIP6s([]string{ip})
 }
 
-// AddIP6s add a list of ip6
+// AddIP6s add a list of ip6.
 func (l *List) AddIP6s(ips []string) error {
 	if !l.checks(xlist.IPv6) {
 		return xlist.ErrNotSupported
@@ -278,12 +278,12 @@ func (l *List) AddIP6s(ips []string) error {
 	return nil
 }
 
-// AddCIDR4 adds CIDR
+// AddCIDR4 adds CIDR.
 func (l *List) AddCIDR4(cidr string) error {
 	return l.AddCIDR4s([]string{cidr})
 }
 
-// AddCIDR4s add a list of cidrs
+// AddCIDR4s add a list of cidrs.
 func (l *List) AddCIDR4s(cidrs []string) error {
 	if !l.checks(xlist.IPv4) {
 		return xlist.ErrNotSupported
@@ -299,12 +299,12 @@ func (l *List) AddCIDR4s(cidrs []string) error {
 	return nil
 }
 
-// AddCIDR6 adds CIDR
+// AddCIDR6 adds CIDR.
 func (l *List) AddCIDR6(cidr string) error {
 	return l.AddCIDR6s([]string{cidr})
 }
 
-// AddCIDR6s add a list of cidrs
+// AddCIDR6s add a list of cidrs.
 func (l *List) AddCIDR6s(cidrs []string) error {
 	if !l.checks(xlist.IPv6) {
 		return xlist.ErrNotSupported
@@ -320,12 +320,12 @@ func (l *List) AddCIDR6s(cidrs []string) error {
 	return nil
 }
 
-// AddDomain adds domain
+// AddDomain adds domain.
 func (l *List) AddDomain(domain string) error {
 	return l.AddDomains([]string{domain})
 }
 
-// AddDomains add a list of domains
+// AddDomains add a list of domains.
 func (l *List) AddDomains(domains []string) error {
 	if !l.checks(xlist.Domain) {
 		return xlist.ErrNotSupported
@@ -341,12 +341,12 @@ func (l *List) AddDomains(domains []string) error {
 	return nil
 }
 
-// AddSubdomain adds a subdomain
+// AddSubdomain adds a subdomain.
 func (l *List) AddSubdomain(subdomain string) error {
 	return l.AddSubdomains([]string{subdomain})
 }
 
-// AddSubdomains add a list of subdomains
+// AddSubdomains add a list of subdomains.
 func (l *List) AddSubdomains(subdomains []string) error {
 	if !l.checks(xlist.Domain) {
 		return xlist.ErrNotSupported
@@ -362,12 +362,12 @@ func (l *List) AddSubdomains(subdomains []string) error {
 	return nil
 }
 
-// AddMD5 add md5 hash
+// AddMD5 add md5 hash.
 func (l *List) AddMD5(hash string) error {
 	return l.AddMD5s([]string{hash})
 }
 
-// AddMD5s add a list of md5
+// AddMD5s add a list of md5.
 func (l *List) AddMD5s(hashes []string) error {
 	if !l.checks(xlist.MD5) {
 		return xlist.ErrNotSupported
@@ -383,12 +383,12 @@ func (l *List) AddMD5s(hashes []string) error {
 	return nil
 }
 
-// AddSHA1 add sha1 hash
+// AddSHA1 add sha1 hash.
 func (l *List) AddSHA1(hash string) error {
 	return l.AddSHA1s([]string{hash})
 }
 
-// AddSHA1s add a list of sha1 hashes
+// AddSHA1s add a list of sha1 hashes.
 func (l *List) AddSHA1s(hashes []string) error {
 	if !l.checks(xlist.SHA1) {
 		return xlist.ErrNotSupported
@@ -404,12 +404,12 @@ func (l *List) AddSHA1s(hashes []string) error {
 	return nil
 }
 
-// AddSHA256 add sha256 hash
+// AddSHA256 add sha256 hash.
 func (l *List) AddSHA256(hash string) error {
 	return l.AddSHA256s([]string{hash})
 }
 
-// AddSHA256s add a list of sha256 hashes
+// AddSHA256s add a list of sha256 hashes.
 func (l *List) AddSHA256s(hashes []string) error {
 	if !l.checks(xlist.SHA256) {
 		return xlist.ErrNotSupported
@@ -432,7 +432,7 @@ func (l *List) checks(r xlist.Resource) bool {
 	return false
 }
 
-// Append item
+// Append item.
 func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlistd.Format) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -440,7 +440,7 @@ func (l *List) Append(ctx context.Context, name string, r xlist.Resource, f xlis
 	return l.add(r, f, name)
 }
 
-// Remove item
+// Remove item.
 func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlistd.Format) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -448,7 +448,7 @@ func (l *List) Remove(ctx context.Context, name string, r xlist.Resource, f xlis
 	return l.remove(r, f, name)
 }
 
-// Clear list
+// Clear list.
 func (l *List) Clear() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -463,9 +463,4 @@ func (l *List) Clear() error {
 		l.hashlist.clear()
 	}
 	return nil
-}
-
-// ReadOnly implements xlistd.List interface
-func (l *List) ReadOnly() bool {
-	return false
 }

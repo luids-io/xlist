@@ -9,11 +9,11 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/apiservice"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
+	"github.com/luids-io/xlist/pkg/xlistd"
 	"github.com/luids-io/xlist/pkg/xlistd/components/filexl"
 )
 
-var testdatabase1 = []builder.ListDef{
+var testdatabase1 = []xlistd.ListDef{
 	{ID: "list1",
 		Class: filexl.ComponentClass},
 	{ID: "list2",
@@ -62,7 +62,7 @@ func TestBuild(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid testdir %s", testdir)
 	}
-	b := builder.New(apiservice.NewRegistry(), builder.DataDir(tdir))
+	b := xlistd.NewBuilder(apiservice.NewRegistry(), xlistd.DataDir(tdir))
 	//define and do tests
 	var tests = []struct {
 		listid  string
@@ -80,7 +80,7 @@ func TestBuild(t *testing.T) {
 		{"list10", ""},
 	}
 	for _, test := range tests {
-		def, ok := builder.FilterID(test.listid, testdatabase1)
+		def, ok := xlistd.FilterID(test.listid, testdatabase1)
 		if !ok {
 			t.Errorf("can't find id %s in database tests", test.listid)
 			continue

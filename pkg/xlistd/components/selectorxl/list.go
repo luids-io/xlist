@@ -17,37 +17,29 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// ComponentClass registered
+// ComponentClass registered.
 const ComponentClass = "selector"
 
-// Config options
+// Config options.
 type Config struct {
 	ForceValidation bool
 	Reason          string
-}
-
-type options struct {
-	forceValidation bool
-	reason          string
 }
 
 // List is a composite list that redirects requests to RBLs based on the
 // resource type.
 type List struct {
 	id        string
-	opts      options
+	cfg       Config
 	services  []xlistd.List
 	resources []xlist.Resource
 }
 
-// New returns a new selector component
+// New returns a new selector component.
 func New(id string, services map[xlist.Resource]xlistd.List, cfg Config) *List {
 	l := &List{
-		id: id,
-		opts: options{
-			forceValidation: cfg.ForceValidation,
-			reason:          cfg.Reason,
-		},
+		id:        id,
+		cfg:       cfg,
 		services:  make([]xlistd.List, len(xlist.Resources), len(xlist.Resources)),
 		resources: make([]xlist.Resource, 0, len(services)),
 	}
@@ -59,38 +51,38 @@ func New(id string, services map[xlist.Resource]xlistd.List, cfg Config) *List {
 			}
 		}
 	}
-	l.resources = xlist.ClearResourceDups(l.resources)
+	l.resources = xlist.ClearResourceDups(l.resources, true)
 	return l
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (l *List) ID() string {
 	return l.id
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (l *List) Class() string {
 	return ComponentClass
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	list := l.getList(resource)
 	if list == nil {
 		return xlist.Response{}, xlist.ErrNotSupported
 	}
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.cfg.ForceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
 	resp, err := list.Check(ctx, name, resource)
-	if err == nil && resp.Result && l.opts.reason != "" {
-		resp.Reason = l.opts.reason
+	if err == nil && resp.Result && l.cfg.Reason != "" {
+		resp.Reason = l.cfg.Reason
 	}
 	return resp, err
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (l *List) Resources() []xlist.Resource {
 	ret := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(ret, l.resources)
@@ -110,7 +102,7 @@ type pingResult struct {
 	err error
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (l *List) Ping() error {
 	var wg sync.WaitGroup
 	results := make(chan *pingResult, len(l.resources))
@@ -152,9 +144,4 @@ func workerPing(wg *sync.WaitGroup, list xlist.Checker, res xlist.Resource, resu
 		res: res,
 		err: err,
 	}
-}
-
-// ReadOnly implements xlistd.List interface
-func (l *List) ReadOnly() bool {
-	return true
 }

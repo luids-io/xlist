@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-// Package wbeforexl provides a simple xlist.Checker implementation that can
+// Package wbeforexl provides a simple xlistd.List implementation that can
 // be used to check on a white list before checking on a blacklist.
 //
 // This package is a work in progress and makes no API stability promises.
@@ -15,10 +15,10 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// ComponentClass registered
+// ComponentClass registered.
 const ComponentClass = "wbefore"
 
-// Config options
+// Config options.
 type Config struct {
 	ForceValidation bool
 	Reason          string
@@ -44,7 +44,7 @@ func New(id string, white, black xlistd.List, resources []xlist.Resource, cfg Co
 		cfg:       cfg,
 		white:     white,
 		black:     black,
-		resources: xlist.ClearResourceDups(resources),
+		resources: xlist.ClearResourceDups(resources, true),
 		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
 	//set resource types that provides
@@ -54,17 +54,17 @@ func New(id string, white, black xlistd.List, resources []xlist.Resource, cfg Co
 	return l
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (l *List) ID() string {
 	return l.id
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (l *List) Class() string {
 	return ComponentClass
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
@@ -97,14 +97,14 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	}
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (l *List) Resources() []xlist.Resource {
 	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(resources, l.resources)
 	return resources
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (l *List) Ping() error {
 	var errWhite, errBlack error
 	if l.white != nil {
@@ -134,9 +134,4 @@ func (l *List) checks(r xlist.Resource) bool {
 		return l.provides[int(r)]
 	}
 	return false
-}
-
-// ReadOnly implements xlistd.List interface
-func (l *List) ReadOnly() bool {
-	return true
 }

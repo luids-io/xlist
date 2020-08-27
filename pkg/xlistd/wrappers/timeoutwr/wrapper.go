@@ -14,17 +14,17 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// WrapperClass registered
+// WrapperClass registered.
 const WrapperClass = "timeout"
 
-// Wrapper implements an xlist.Checker wrapper for include a timeout in check
-// requests
+// Wrapper implements an xlistd.List wrapper for include a timeout in check
+// requests.
 type Wrapper struct {
 	timeout time.Duration
 	list    xlistd.List
 }
 
-// New creates a Wrapper with timeout
+// New creates a Wrapper with timeout.
 func New(list xlistd.List, timeout time.Duration) *Wrapper {
 	return &Wrapper{
 		timeout: timeout,
@@ -32,34 +32,29 @@ func New(list xlistd.List, timeout time.Duration) *Wrapper {
 	}
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (w *Wrapper) ID() string {
 	return w.list.ID()
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (w *Wrapper) Class() string {
 	return w.list.Class()
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	ctxChild, cancel := context.WithTimeout(ctx, w.timeout)
 	defer cancel()
 	return w.list.Check(ctxChild, name, resource)
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (w *Wrapper) Resources() []xlist.Resource {
 	return w.list.Resources()
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (w *Wrapper) Ping() error {
 	return w.list.Ping()
-}
-
-// ReadOnly implements xlist.Writer interface
-func (w *Wrapper) ReadOnly() bool {
-	return true
 }

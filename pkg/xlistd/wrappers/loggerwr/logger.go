@@ -7,10 +7,10 @@ import (
 	"strings"
 )
 
-// LogLevel defines LogLevel for rules
+// LogLevel defines LogLevel for rules.
 type LogLevel int
 
-// Values for LogLevel
+// Values for LogLevel.
 const (
 	Disable LogLevel = iota
 	Debug
@@ -19,7 +19,7 @@ const (
 	Error
 )
 
-// StringToLevel returns the loglevel
+// StringToLevel returns the loglevel.
 func StringToLevel(s string) (LogLevel, error) {
 	switch strings.ToLower(s) {
 	case "disable":

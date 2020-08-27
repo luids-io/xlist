@@ -1,5 +1,8 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
+// Package xlget implements a blacklist downloader.
+//
+// This package is a work in progress and makes no API stability promises.
 package xlget
 
 import (

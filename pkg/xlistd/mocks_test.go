@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package builder_test
+package xlistd_test
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
 type mockList struct {
@@ -143,8 +142,8 @@ func (w mockWrapper) Resources() []xlist.Resource {
 	return w.list.Resources()
 }
 
-func testBuilderList() builder.BuildListFn {
-	return func(builder *builder.Builder, parents []string, list builder.ListDef) (xlistd.List, error) {
+func testBuilderList() xlistd.BuildListFn {
+	return func(builder *xlistd.Builder, parents []string, list xlistd.ListDef) (xlistd.List, error) {
 		response := xlist.Response{}
 		if list.Source != "" {
 			response.Result = true
@@ -152,7 +151,7 @@ func testBuilderList() builder.BuildListFn {
 		}
 		bl := &mockList{
 			response:  response,
-			resources: xlist.ClearResourceDups(list.Resources),
+			resources: xlist.ClearResourceDups(list.Resources, true),
 		}
 		if list.Opts != nil {
 			fail, ok := list.Opts["fail"]
@@ -181,13 +180,13 @@ func testBuilderList() builder.BuildListFn {
 	}
 }
 
-func testBuilderCompo() builder.BuildListFn {
-	return func(builder *builder.Builder, parents []string, list builder.ListDef) (xlistd.List, error) {
+func testBuilderCompo() xlistd.BuildListFn {
+	return func(builder *xlistd.Builder, parents []string, list xlistd.ListDef) (xlistd.List, error) {
 		if list.Contains == nil || len(list.Contains) == 0 {
 			return nil, fmt.Errorf("no containers defined for %s list", list.ID)
 		}
 
-		bl := &mockContainer{resources: xlist.ClearResourceDups(list.Resources)}
+		bl := &mockContainer{resources: xlist.ClearResourceDups(list.Resources, true)}
 		if list.Opts != nil {
 			stopOpt, ok := list.Opts["stoponerror"]
 			if ok {
@@ -214,8 +213,8 @@ func testBuilderCompo() builder.BuildListFn {
 	}
 }
 
-func testBuilderWrap() builder.BuildWrapperFn {
-	return func(builder *builder.Builder, def builder.WrapperDef, bl xlistd.List) (xlistd.List, error) {
+func testBuilderWrap() xlistd.BuildWrapperFn {
+	return func(builder *xlistd.Builder, def xlistd.WrapperDef, bl xlistd.List) (xlistd.List, error) {
 		preffix := ""
 		if def.Opts != nil {
 			preffixs, ok := def.Opts["preffix"]

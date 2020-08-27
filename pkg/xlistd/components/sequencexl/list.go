@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-// Package sequencexl provides a simple xlist.Checker implementation that can
+// Package sequencexl provides a simple xlistd.List implementation that can
 // be used to check in sequence on the child components.
 //
 // This package is a work in progress and makes no API stability promises.
@@ -16,7 +16,7 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// ComponentClass registered
+// ComponentClass registered.
 const ComponentClass = "sequence"
 
 // Config options
@@ -28,7 +28,7 @@ type Config struct {
 }
 
 // List implements a composite RBL that checks a group of lists in
-// the order in which they were added
+// the order in which they were added.
 type List struct {
 	id        string
 	cfg       Config
@@ -37,12 +37,12 @@ type List struct {
 	resources []xlist.Resource
 }
 
-// New creates a new sequence
+// New creates a new sequence.
 func New(id string, childs []xlistd.List, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
 		id:        id,
 		cfg:       cfg,
-		resources: xlist.ClearResourceDups(resources),
+		resources: xlist.ClearResourceDups(resources, true),
 		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
 	//set resource types that provides
@@ -57,17 +57,17 @@ func New(id string, childs []xlistd.List, resources []xlist.Resource, cfg Config
 	return l
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (l *List) ID() string {
 	return l.id
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (l *List) Class() string {
 	return ComponentClass
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
@@ -121,7 +121,7 @@ LOOPCHILDS:
 	return resp, nil
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (l *List) Resources() []xlist.Resource {
 	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(resources, l.resources)
@@ -134,7 +134,7 @@ type pingResult struct {
 	err     error
 }
 
-// Ping implements interface xlist.Checker
+// Ping implements interface xlist.Checker.
 func (l *List) Ping() error {
 	errs := make([]pingResult, 0, len(l.childs))
 	for idx, child := range l.childs {
@@ -158,9 +158,4 @@ func (l *List) checks(r xlist.Resource) bool {
 		return l.provides[int(r)]
 	}
 	return false
-}
-
-// ReadOnly implements xlistd.List interface
-func (l *List) ReadOnly() bool {
-	return true
 }

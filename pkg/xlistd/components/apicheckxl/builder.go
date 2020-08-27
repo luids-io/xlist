@@ -7,12 +7,11 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// Builder resturns a rpcxl builder
-func Builder() builder.BuildListFn {
-	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
+// Builder returns a builder function.
+func Builder() xlistd.BuildListFn {
+	return func(b *xlistd.Builder, parents []string, def xlistd.ListDef) (xlistd.List, error) {
 		sname := def.Source
 		if sname == "" {
 			sname = def.ID
@@ -31,11 +30,11 @@ func Builder() builder.BuildListFn {
 		return &apicheckList{
 			id:        def.ID,
 			Checker:   list,
-			resources: xlist.ClearResourceDups(def.Resources),
+			resources: xlist.ClearResourceDups(def.Resources, true),
 		}, nil
 	}
 }
 
 func init() {
-	builder.RegisterListBuilder(ComponentClass, Builder())
+	xlistd.RegisterListBuilder(ComponentClass, Builder())
 }

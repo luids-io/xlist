@@ -1,5 +1,9 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
+// Package filexl provides a xlistd.List implementation that uses a file as
+// source for its checks.
+//
+// This package is a work in progress and makes no API stability promises.
 package filexl
 
 import (
@@ -58,7 +62,7 @@ func New(id, filename string, resources []xlist.Resource, cfg Config, logger yal
 		filename:  filename,
 		cfg:       cfg,
 		logger:    logger,
-		resources: xlist.ClearResourceDups(resources),
+		resources: xlist.ClearResourceDups(resources, true),
 		close:     make(chan bool),
 	}
 	l.list = memxl.New(l.id, l.resources,

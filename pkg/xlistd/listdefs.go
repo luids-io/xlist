@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package builder
+package xlistd
 
 import (
 	"encoding/json"
@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/luids-io/api/xlist"
-	"github.com/luids-io/xlist/pkg/xlistd"
+	"github.com/luids-io/core/grpctls"
 )
 
 // ListDef stores metadata info about RBL services.
@@ -25,7 +25,7 @@ type ListDef struct {
 	// Name or description of the list
 	Name string `json:"name,omitempty"`
 	// Category of the list
-	Category xlistd.Category `json:"category"`
+	Category Category `json:"category"`
 	// Tags associated with the list
 	Tags []string `json:"tags,omitempty"`
 	// Resources is a list of the recource types supported
@@ -34,9 +34,8 @@ type ListDef struct {
 	Web string `json:"web,omitempty"`
 	// Source provides the origin of the RBL
 	Source string `json:"source,omitempty"`
-	// TLS defines the configurationn of client protocol if it's supported by
-	// the RBL
-	TLS *ConfigTLS `json:"tls,omitempty"`
+	// Client configuration
+	Client *grpctls.ClientCfg `json:"tls,omitempty"`
 	// Wrappers definition of the list
 	Wrappers []WrapperDef `json:"wrappers,omitempty"`
 	// Contains stores child RBLs
@@ -45,23 +44,22 @@ type ListDef struct {
 	Opts map[string]interface{} `json:"opts,omitempty"`
 }
 
-// WrapperDef stores metadata info about wrappers. Wrappers are used for provide
-// additional funtionality to RBLs.
+// ClientCfg returns a copy of client configuration.
+// It returns an empty struct if a null pointer is stored.
+func (def ListDef) ClientCfg() grpctls.ClientCfg {
+	if def.Client == nil {
+		return grpctls.ClientCfg{}
+	}
+	return *def.Client
+}
+
+// WrapperDef stores metadata info about wrappers. Wrappers are used for
+// provide additional funtionality to RBLs.
 type WrapperDef struct {
 	// Class stores the component type of the Wrapper
 	Class string `json:"class"`
 	// Opts custom options of the wrapper
 	Opts map[string]interface{} `json:"opts,omitempty"`
-}
-
-//ConfigTLS stores information used in TLS connections
-type ConfigTLS struct {
-	CertFile     string `json:"certfile,omitempty"`
-	KeyFile      string `json:"keyfile,omitempty"`
-	ServerName   string `json:"servername,omitempty"`
-	ServerCert   string `json:"servercert,omitempty"`
-	CACert       string `json:"cacert,omitempty"`
-	UseSystemCAs bool   `json:"systemca"`
 }
 
 // Filter* functions are useful for working with ListDef databases.
@@ -106,7 +104,7 @@ func FilterClass(c string, l []ListDef) []ListDef {
 }
 
 // FilterCategory returns all listdefs of the category.
-func FilterCategory(c xlistd.Category, l []ListDef) []ListDef {
+func FilterCategory(c Category, l []ListDef) []ListDef {
 	result := make([]ListDef, 0)
 	for _, entry := range l {
 		if entry.Category == c {
@@ -154,9 +152,8 @@ func (a ListDefsByName) Less(i, j int) bool {
 }
 func (a ListDefsByName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 
-// DefsFromFile creates a slice of ListDef from a file
-// in json format.
-func DefsFromFile(path string) ([]ListDef, error) {
+// ListDefsFromFile creates a slice of ListDef from a file in json format.
+func ListDefsFromFile(path string) ([]ListDef, error) {
 	var lists []ListDef
 	f, err := os.Open(path)
 	defer f.Close()

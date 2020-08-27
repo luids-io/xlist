@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-// Package parallelxl provides a simple xlist.Checker implementation that can
+// Package parallelxl provides a simple xlistd.List implementation that can
 // be used to check in parallel on the child components.
 //
 // This package is a work in progress and makes no API stability promises.
@@ -17,10 +17,10 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// ComponentClass registered
+// ComponentClass registered.
 const ComponentClass = "parallel"
 
-// Config options
+// Config options.
 type Config struct {
 	FirstResponse   bool
 	SkipErrors      bool
@@ -28,33 +28,21 @@ type Config struct {
 	Reason          string
 }
 
-type options struct {
-	firstResponse   bool
-	skipErrors      bool
-	forceValidation bool
-	reason          string
-}
-
-// List is a composite list that does the checks in parallel
+// List is a composite list that does the checks in parallel.
 type List struct {
 	id        string
-	opts      options
+	cfg       Config
 	childs    []xlistd.List
 	provides  []bool
 	resources []xlist.Resource
 }
 
-// New returns a new parallel component with the resources passed
+// New returns a new parallel component with the resources passed.
 func New(id string, childs []xlistd.List, resources []xlist.Resource, cfg Config) *List {
 	l := &List{
-		id: id,
-		opts: options{
-			firstResponse:   cfg.FirstResponse,
-			skipErrors:      cfg.SkipErrors,
-			forceValidation: cfg.ForceValidation,
-			reason:          cfg.Reason,
-		},
-		resources: xlist.ClearResourceDups(resources),
+		id:        id,
+		cfg:       cfg,
+		resources: xlist.ClearResourceDups(resources, true),
 		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
 	//set resource types that provides
@@ -69,12 +57,12 @@ func New(id string, childs []xlistd.List, resources []xlist.Resource, cfg Config
 	return l
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (l *List) ID() string {
 	return l.id
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (l *List) Class() string {
 	return ComponentClass
 }
@@ -91,12 +79,12 @@ type checkResult struct {
 	err      error
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.checks(resource) {
 		return xlist.Response{}, xlist.ErrNotSupported
 	}
-	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
+	name, ctx, err := xlist.DoValidation(ctx, name, resource, l.cfg.ForceValidation)
 	if err != nil {
 		return xlist.Response{}, err
 	}
@@ -120,7 +108,7 @@ RESULTLOOP:
 		case r := <-results:
 			finished++
 			if r.err != nil {
-				if !l.opts.skipErrors {
+				if !l.cfg.SkipErrors {
 					err = r.err
 					break RESULTLOOP
 				}
@@ -133,7 +121,7 @@ RESULTLOOP:
 						ttl = r.response.TTL
 					}
 					reasons = append(reasons, r.response.Reason)
-					if l.opts.firstResponse {
+					if l.cfg.FirstResponse {
 						break RESULTLOOP
 					}
 				}
@@ -153,16 +141,16 @@ RESULTLOOP:
 		if ttl > 0 {
 			resp.TTL = ttl
 		}
-		if l.opts.reason == "" {
+		if l.cfg.Reason == "" {
 			resp.Reason = strings.Join(reasons, ";")
 		} else {
-			resp.Reason = l.opts.reason
+			resp.Reason = l.cfg.Reason
 		}
 	}
 	return resp, err
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (l *List) Resources() []xlist.Resource {
 	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(resources, l.resources)
@@ -176,7 +164,7 @@ type pingResult struct {
 	err     error
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (l *List) Ping() error {
 	var wg sync.WaitGroup
 	results := make(chan *pingResult, len(l.childs))
@@ -241,9 +229,4 @@ func workerPing(wg *sync.WaitGroup, list xlist.Checker, listIdx int, results cha
 		listIdx: listIdx,
 		err:     err,
 	}
-}
-
-// ReadOnly implements xlistd.List interface
-func (l *List) ReadOnly() bool {
-	return true
 }

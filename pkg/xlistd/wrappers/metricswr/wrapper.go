@@ -15,23 +15,23 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// WrapperClass registered
+// WrapperClass registered.
 const WrapperClass = "metrics"
 
-//stats is a global structure
+//stats is a global structure.
 var stats struct {
 	pings     *cliprom.CounterVec
 	requests  *cliprom.CounterVec
 	durations *cliprom.SummaryVec
 }
 
-// Wrapper implements an xlist.Checker wrapper for metrics
+// Wrapper implements an xlist.Checker wrapper for metrics.
 type Wrapper struct {
 	listID string
 	list   xlistd.List
 }
 
-// New returns a Wrapper, it recevies the listID used for the metrics
+// New returns a Wrapper, it recevies the listID used for the metrics.
 func New(list xlistd.List) *Wrapper {
 	return &Wrapper{
 		list:   list,
@@ -39,17 +39,17 @@ func New(list xlistd.List) *Wrapper {
 	}
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (w *Wrapper) ID() string {
 	return w.listID
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (w *Wrapper) Class() string {
 	return w.list.Class()
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	timer := cliprom.NewTimer(cliprom.ObserverFunc(func(v float64) {
 		us := v * 1000000 // make microseconds
@@ -70,7 +70,7 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 	return resp, err
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (w *Wrapper) Ping() error {
 	err := w.list.Ping()
 	if err != nil {
@@ -81,14 +81,9 @@ func (w *Wrapper) Ping() error {
 	return err
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (w *Wrapper) Resources() []xlist.Resource {
 	return w.list.Resources()
-}
-
-// ReadOnly implements xlistd.List interface
-func (w *Wrapper) ReadOnly() bool {
-	return true
 }
 
 func init() {

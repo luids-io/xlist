@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-// Package mockxl provides a simple xlist.Checker implementation that can
+// Package mockxl provides a simple xlist.List implementation that can
 // be used to test other components or test configurations.
 //
 // This package is a work in progress and makes no API stability promises.
@@ -14,12 +14,12 @@ import (
 	"github.com/luids-io/api/xlist"
 )
 
-// ComponentClass registered
+// ComponentClass registered.
 const ComponentClass = "mock"
 
 var defaultReason = "The resource is on the mockup list"
 
-// List is a mockup list that implements xlist.Checker, see examples.
+// List is a mockup list that implements xlistd.List, see examples.
 type List struct {
 	Identifier string
 	// ResourceList that this list checks
@@ -43,17 +43,17 @@ type List struct {
 	next int
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (l *List) ID() string {
 	return l.Identifier
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (l *List) Class() string {
 	return ComponentClass
 }
 
-// Check implements xlist.Checker
+// Check implements xlist.Checker.
 func (l *List) Check(ctx context.Context, name string, res xlist.Resource) (xlist.Response, error) {
 	if l.Fail {
 		return xlist.Response{}, xlist.ErrInternal
@@ -99,7 +99,7 @@ func (l *List) Check(ctx context.Context, name string, res xlist.Resource) (xlis
 	return resp, nil
 }
 
-// Ping implements xlist.Checker
+// Ping implements xlist.Checker.
 func (l *List) Ping() error {
 	if l.Fail {
 		return xlist.ErrUnavailable
@@ -107,14 +107,9 @@ func (l *List) Ping() error {
 	return nil
 }
 
-// Resources implements xlist.Checker
+// Resources implements xlist.Checker.
 func (l *List) Resources() []xlist.Resource {
 	ret := make([]xlist.Resource, len(l.ResourceList), len(l.ResourceList))
 	copy(ret, l.ResourceList)
 	return ret
-}
-
-// ReadOnly implements xlist.Writer interface
-func (l *List) ReadOnly() bool {
-	return true
 }

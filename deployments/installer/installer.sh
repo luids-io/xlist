@@ -403,11 +403,11 @@ create_service_config() {
 	if [ ! -f $ETC_DIR/$NAME/xlistd.toml ]; then
 		log "creating $ETC_DIR/$NAME/xlistd.toml"
 		{ cat > $ETC_DIR/$NAME/xlistd.toml <<EOF
-[xlist]
+[xlistd]
 certsdir   = "${ETC_DIR}/ssl"
 datadir    = "${VAR_DIR}/${NAME}"
 
-[xlist.service]
+[xlistd.service]
 files      = [ "${ETC_DIR}/${NAME}/services.json" ]
 
 EOF

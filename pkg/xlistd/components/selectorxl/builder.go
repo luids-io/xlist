@@ -9,12 +9,11 @@ import (
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// Builder returns a builder for selector List component
-func Builder(defaultCfg Config) builder.BuildListFn {
-	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
+// Builder returns a builder function.
+func Builder(defaultCfg Config) xlistd.BuildListFn {
+	return func(b *xlistd.Builder, parents []string, def xlistd.ListDef) (xlistd.List, error) {
 		cfg := defaultCfg
 		if len(def.Resources) != len(def.Contains) {
 			return nil, errors.New("number of resources doesn't match with members")
@@ -56,5 +55,5 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 }
 
 func init() {
-	builder.RegisterListBuilder(ComponentClass, Builder(Config{}))
+	xlistd.RegisterListBuilder(ComponentClass, Builder(Config{}))
 }

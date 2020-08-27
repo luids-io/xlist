@@ -4,17 +4,15 @@ package metricswr
 
 import (
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-
-// Builder returns a builder for the component
-func Builder() builder.BuildWrapperFn {
-	return func(b *builder.Builder, def builder.WrapperDef, list xlistd.List) (xlistd.List, error) {
+// Builder returns a builder function.
+func Builder() xlistd.BuildWrapperFn {
+	return func(b *xlistd.Builder, def xlistd.WrapperDef, list xlistd.List) (xlistd.List, error) {
 		return New(list), nil
 	}
 }
 
 func init() {
-	builder.RegisterWrapperBuilder(WrapperClass, Builder())
+	xlistd.RegisterWrapperBuilder(WrapperClass, Builder())
 }

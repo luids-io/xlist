@@ -1,6 +1,6 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. View LICENSE.
 
-package builder_test
+package xlistd_test
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/apiservice"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
+	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-var testbuilder1 = []builder.ListDef{
+var testbuilder1 = []xlistd.ListDef{
 	{
 		ID:        "id-list1",
 		Class:     "list1",
@@ -35,9 +35,9 @@ var testbuilder1 = []builder.ListDef{
 
 func TestBuilderBasic(t *testing.T) {
 	//register builders
-	builder.RegisterListBuilder("list1", testBuilderList())
+	xlistd.RegisterListBuilder("list1", testBuilderList())
 
-	b := builder.New(apiservice.NewRegistry())
+	b := xlistd.NewBuilder(apiservice.NewRegistry())
 
 	//check build registered
 	bl, err := b.Build(testbuilder1[0])
@@ -69,7 +69,7 @@ func TestBuilderBasic(t *testing.T) {
 		t.Errorf("non error building non existing component")
 	}
 	//register builder
-	builder.RegisterListBuilder("list2", testBuilderList())
+	xlistd.RegisterListBuilder("list2", testBuilderList())
 
 	bl, err = b.Build(testbuilder1[1])
 	if err != nil {
@@ -96,7 +96,7 @@ func TestBuilderStartup(t *testing.T) {
 	shutdValues := make([]bool, 3, 3)
 
 	testerr := errors.New("error")
-	builder := builder.New(apiservice.NewRegistry())
+	builder := xlistd.NewBuilder(apiservice.NewRegistry())
 	builder.OnStartup(func() error { startValues[0] = true; return nil })
 	builder.OnShutdown(func() error { shutdValues[0] = true; return nil })
 	builder.OnStartup(func() error { return testerr })
@@ -127,7 +127,7 @@ func TestBuilderStartup(t *testing.T) {
 	}
 }
 
-var testbuilder2 = []builder.ListDef{
+var testbuilder2 = []xlistd.ListDef{
 	{
 		ID:        "id-list1",
 		Class:     "list",
@@ -138,7 +138,7 @@ var testbuilder2 = []builder.ListDef{
 		ID:        "id-list2",
 		Class:     "comp",
 		Resources: []xlist.Resource{xlist.IPv4},
-		Contains: []builder.ListDef{
+		Contains: []xlistd.ListDef{
 			{
 				ID:        "id-list3",
 				Class:     "list",
@@ -153,7 +153,7 @@ var testbuilder2 = []builder.ListDef{
 				ID:        "id-list5",
 				Class:     "comp",
 				Resources: []xlist.Resource{xlist.IPv4},
-				Contains: []builder.ListDef{
+				Contains: []xlistd.ListDef{
 					{
 						ID:        "id-list6",
 						Class:     "list",
@@ -174,10 +174,10 @@ var testbuilder2 = []builder.ListDef{
 
 func TestBuilderComp(t *testing.T) {
 	//register builders
-	builder.RegisterListBuilder("list", testBuilderList())
-	builder.RegisterListBuilder("comp", testBuilderCompo())
+	xlistd.RegisterListBuilder("list", testBuilderList())
+	xlistd.RegisterListBuilder("comp", testBuilderCompo())
 
-	b := builder.New(apiservice.NewRegistry())
+	b := xlistd.NewBuilder(apiservice.NewRegistry())
 	for _, def := range testbuilder2 {
 		_, err := b.Build(def)
 		if err != nil {
@@ -218,12 +218,12 @@ func TestBuilderComp(t *testing.T) {
 	}
 }
 
-var testbuilderbad1 = []builder.ListDef{
+var testbuilderbad1 = []xlistd.ListDef{
 	{
 		ID:        "id-list1",
 		Class:     "comp",
 		Resources: []xlist.Resource{xlist.IPv4},
-		Contains: []builder.ListDef{
+		Contains: []xlistd.ListDef{
 			{
 				ID:        "id-list2",
 				Class:     "list",
@@ -234,7 +234,7 @@ var testbuilderbad1 = []builder.ListDef{
 				ID:        "id-list3",
 				Class:     "comp",
 				Resources: []xlist.Resource{xlist.IPv4},
-				Contains: []builder.ListDef{
+				Contains: []xlistd.ListDef{
 					{
 						ID:        "id-list1",
 						Class:     "list",
@@ -248,10 +248,10 @@ var testbuilderbad1 = []builder.ListDef{
 
 func TestBuilderRecursion(t *testing.T) {
 	//register builders
-	builder.RegisterListBuilder("list", testBuilderList())
-	builder.RegisterListBuilder("comp", testBuilderCompo())
+	xlistd.RegisterListBuilder("list", testBuilderList())
+	xlistd.RegisterListBuilder("comp", testBuilderCompo())
 
-	b := builder.New(apiservice.NewRegistry())
+	b := xlistd.NewBuilder(apiservice.NewRegistry())
 
 	_, err := b.Build(testbuilderbad1[0])
 	if err == nil {
@@ -262,12 +262,12 @@ func TestBuilderRecursion(t *testing.T) {
 	}
 }
 
-var testbuilder3 = []builder.ListDef{
+var testbuilder3 = []xlistd.ListDef{
 	{
 		ID:        "id-list1",
 		Class:     "comp",
 		Resources: []xlist.Resource{xlist.IPv4},
-		Wrappers: []builder.WrapperDef{
+		Wrappers: []xlistd.WrapperDef{
 			{
 				Class: "wrap",
 				Opts:  map[string]interface{}{"preffix": "wrapp1-1"},
@@ -277,7 +277,7 @@ var testbuilder3 = []builder.ListDef{
 				Opts:  map[string]interface{}{"preffix": "wrapp1-2"},
 			},
 		},
-		Contains: []builder.ListDef{
+		Contains: []xlistd.ListDef{
 			{
 				ID:        "id-list2",
 				Class:     "list",
@@ -288,7 +288,7 @@ var testbuilder3 = []builder.ListDef{
 				Class:     "list",
 				Resources: []xlist.Resource{xlist.IPv4},
 				Source:    "source list3",
-				Wrappers: []builder.WrapperDef{
+				Wrappers: []xlistd.WrapperDef{
 					{
 						Class: "wrapx",
 						Opts:  map[string]interface{}{"preffix": "wrapp3"},
@@ -301,11 +301,11 @@ var testbuilder3 = []builder.ListDef{
 
 func TestBuilderWrapper(t *testing.T) {
 	//register builders
-	builder.RegisterListBuilder("list", testBuilderList())
-	builder.RegisterListBuilder("comp", testBuilderCompo())
-	builder.RegisterWrapperBuilder("wrap", testBuilderWrap())
+	xlistd.RegisterListBuilder("list", testBuilderList())
+	xlistd.RegisterListBuilder("comp", testBuilderCompo())
+	xlistd.RegisterWrapperBuilder("wrap", testBuilderWrap())
 
-	b := builder.New(apiservice.NewRegistry())
+	b := xlistd.NewBuilder(apiservice.NewRegistry())
 
 	_, err := b.Build(testbuilder3[0])
 	if err == nil {
@@ -313,12 +313,12 @@ func TestBuilderWrapper(t *testing.T) {
 	}
 
 	//register builders
-	builder.RegisterListBuilder("list", testBuilderList())
-	builder.RegisterListBuilder("comp", testBuilderCompo())
-	builder.RegisterWrapperBuilder("wrap", testBuilderWrap())
-	builder.RegisterWrapperBuilder("wrapx", testBuilderWrap())
+	xlistd.RegisterListBuilder("list", testBuilderList())
+	xlistd.RegisterListBuilder("comp", testBuilderCompo())
+	xlistd.RegisterWrapperBuilder("wrap", testBuilderWrap())
+	xlistd.RegisterWrapperBuilder("wrapx", testBuilderWrap())
 
-	b = builder.New(apiservice.NewRegistry())
+	b = xlistd.NewBuilder(apiservice.NewRegistry())
 	_, err = b.Build(testbuilder3[0])
 	if err != nil {
 		t.Fatalf("unexpected error building list: %v", err)

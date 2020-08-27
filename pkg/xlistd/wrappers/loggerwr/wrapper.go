@@ -17,10 +17,10 @@ import (
 	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// WrapperClass registered
+// WrapperClass registered.
 const WrapperClass = "logger"
 
-// DefaultConfig returns default configuration
+// DefaultConfig returns default configuration.
 func DefaultConfig() Config {
 	return Config{
 		Rules: Rules{
@@ -30,14 +30,14 @@ func DefaultConfig() Config {
 		}}
 }
 
-// Config options
+// Config options.
 type Config struct {
 	Prefix   string
 	Rules    Rules
 	ShowPeer bool
 }
 
-// Wrapper implements a logger for list checkers
+// Wrapper implements a logger for list checkers.
 type Wrapper struct {
 	showPeer bool
 	preffix  string
@@ -46,14 +46,14 @@ type Wrapper struct {
 	list     xlistd.List
 }
 
-// Rules defines log levels for each event
+// Rules defines log levels for each event.
 type Rules struct {
 	Found    LogLevel
 	NotFound LogLevel
 	Error    LogLevel
 }
 
-// New creates a logger wrapper with preffix
+// New creates a logger wrapper with preffix.
 func New(list xlistd.List, logger yalogi.Logger, cfg Config) *Wrapper {
 	return &Wrapper{
 		showPeer: cfg.ShowPeer,
@@ -64,17 +64,17 @@ func New(list xlistd.List, logger yalogi.Logger, cfg Config) *Wrapper {
 	}
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (w *Wrapper) ID() string {
 	return w.list.ID()
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (w *Wrapper) Class() string {
 	return w.list.Class()
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	//do check
 	resp, err := w.list.Check(ctx, name, resource)
@@ -110,14 +110,14 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 	return resp, err
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (w *Wrapper) Resources() []xlist.Resource {
 	res := w.list.Resources()
 	w.log.Debugf("%s: Resources() = %v", w.preffix, res)
 	return res
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (w *Wrapper) Ping() error {
 	err := w.list.Ping()
 	if err != nil {
@@ -126,11 +126,6 @@ func (w *Wrapper) Ping() error {
 	}
 	w.log.Debugf("%s: Ping()", w.preffix)
 	return nil
-}
-
-// ReadOnly implements xlist.Writer interface
-func (w *Wrapper) ReadOnly() bool {
-	return true
 }
 
 func (w *Wrapper) getPeerInfo(ctx context.Context) string {

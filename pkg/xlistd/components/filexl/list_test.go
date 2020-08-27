@@ -7,9 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/luids-io/core/yalogi"
-
 	"github.com/luids-io/api/xlist"
+	"github.com/luids-io/core/yalogi"
 	"github.com/luids-io/xlist/pkg/xlistd/components/filexl"
 )
 

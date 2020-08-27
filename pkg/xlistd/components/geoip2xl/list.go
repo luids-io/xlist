@@ -1,8 +1,10 @@
 // Copyright 2019 Luis Guillén Civera <luisguillenc@gmail.com>. See LICENSE.
 
-// Package geoip2xl provides a xlist.Checker implementation that uses a
-// geoip database for checks. This means that the RBL can check if an ip
-// is in a list of countries. It only allows IPv4 resources.
+// Package geoip2xl provides a xlistd.List implementation that uses a
+// geoip database for checks.
+//
+// This means that the RBL can check if an ip is in a list of countries.
+// It only allows IPv4 resources.
 //
 // This package is a work in progress and makes no API stability promises.
 package geoip2xl
@@ -20,13 +22,11 @@ import (
 	"github.com/luids-io/core/yalogi"
 )
 
-// ComponentClass registered
+// ComponentClass registered.
 const ComponentClass = "geoip2"
 
-// Config options
+// Config options.
 type Config struct {
-	Logger   yalogi.Logger
-	Database string
 	// Countries is a list of country codes
 	Countries []string
 	// Reverse the matching of the rule
@@ -36,7 +36,7 @@ type Config struct {
 	Reason          string
 }
 
-// Copy configuration
+// Copy configuration.
 func (src Config) Copy() Config {
 	dst := src
 	if len(src.Countries) > 0 {
@@ -51,7 +51,7 @@ type options struct {
 	reason          string
 }
 
-// List implements an RBL that uses a geoip database for checks
+// List implements an RBL that uses a geoip database for checks.
 type List struct {
 	id        string
 	opts      options
@@ -63,7 +63,7 @@ type List struct {
 	reverse   bool
 }
 
-// New constructs a new List with dbpath as database and rules for logic
+// New constructs a new List with dbpath as database and config for logic.
 func New(id, database string, cfg Config, logger yalogi.Logger) *List {
 	l := &List{
 		id:     id,
@@ -82,17 +82,17 @@ func New(id, database string, cfg Config, logger yalogi.Logger) *List {
 	return l
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (l *List) ID() string {
 	return l.id
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (l *List) Class() string {
 	return ComponentClass
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	if !l.started {
 		return xlist.Response{}, xlist.ErrUnavailable
@@ -115,12 +115,12 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	return resp, nil
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (l *List) Resources() []xlist.Resource {
 	return []xlist.Resource{xlist.IPv4}
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (l *List) Ping() error {
 	if !l.started {
 		return errors.New("list is closed")
@@ -128,12 +128,7 @@ func (l *List) Ping() error {
 	return nil
 }
 
-// ReadOnly implements xlistd.List interface
-func (l *List) ReadOnly() bool {
-	return true
-}
-
-// Open opens database file
+// Open opens database file.
 func (l *List) Open() error {
 	var err error
 	l.database, err = geoip2.Open(l.dbPath)
@@ -143,7 +138,7 @@ func (l *List) Open() error {
 	return err
 }
 
-// Close closes the database file
+// Close closes the database file.
 func (l *List) Close() {
 	if l.started {
 		l.started = false

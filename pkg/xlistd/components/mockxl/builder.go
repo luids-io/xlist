@@ -11,14 +11,13 @@ import (
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/option"
 	"github.com/luids-io/xlist/pkg/xlistd"
-	"github.com/luids-io/xlist/pkg/xlistd/builder"
 )
 
-// Builder returns a list builder function that constructs mockups
-func Builder() builder.BuildListFn {
-	return func(b *builder.Builder, parents []string, def builder.ListDef) (xlistd.List, error) {
+// Builder returns a builder function.
+func Builder() xlistd.BuildListFn {
+	return func(b *xlistd.Builder, parents []string, def xlistd.ListDef) (xlistd.List, error) {
 		//create mockup and sets source
-		bl := &List{ResourceList: xlist.ClearResourceDups(def.Resources)}
+		bl := &List{ResourceList: xlist.ClearResourceDups(def.Resources, true)}
 		if def.Source != "" {
 			results, err := sourceToResults(def.Source)
 			if err != nil {
@@ -90,5 +89,5 @@ func configMockupFromOpts(mockup *List, opts map[string]interface{}) error {
 }
 
 func init() {
-	builder.RegisterListBuilder(ComponentClass, Builder())
+	xlistd.RegisterListBuilder(ComponentClass, Builder())
 }

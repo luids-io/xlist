@@ -21,7 +21,7 @@ import (
 // WrapperClass registered
 const WrapperClass = "cache"
 
-// DefaultConfig returns default configuration
+// DefaultConfig returns default configuration.
 func DefaultConfig() Config {
 	return Config{
 		TTL:           defaultCacheTTL,
@@ -31,7 +31,7 @@ func DefaultConfig() Config {
 	}
 }
 
-// Config options
+// Config options.
 type Config struct {
 	TTL             int
 	NegativeTTL     int
@@ -41,7 +41,7 @@ type Config struct {
 	ForceValidation bool
 }
 
-// Wrapper implements a cache for list checkers
+// Wrapper implements a cache for list checkers.
 type Wrapper struct {
 	cfg   Config
 	list  xlistd.List
@@ -54,7 +54,7 @@ var (
 	defaultRandomCache   = 60 //seconds to randomize
 )
 
-// New returns a new wrapper
+// New returns a new wrapper.
 func New(list xlistd.List, cfg Config) *Wrapper {
 	//randomize cache cleanups
 	rands := time.Duration(rand.Intn(cfg.RandomSeconds)) * time.Second
@@ -66,17 +66,17 @@ func New(list xlistd.List, cfg Config) *Wrapper {
 	return c
 }
 
-// ID implements xlistd.List interface
+// ID implements xlistd.List interface.
 func (c *Wrapper) ID() string {
 	return c.list.ID()
 }
 
-// Class implements xlistd.List interface
+// Class implements xlistd.List interface.
 func (c *Wrapper) Class() string {
 	return c.list.Class()
 }
 
-// Check implements xlist.Checker interface
+// Check implements xlist.Checker interface.
 func (c *Wrapper) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
 	name, ctx, err := xlist.DoValidation(ctx, name, resource, c.cfg.ForceValidation)
 	if err != nil {
@@ -93,22 +93,17 @@ func (c *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 	return resp, err
 }
 
-// Resources implements xlist.Checker interface
+// Resources implements xlist.Checker interface.
 func (c *Wrapper) Resources() []xlist.Resource {
 	return c.list.Resources()
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlist.Checker interface.
 func (c *Wrapper) Ping() error {
 	return c.list.Ping()
 }
 
-// ReadOnly implements xlistd.List interface
-func (c *Wrapper) ReadOnly() bool {
-	return true
-}
-
-// Flush deletes all items from cache
+// Flush deletes all items from cache.
 func (c *Wrapper) Flush() {
 	c.cache.Flush()
 }

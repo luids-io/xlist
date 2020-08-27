@@ -12,7 +12,7 @@ import (
 )
 
 // XListCheckAPI creates grpc service
-func XListCheckAPI(cfg *config.XListCheckAPICfg, finder xlistd.Finder, logger yalogi.Logger) (*checkapi.Service, error) {
+func XListCheckAPI(cfg *config.XListCheckAPICfg, finder *xlistd.Builder, logger yalogi.Logger) (*checkapi.Service, error) {
 	err := cfg.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("bad config: %v", err)
