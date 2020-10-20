@@ -6,8 +6,8 @@ require (
 	github.com/cavaliercoder/grab v2.0.0+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
-	github.com/luids-io/api v0.0.0-20200827074632-ff5f67cd83b3
-	github.com/luids-io/common v0.0.0-20200826083409-0e87210e17ca
+	github.com/luids-io/api v0.0.0-20201020041807-6f7e0a27e8de
+	github.com/luids-io/common v0.0.0-20201020041845-ed2a021e5faa
 	github.com/luids-io/core v0.0.0-20200826065814-376a6c959b32
 	github.com/miekg/dns v1.1.31
 	github.com/oschwald/geoip2-golang v1.4.0
