@@ -26,7 +26,7 @@ RUN go mod download
 
 ## build
 COPY . .
-RUN make binaries SYSTEM="GOOS=linux GOARCH=${arch}"
+RUN make binaries SYSTEM="$(scripts/go-compile-args)"
 
 ## create docker
 FROM scratch
