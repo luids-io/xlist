@@ -46,9 +46,9 @@ func (cfg *DNSxLCfg) FromViper(v *viper.Viper, prefix string) {
 	if prefix != "" {
 		aprefix = prefix + "."
 	}
-	cfg.TimeoutMSecs = viper.GetInt(aprefix + "timeout")
-	cfg.Resolvers = viper.GetStringSlice(aprefix + "resolvers")
-	cfg.UseResolvConf = viper.GetBool(aprefix + "resolvconf")
+	cfg.TimeoutMSecs = v.GetInt(aprefix + "timeout")
+	cfg.Resolvers = v.GetStringSlice(aprefix + "resolvers")
+	cfg.UseResolvConf = v.GetBool(aprefix + "resolvconf")
 }
 
 // Empty returns true if configuration is empty
