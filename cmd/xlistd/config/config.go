@@ -24,6 +24,12 @@ func Default(program string) *goconfig.Config {
 			Data:     &iconfig.DNSxLCfg{},
 		},
 		goconfig.Section{
+			Name:     "xlistd.plugin.sblookup",
+			Required: false,
+			Short:    false,
+			Data:     &iconfig.SBLookupCfg{},
+		},
+		goconfig.Section{
 			Name:     "service.xlist.check",
 			Required: true,
 			Short:    true,

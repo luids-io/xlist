@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/luids-io/xlist/pkg/xlistd/components/sblookupxl"
+
 	"github.com/luids-io/common/util"
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/yalogi"
@@ -60,6 +62,24 @@ func SetupDNSxL(cfg *config.DNSxLCfg) error {
 		dnsCfg.Timeout = time.Duration(cfg.TimeoutMSecs) * time.Millisecond
 	}
 	xlistd.RegisterListBuilder(dnsxl.ComponentClass, dnsxl.Builder(dnsCfg))
+	return nil
+}
+
+// SetupSBLookup configures module
+func SetupSBLookup(cfg *config.SBLookupCfg, logger yalogi.Logger) error {
+	err := cfg.Validate()
+	if err != nil {
+		return err
+	}
+	sbCfg := sblookupxl.Config{}
+	if cfg.APIKey != "" {
+		sbCfg.APIKey = cfg.APIKey
+	}
+	if cfg.ServerURL != "" {
+		sbCfg.ServerURL = cfg.ServerURL
+	}
+	logger.Infof("registrando builder con config: %v", sbCfg)
+	xlistd.RegisterListBuilder(sblookupxl.ComponentClass, sblookupxl.Builder(sbCfg))
 	return nil
 }
 

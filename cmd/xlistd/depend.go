@@ -70,6 +70,13 @@ func createLists(apisvc apiservice.Discover, msrv *serverd.Manager, logger yalog
 			return nil, err
 		}
 	}
+	cfgSBLookup := cfg.Data("xlistd.plugin.sblookup").(*iconfig.SBLookupCfg)
+	if !cfgSBLookup.Empty() {
+		err := ifactory.SetupSBLookup(cfgSBLookup, logger)
+		if err != nil {
+			return nil, err
+		}
+	}
 	//create lists
 	err = ifactory.Lists(cfgList, builder, logger)
 	if err != nil {
