@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/cavaliercoder/grab v2.0.0+incompatible
+	github.com/google/safebrowsing v0.0.0-20190624211811-bbf0d20d26b3
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/luids-io/api v0.0.0-20201020041807-6f7e0a27e8de

@@ -12,6 +12,7 @@ import (
 	_ "github.com/luids-io/xlist/pkg/xlistd/components/memxl"
 	_ "github.com/luids-io/xlist/pkg/xlistd/components/mockxl"
 	_ "github.com/luids-io/xlist/pkg/xlistd/components/parallelxl"
+	_ "github.com/luids-io/xlist/pkg/xlistd/components/sblookupxl"
 	_ "github.com/luids-io/xlist/pkg/xlistd/components/selectorxl"
 	_ "github.com/luids-io/xlist/pkg/xlistd/components/sequencexl"
 	_ "github.com/luids-io/xlist/pkg/xlistd/components/wbeforexl"
