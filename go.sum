@@ -189,6 +189,7 @@ github.com/luids-io/api v0.0.0-20200827074632-ff5f67cd83b3 h1:q0ne/9LSc1diB9vZsm
 github.com/luids-io/api v0.0.0-20200827074632-ff5f67cd83b3/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
 github.com/luids-io/api v0.0.0-20201020041807-6f7e0a27e8de h1:OI46hHltz8FSTyjjANowggrs1pjPcZcMw/Or9fdNosg=
 github.com/luids-io/api v0.0.0-20201020041807-6f7e0a27e8de/go.mod h1:4IkMQVmc9BMnlA7YXTYpSwDn9+Y+C51cwXEdLqe5SVA=
+github.com/luids-io/api v0.0.0-20201020151355-cc157966c8d6 h1:7IOIl8M9zeFRDAyppmH2A8Xf04LnZCYHbubQzlGExyo=
 github.com/luids-io/common v0.0.0-20200510171107-c796758176cb h1:Huym8yYsvK0qKgWFti9FTydmPUONAXlMSZZZPkJiqbY=
 github.com/luids-io/common v0.0.0-20200510171107-c796758176cb/go.mod h1:C0Mh01EMI67r4pgimVfxI60IrReIGx8cfWZi9dSq1pE=
 github.com/luids-io/common v0.0.0-20200825093111-d4971b452a3b h1:7229NhZPDETWT96R1sWyGcI5O8psJS3lc0k6VndqjBs=
@@ -406,6 +407,7 @@ golang.org/x/net v0.0.0-20190613194153-d28f0bde5980/go.mod h1:z5CRVTTTmAJ677TzLL
 golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20190923162816-aa69164e4478 h1:l5EDrHhldLYb3ZRHDUhXF7Om7MvYXnkV9/iQNo1lX6g=
 golang.org/x/net v0.0.0-20190923162816-aa69164e4478/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
+golang.org/x/net v0.0.0-20201031054903-ff519b6c9102 h1:42cLlJJdEh+ySyeUUbEQ5bsTiq8voBeTuweGVkY6Puw=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=
 golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45/go.mod h1:gOpvHmFTYa4IltrdGE7lF6nIHvwfUNPOp7c8zoXwtLw=

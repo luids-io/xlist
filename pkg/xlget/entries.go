@@ -39,15 +39,17 @@ type EntrySource struct {
 
 // FormatOpts defines format options for conversors
 type FormatOpts struct {
-	Comma     string `json:"comma,omitempty"`
-	Comment   string `json:"comment,omitempty"`
-	HasHeader bool   `json:"header,omitempty"`
-	Indexes   []int  `json:"indexes,omitempty"`
+	Comma      string `json:"comma,omitempty"`
+	Comment    string `json:"comment,omitempty"`
+	HasHeader  bool   `json:"header,omitempty"`
+	Indexes    []int  `json:"indexes,omitempty"`
+	LazyQuotes bool   `json:"lazyquotes,omitempty"`
 }
 
 // ConvertOpts defines some conversion options for conversors
 type ConvertOpts struct {
-	MinDomain int `json:"mindomain,omitempty"`
+	TLDPlusOne bool `json:"tldplusone,omitempty"`
+	MinDomain  int  `json:"mindomain,omitempty"`
 }
 
 // DefsFromFile returns an Entry slice of configuration
@@ -138,12 +140,13 @@ func (e Entry) Request() (Request, error) {
 				return Request{}, errors.New("indexes is required for csv format")
 			}
 			csvconv := &CsvConv{
-				Resources: src.Resources,
-				Indexes:   src.FormatOpts.Indexes,
-				Limit:     src.Limit,
-				Comma:     ',',
-				Comment:   '#',
-				HasHeader: false,
+				Resources:  src.Resources,
+				Indexes:    src.FormatOpts.Indexes,
+				Limit:      src.Limit,
+				Comma:      ',',
+				Comment:    '#',
+				HasHeader:  false,
+				LazyQuotes: src.FormatOpts.LazyQuotes,
 			}
 			csvconv.HasHeader = src.FormatOpts.HasHeader
 			if src.FormatOpts.Comma != "" {

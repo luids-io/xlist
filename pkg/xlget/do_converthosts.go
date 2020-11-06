@@ -9,6 +9,8 @@ import (
 	"io"
 	"strings"
 
+	"golang.org/x/net/publicsuffix"
+
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/yalogi"
 )
@@ -104,13 +106,24 @@ func (p HostsConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (ma
 			if p.checks(xlist.Domain) && xlist.ValidResource(fields[1], xlist.Domain) && !added {
 				if !isDefault || (isDefault && p.WithDefaults) {
 					// apply opts
+					applyOpts := false
 					if p.Opts.MinDomain > 0 {
 						depth := len(strings.Split(fields[1], "."))
 						if p.Opts.MinDomain > depth {
 							account[xlist.Domain] = account[xlist.Domain] + 1
 							fmt.Fprintf(out, "domain,sub,%s\n", fields[1])
+							applyOpts = true
 						}
-					} else {
+					}
+					if p.Opts.TLDPlusOne {
+						tldPlusOne, err := publicsuffix.EffectiveTLDPlusOne(fields[1])
+						if err == nil && fields[1] == tldPlusOne {
+							account[xlist.Domain] = account[xlist.Domain] + 1
+							fmt.Fprintf(out, "domain,sub,%s\n", fields[1])
+							applyOpts = true
+						}
+					}
+					if !applyOpts {
 						account[xlist.Domain] = account[xlist.Domain] + 1
 						fmt.Fprintf(out, "domain,plain,%s\n", fields[1])
 					}

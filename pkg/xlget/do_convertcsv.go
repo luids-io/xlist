@@ -13,18 +13,20 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/yalogi"
+	"golang.org/x/net/publicsuffix"
 )
 
 // CsvConv implementes a converter from csv format
 type CsvConv struct {
-	logger    yalogi.Logger
-	Indexes   []int
-	Resources []xlist.Resource
-	Comma     rune
-	Comment   rune
-	HasHeader bool
-	Limit     int
-	Opts      ConvertOpts
+	logger     yalogi.Logger
+	Indexes    []int
+	Resources  []xlist.Resource
+	Comma      rune
+	Comment    rune
+	LazyQuotes bool
+	HasHeader  bool
+	Limit      int
+	Opts       ConvertOpts
 }
 
 // SetLogger implements Converter
@@ -40,6 +42,7 @@ func (p CsvConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map[
 	reader := csv.NewReader(bufio.NewReader(in))
 	reader.Comma = p.Comma
 	reader.Comment = p.Comment
+	reader.LazyQuotes = p.LazyQuotes
 
 	for {
 		fields, err := reader.Read()
@@ -111,6 +114,18 @@ func (p CsvConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map[
 			if rtype == xlist.Domain && p.Opts.MinDomain > 0 {
 				depth := len(strings.Split(data, "."))
 				if p.Opts.MinDomain > depth {
+					account[rtype] = account[rtype] + 1
+					fmt.Fprintf(out, "%s,sub,%s\n", rtype, data)
+					//check limits
+					if p.Limit > 0 && nline > p.Limit {
+						return account, nil
+					}
+					continue
+				}
+			}
+			if rtype == xlist.Domain && p.Opts.TLDPlusOne {
+				tldPlusOne, err := publicsuffix.EffectiveTLDPlusOne(data)
+				if err == nil && data == tldPlusOne {
 					account[rtype] = account[rtype] + 1
 					fmt.Fprintf(out, "%s,sub,%s\n", rtype, data)
 					//check limits

@@ -12,6 +12,7 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/yalogi"
+	"golang.org/x/net/publicsuffix"
 )
 
 //FlatConv implements a conversor from a flat file
@@ -118,6 +119,19 @@ func (p FlatConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map
 				continue
 			}
 		}
+		if rtype == xlist.Domain && p.Opts.TLDPlusOne {
+			tldPlusOne, err := publicsuffix.EffectiveTLDPlusOne(data)
+			if err == nil && data == tldPlusOne {
+				account[rtype] = account[rtype] + 1
+				fmt.Fprintf(out, "%s,sub,%s\n", rtype, data)
+				//check limits
+				if p.Limit > 0 && nline > p.Limit {
+					return account, nil
+				}
+				continue
+			}
+		}
+		//generic
 		account[rtype] = account[rtype] + 1
 		fmt.Fprintf(out, "%s,plain,%s\n", rtype, data)
 
