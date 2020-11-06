@@ -84,7 +84,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 	if l.closed {
 		return xlist.Response{}, xlist.ErrUnavailable
 	}
-	if resource != xlist.IPv4 && resource != xlist.Domain {
+	if resource != xlist.Domain {
 		return xlist.Response{}, xlist.ErrNotSupported
 	}
 	name, _, err := xlist.DoValidation(ctx, name, resource, l.opts.forceValidation)
@@ -110,7 +110,7 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 
 // Resources implements xlist.Checker interface.
 func (l *List) Resources() []xlist.Resource {
-	return []xlist.Resource{xlist.IPv4, xlist.Domain}
+	return []xlist.Resource{xlist.Domain}
 }
 
 // Ping implements xlist.Checker interface.
