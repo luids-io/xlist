@@ -39,7 +39,7 @@ func XLGet(cfg *config.XLGetCfg, logger yalogi.Logger) (*xlget.Manager, error) {
 func loadEntries(dbFiles []string) ([]xlget.Entry, error) {
 	loadedDB := make([]xlget.Entry, 0)
 	for _, file := range dbFiles {
-		entries, err := xlget.DefsFromFile(file)
+		entries, err := xlget.EntryDefsFromFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("couln't load database: %v", err)
 		}

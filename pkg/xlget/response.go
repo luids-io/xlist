@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/luids-io/api/xlist"
+	"github.com/luids-io/core/yalogi"
 )
 
 // State type defines available states for Response
@@ -32,12 +33,15 @@ type Response struct {
 	Output     string
 	Hash       string
 
-	request *Request
+	request Entry
 	stop    chan bool
 	err     error
+	//log
+	logger yalogi.Logger
 	//internal info
 	status        State
 	tempDir       string
+	outputDir     string
 	downloadFiles []string
 	sourceFiles   []string
 	converted     string
@@ -73,4 +77,12 @@ func (r *Response) Wait() error {
 		<-r.Done
 	}
 	return r.err
+}
+
+func emptyAccount() (account map[xlist.Resource]int) {
+	account = make(map[xlist.Resource]int, 0)
+	for _, r := range xlist.Resources {
+		account[r] = 0
+	}
+	return
 }

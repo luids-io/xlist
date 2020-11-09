@@ -13,84 +13,71 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/yalogi"
-	"golang.org/x/net/publicsuffix"
+	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// CsvConv implementes a converter from csv format
-type CsvConv struct {
-	logger     yalogi.Logger
-	Indexes    []int
-	Resources  []xlist.Resource
-	Comma      rune
-	Comment    rune
-	LazyQuotes bool
-	HasHeader  bool
-	Limit      int
-	Opts       ConvertOpts
+type csvConv struct {
+	indexes    []int
+	resources  []xlist.Resource
+	comma      rune
+	comment    rune
+	lazyQuotes bool
+	hasHeader  bool
+	limit      int
 }
 
-// SetLogger implements Converter
-func (p *CsvConv) SetLogger(l yalogi.Logger) {
-	p.logger = l
-}
-
-// Convert implements Converter
-func (p CsvConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map[xlist.Resource]int, error) {
-	account := emptyAccount()
-	nline := 0
-
+func (p csvConv) convert(ctx context.Context, in io.Reader, out chan<- item, logger yalogi.Logger) error {
+	nline, nitems := 0, 0
 	reader := csv.NewReader(bufio.NewReader(in))
-	reader.Comma = p.Comma
-	reader.Comment = p.Comment
-	reader.LazyQuotes = p.LazyQuotes
+	reader.Comma = p.comma
+	reader.Comment = p.comment
+	reader.LazyQuotes = p.lazyQuotes
 
 	for {
 		fields, err := reader.Read()
 		if err == io.EOF {
-			return account, nil
+			return nil
 		} else if err != nil {
-			return account, fmt.Errorf("line %v: %v", nline, err)
+			return fmt.Errorf("line %v: %v", nline, err)
 		}
 		select {
 		case <-ctx.Done():
-			return account, ErrCanceled
+			return ErrCanceled
 		default:
 		}
 		//removes csv header
-		if nline == 0 && p.HasHeader {
+		if nline == 0 && p.hasHeader {
 			nline++
 			continue
 		}
 		nline++
 		//in each row, loop csv indexes to get data
-		for _, idx := range p.Indexes {
+		for _, idx := range p.indexes {
 			if len(fields) <= idx {
-				p.logger.Warnf("line %v: invalid index '%v'", nline, idx)
+				logger.Warnf("line %v: invalid index '%v'", nline, idx)
 				break
 			}
 			data := strings.TrimSpace(fields[idx])
 
 			// special cases
 			if p.checks(xlist.IPv4) {
-				ip, _, err := net.ParseCIDR(data)
+				ip, ipnet, err := net.ParseCIDR(data)
 				if err == nil && ip.To4() != nil {
-					account[xlist.IPv4] = account[xlist.IPv4] + 1
-					fmt.Fprintf(out, "ip4,cidr,%s\n", data)
-					//check limits
-					if p.Limit > 0 && nline > p.Limit {
-						return account, nil
+					out <- item{res: xlist.IPv4, format: xlistd.CIDR, name: ipnet.String()}
+					nitems++
+					if p.limited(nitems) {
+						return nil
 					}
 					continue
 				}
 			}
 			if p.checks(xlist.IPv6) {
-				ip, _, err := net.ParseCIDR(data)
+				ip, ipnet, err := net.ParseCIDR(data)
 				if err == nil && ip.To4() == nil {
-					account[xlist.IPv6] = account[xlist.IPv6] + 1
-					fmt.Fprintf(out, "ip6,cidr,%s\n", data)
-					//check limits
-					if p.Limit > 0 && nline > p.Limit {
-						return account, nil
+					out <- item{res: xlist.IPv6, format: xlistd.CIDR, name: ipnet.String()}
+					nitems++
+					if p.limited(nitems) {
+						return nil
 					}
 					continue
 				}
@@ -98,57 +85,31 @@ func (p CsvConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map[
 			//generic cases
 			valid := false
 			var rtype xlist.Resource
-		LOOPRESOURCES:
-			for _, r := range p.Resources {
-				if xlist.ValidResource(data, r) {
-					valid = true
+			for _, r := range p.resources {
+				data, valid = xlist.Canonicalize(data, r)
+				if valid {
 					rtype = r
-					break LOOPRESOURCES
+					break
 				}
 			}
 			if !valid {
-				p.logger.Warnf("line %v: not valid resource '%s'", nline, data)
+				logger.Warnf("line %v: not valid resource '%s'", nline, data)
 				continue
 			}
-			// apply opts
-			if rtype == xlist.Domain && p.Opts.MinDomain > 0 {
-				depth := len(strings.Split(data, "."))
-				if p.Opts.MinDomain > depth {
-					account[rtype] = account[rtype] + 1
-					fmt.Fprintf(out, "%s,sub,%s\n", rtype, data)
-					//check limits
-					if p.Limit > 0 && nline > p.Limit {
-						return account, nil
-					}
-					continue
-				}
-			}
-			if rtype == xlist.Domain && p.Opts.TLDPlusOne {
-				tldPlusOne, err := publicsuffix.EffectiveTLDPlusOne(data)
-				if err == nil && data == tldPlusOne {
-					account[rtype] = account[rtype] + 1
-					fmt.Fprintf(out, "%s,sub,%s\n", rtype, data)
-					//check limits
-					if p.Limit > 0 && nline > p.Limit {
-						return account, nil
-					}
-					continue
-				}
-			}
 			//generic
-			account[rtype] = account[rtype] + 1
-			fmt.Fprintf(out, "%s,plain,%s\n", rtype, data)
-		}
-		//check limits
-		if p.Limit > 0 && nline > p.Limit {
-			return account, nil
+			out <- item{res: rtype, format: xlistd.Plain, name: data}
+			nitems++
+			if p.limited(nitems) {
+				return nil
+			}
 		}
 	}
 }
 
-func (p CsvConv) checks(r xlist.Resource) bool {
-	if len(p.Resources) == 0 {
-		return true
-	}
-	return r.InArray(p.Resources)
+func (p csvConv) checks(r xlist.Resource) bool {
+	return r.InArray(p.resources)
+}
+
+func (p csvConv) limited(nitems int) bool {
+	return p.limit > 0 && nitems > p.limit
 }

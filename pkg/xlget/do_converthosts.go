@@ -9,10 +9,9 @@ import (
 	"io"
 	"strings"
 
-	"golang.org/x/net/publicsuffix"
-
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/yalogi"
+	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
 var hostDefaults = map[string]bool{
@@ -39,29 +38,19 @@ var hostDefaults = map[string]bool{
 	"ip6-allhosts":          true,
 }
 
-// HostsConv implements a conversor from a /etc/hosts file format
-type HostsConv struct {
-	logger       yalogi.Logger
-	Resources    []xlist.Resource
+type hostsConv struct {
+	resources    []xlist.Resource
 	WithDefaults bool
-	Limit        int
-	Opts         ConvertOpts
+	limit        int
 }
 
-// SetLogger implements Converter interface
-func (p *HostsConv) SetLogger(l yalogi.Logger) {
-	p.logger = l
-}
-
-// Convert implements Converter interface
-func (p HostsConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map[xlist.Resource]int, error) {
-	account := emptyAccount()
-	nline := 0
+func (h hostsConv) convert(ctx context.Context, in io.Reader, out chan<- item, logger yalogi.Logger) error {
+	nline, nitems := 0, 0
 	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
 		select {
 		case <-ctx.Done():
-			return account, ErrCanceled
+			return ErrCanceled
 		default:
 		}
 
@@ -71,78 +60,44 @@ func (p HostsConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (ma
 			continue
 		}
 		fields := strings.Fields(line)
-		if len(fields) > 0 {
-			_, isDefault := hostDefaults[fields[0]]
-			if p.checks(xlist.IPv4) && xlist.ValidResource(fields[0], xlist.IPv4) {
-				if !isDefault || (isDefault && p.WithDefaults) {
-					account[xlist.IPv4] = account[xlist.IPv4] + 1
-					fmt.Fprintf(out, "ip4,plain,%s\n", fields[0])
-				}
-			}
-			if p.checks(xlist.IPv6) && xlist.ValidResource(fields[0], xlist.IPv6) {
-				if !isDefault || (isDefault && p.WithDefaults) {
-					account[xlist.IPv6] = account[xlist.IPv6] + 1
-					fmt.Fprintf(out, "ip6,plain,%s\n", fields[0])
+		if len(fields) > 1 && h.checks(xlist.IPv4) {
+			name, valid := xlist.Canonicalize(fields[1], xlist.IPv4)
+			if valid {
+				_, isDefault := hostDefaults[name]
+				if !isDefault || (isDefault && h.WithDefaults) {
+					out <- item{res: xlist.IPv4, format: xlistd.Plain, name: name}
+					nitems++
+					if h.limited(nitems) {
+						return nil
+					}
+					continue
 				}
 			}
 		}
-		if len(fields) > 1 {
-			added := false
-			_, isDefault := hostDefaults[fields[1]]
-			if p.checks(xlist.IPv4) && xlist.ValidResource(fields[1], xlist.IPv4) {
-				if !isDefault || (isDefault && p.WithDefaults) {
-					account[xlist.IPv4] = account[xlist.IPv4] + 1
-					fmt.Fprintf(out, "ip4,plain,%s\n", fields[1])
-					added = true
-				}
-			}
-			if p.checks(xlist.IPv6) && xlist.ValidResource(fields[1], xlist.IPv6) && !added {
-				if !isDefault || (isDefault && p.WithDefaults) {
-					account[xlist.IPv6] = account[xlist.IPv6] + 1
-					fmt.Fprintf(out, "ip6,plain,%s\n", fields[1])
-					added = true
-				}
-			}
-			if p.checks(xlist.Domain) && xlist.ValidResource(fields[1], xlist.Domain) && !added {
-				if !isDefault || (isDefault && p.WithDefaults) {
-					// apply opts
-					applyOpts := false
-					if p.Opts.MinDomain > 0 {
-						depth := len(strings.Split(fields[1], "."))
-						if p.Opts.MinDomain > depth {
-							account[xlist.Domain] = account[xlist.Domain] + 1
-							fmt.Fprintf(out, "domain,sub,%s\n", fields[1])
-							applyOpts = true
-						}
-					}
-					if p.Opts.TLDPlusOne {
-						tldPlusOne, err := publicsuffix.EffectiveTLDPlusOne(fields[1])
-						if err == nil && fields[1] == tldPlusOne {
-							account[xlist.Domain] = account[xlist.Domain] + 1
-							fmt.Fprintf(out, "domain,sub,%s\n", fields[1])
-							applyOpts = true
-						}
-					}
-					if !applyOpts {
-						account[xlist.Domain] = account[xlist.Domain] + 1
-						fmt.Fprintf(out, "domain,plain,%s\n", fields[1])
+		if len(fields) > 1 && h.checks(xlist.Domain) {
+			name, valid := xlist.Canonicalize(fields[1], xlist.Domain)
+			if valid {
+				_, isDefault := hostDefaults[name]
+				if !isDefault || (isDefault && h.WithDefaults) {
+					out <- item{res: xlist.Domain, format: xlistd.Plain, name: name}
+					nitems++
+					if h.limited(nitems) {
+						return nil
 					}
 				}
 			}
-		}
-		if p.Limit > 0 && nline > p.Limit {
-			return account, nil
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return account, fmt.Errorf("scanning input: %v", err)
+		return fmt.Errorf("scanning input: %v", err)
 	}
-	return account, nil
+	return nil
 }
 
-func (p HostsConv) checks(r xlist.Resource) bool {
-	if len(p.Resources) == 0 {
-		return true
-	}
-	return r.InArray(p.Resources)
+func (h hostsConv) checks(r xlist.Resource) bool {
+	return r.InArray(h.resources)
+}
+
+func (h hostsConv) limited(nitems int) bool {
+	return h.limit > 0 && nitems > h.limit
 }

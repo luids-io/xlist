@@ -11,29 +11,21 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/yalogi"
+	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-// XListConv implements a converter from an xlist format
-type XListConv struct {
-	logger    yalogi.Logger
-	Resources []xlist.Resource
-	Limit     int
+type xlistConv struct {
+	resources []xlist.Resource
+	limit     int
 }
 
-// SetLogger implements Converter interface
-func (p *XListConv) SetLogger(l yalogi.Logger) {
-	p.logger = l
-}
-
-// Convert implements Converter interface
-func (p XListConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map[xlist.Resource]int, error) {
-	account := emptyAccount()
-	nline := 0
+func (c xlistConv) convert(ctx context.Context, in io.Reader, out chan<- item, logger yalogi.Logger) error {
+	nline, nitems := 0, 0
 	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
 		select {
 		case <-ctx.Done():
-			return account, ErrCanceled
+			return ErrCanceled
 		default:
 		}
 
@@ -44,31 +36,35 @@ func (p XListConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (ma
 		}
 		fields := strings.Split(line, ",")
 		if len(fields) < 3 {
-			return account, fmt.Errorf("line %v: invalid format", nline)
+			return fmt.Errorf("line %v: invalid format", nline)
 		}
 		resource, err := xlist.ToResource(fields[0])
 		if err != nil {
-			return account, fmt.Errorf("line %v: not valid resource", nline)
+			return fmt.Errorf("line %v: not valid resource", nline)
 		}
-		if !p.checks(resource) {
+		if !c.checks(resource) {
 			continue
 		}
-		account[resource] = account[resource] + 1
-
-		fmt.Fprintf(out, "%s,%s,%s\n", fields[0], fields[1], fields[2])
-		if p.Limit > 0 && nline > p.Limit {
-			return account, nil
+		format, err := xlistd.ToFormat(fields[1])
+		if err != nil {
+			return fmt.Errorf("line %v: not valid format", nline)
+		}
+		out <- item{res: resource, format: format, name: fields[2]}
+		nitems++
+		if c.limited(nitems) {
+			return nil
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return account, fmt.Errorf("scanning input: %v", err)
+		return fmt.Errorf("scanning input: %v", err)
 	}
-	return account, nil
+	return nil
 }
 
-func (p XListConv) checks(r xlist.Resource) bool {
-	if len(p.Resources) == 0 {
-		return true
-	}
-	return r.InArray(p.Resources)
+func (c xlistConv) checks(r xlist.Resource) bool {
+	return r.InArray(c.resources)
+}
+
+func (c xlistConv) limited(nitems int) bool {
+	return c.limit > 0 && nitems > c.limit
 }

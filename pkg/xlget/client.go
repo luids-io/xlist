@@ -3,6 +3,7 @@
 package xlget
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -10,78 +11,126 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cavaliercoder/grab"
-
 	"github.com/luids-io/core/yalogi"
 )
 
+// Common errors
+var (
+	ErrCanceled = errors.New("download canceled")
+)
+
+// Config defines configuration.
+type Config struct {
+	OutputDir string
+	CacheDir  string
+	Logger    yalogi.Logger
+}
+
+// setDefaults configures Config to have default parameters.
+// It reports whether the current configuration is valid.
+func (c *Config) setDefaults() bool {
+	if c.OutputDir == "" {
+		c.OutputDir = defaultOutputDir()
+	}
+	if c.CacheDir == "" {
+		c.CacheDir = defaultCacheDir()
+	}
+	if c.Logger == nil {
+		c.Logger = yalogi.LogNull
+	}
+	return true
+}
+
 // Client downloads requests
 type Client struct {
-	outputDir, cacheDir string
-	logger              yalogi.Logger
-	httpclient          *grab.Client
+	outputDir string
+	cacheDir  string
+	logger    yalogi.Logger
 }
 
 //NewClient returns a new Client
-func NewClient(outputDir, cacheDir string, logger yalogi.Logger) *Client {
-	c := &Client{
-		outputDir:  outputDir,
-		cacheDir:   cacheDir,
-		logger:     logger,
-		httpclient: grab.NewClient(),
+func NewClient(cfg Config) *Client {
+	cfg.setDefaults()
+	return &Client{
+		outputDir: cfg.OutputDir,
+		cacheDir:  cfg.CacheDir,
+		logger:    cfg.Logger,
 	}
-	return c
 }
 
 //Do request a download
-func (c *Client) Do(request Request) (*Response, error) {
-	c.logger.Infof("getting '%s'", request.ID)
-	//validate request
-	err := request.validate()
+func (c *Client) Do(e Entry) (*Response, error) {
+	c.logger.Infof("getting '%s'", e.ID)
+	// validate request
+	err := ValidateEntry(e)
 	if err != nil {
 		return nil, err
 	}
+	// make response
+	r := &Response{
+		ID:      e.ID,
+		request: e.Copy(),
+	}
+	// setup output
+	err = c.setupOutput(r)
+	if err != nil {
+		return nil, err
+	}
+	// setup cache
+	err = c.setupCache(r)
+	if err != nil {
+		return nil, err
+	}
+	// setup response
+	r.logger = c.logger
+	r.stop = make(chan bool, 0)
+	r.downloadFiles = make([]string, 0, len(e.Sources))
+	r.Done = make(chan struct{}, 0)
+	r.Start = time.Now()
+	r.Account = emptyAccount()
+
+	go c.doProcess(r)
+	return r, nil
+}
+
+func (c *Client) setupOutput(r *Response) error {
+	var err error
 	//setup output
-	if request.Output == "" {
-		request.Output = fmt.Sprintf("%s.xlist", request.ID)
-	}
-	//setup outputdir
-	if c.outputDir != "" && !path.IsAbs(request.Output) {
-		request.Output = c.outputDir + string(os.PathSeparator) + request.Output
-	}
-	//create odir
-	odir := filepath.Dir(request.Output)
-	if odir != "." && !dirExists(odir) {
-		c.logger.Debugf("creating dir '%s'", odir)
-		err := createDir(odir)
-		if err != nil {
-			return nil, err
+	if r.request.Output != "" {
+		if c.outputDir != "" && !path.IsAbs(r.request.Output) {
+			r.Output = c.outputDir + string(os.PathSeparator) + r.request.Output
+		}
+	} else {
+		ouputFile := fmt.Sprintf("%s.xlist", r.ID)
+		if c.outputDir != "" {
+			r.Output = c.outputDir + string(os.PathSeparator) + ouputFile
 		}
 	}
-	//setup tdir
-	tdir := c.cacheDir + string(os.PathSeparator) + strings.ToLower(request.ID)
-	if !dirExists(tdir) {
-		c.logger.Debugf("creating dir '%s'", tdir)
-		err := createDir(tdir)
+	//create setup dir
+	r.outputDir = filepath.Dir(r.Output)
+	if r.outputDir != "." && !dirExists(r.outputDir) {
+		c.logger.Debugf("creating dir '%s'", r.outputDir)
+		err = createDir(r.outputDir)
+	}
+	return err
+}
+
+func (c *Client) setupCache(r *Response) error {
+	var err error
+	if !dirExists(c.cacheDir) {
+		c.logger.Debugf("creating dir '%s'", r.tempDir)
+		err = createDir(c.cacheDir)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
-	//make response and process
-	response := &Response{
-		ID:            request.ID,
-		Output:        request.Output,
-		request:       &request,
-		status:        Ready,
-		stop:          make(chan bool, 0),
-		tempDir:       tdir,
-		downloadFiles: make([]string, 0, len(request.Sources)),
-		Done:          make(chan struct{}, 0),
-		Start:         time.Now(),
-		Account:       emptyAccount(),
+	//setup cache dir
+	r.tempDir = c.cacheDir + string(os.PathSeparator) + strings.ToLower(r.ID)
+	if !dirExists(r.tempDir) {
+		c.logger.Debugf("creating dir '%s'", r.tempDir)
+		err = createDir(r.tempDir)
 	}
-	go c.doProcess(response)
-	return response, nil
+	return err
 }
 
 // main process
@@ -142,4 +191,20 @@ FINISH:
 	r.status = Finished
 	close(r.stop)
 	close(r.Done)
+}
+
+func defaultOutputDir() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	return pwd
+}
+
+func defaultCacheDir() string {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	return pwd + string(os.PathSeparator) + ".cache"
 }

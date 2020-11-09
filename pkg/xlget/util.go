@@ -8,8 +8,42 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 )
+
+//ValidURI returns true if is a valid uri for downloader.
+func ValidURI(uri string) bool {
+	u, err := url.ParseRequestURI(uri)
+	if err != nil {
+		return false
+	}
+	switch u.Scheme {
+	case "http":
+		return true
+	case "https":
+		return true
+	case "file":
+		return true
+	}
+	return false
+}
+
+//ValidFormatSource returns true if is a valid format.
+func ValidFormatSource(f FormatSource) bool {
+	if f < XList || f > Hosts {
+		return false
+	}
+	return true
+}
+
+//ValidCompression returns true if is valid compression.
+func ValidCompression(c Compression) bool {
+	if c < None || c > Zip {
+		return false
+	}
+	return true
+}
 
 func dirExists(dirname string) bool {
 	info, err := os.Stat(dirname)

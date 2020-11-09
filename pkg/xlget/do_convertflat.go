@@ -12,31 +12,21 @@ import (
 
 	"github.com/luids-io/api/xlist"
 	"github.com/luids-io/core/yalogi"
-	"golang.org/x/net/publicsuffix"
+	"github.com/luids-io/xlist/pkg/xlistd"
 )
 
-//FlatConv implements a conversor from a flat file
-type FlatConv struct {
-	logger    yalogi.Logger
-	Resources []xlist.Resource
-	Limit     int
-	Opts      ConvertOpts
+type flatConv struct {
+	resources []xlist.Resource
+	limit     int
 }
 
-// SetLogger implements Converter interface
-func (p *FlatConv) SetLogger(l yalogi.Logger) {
-	p.logger = l
-}
-
-// Convert implements Converter interface
-func (p FlatConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map[xlist.Resource]int, error) {
-	account := emptyAccount()
-	nline := 0
+func (c flatConv) convert(ctx context.Context, in io.Reader, out chan<- item, logger yalogi.Logger) error {
+	nline, nitems := 0, 0
 	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
 		select {
 		case <-ctx.Done():
-			return account, ErrCanceled
+			return ErrCanceled
 		default:
 		}
 
@@ -53,40 +43,39 @@ func (p FlatConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map
 		data := strings.TrimSpace(fields[0])
 
 		// special cases
-		if p.checks(xlist.Domain) && strings.HasPrefix(data, "*.") {
+		if c.checks(xlist.Domain) && strings.HasPrefix(data, "*.") {
+			valid := false
 			subdomain := strings.TrimPrefix(data, "*.")
-			if !xlist.ValidResource(subdomain, xlist.Domain) {
-				p.logger.Warnf("line %v: not valid resource '%s'", nline, data)
+			subdomain, valid = xlist.Canonicalize(subdomain, xlist.Domain)
+			if !valid {
+				logger.Warnf("line %v: not valid resource '%s'", nline, data)
 				continue
 			}
-			account[xlist.Domain] = account[xlist.Domain] + 1
-			fmt.Fprintf(out, "domain,sub,%s\n", subdomain)
-			// check limits
-			if p.Limit > 0 && nline > p.Limit {
-				return account, nil
+			out <- item{res: xlist.Domain, format: xlistd.Sub, name: subdomain}
+			nitems++
+			if c.limited(nitems) {
+				return nil
 			}
 			continue
 		}
-		if p.checks(xlist.IPv4) {
-			ip, _, err := net.ParseCIDR(data)
+		if c.checks(xlist.IPv4) {
+			ip, ipnet, err := net.ParseCIDR(data)
 			if err == nil && ip.To4() != nil {
-				account[xlist.IPv4] = account[xlist.IPv4] + 1
-				fmt.Fprintf(out, "ip4,cidr,%s\n", data)
-				// check limits
-				if p.Limit > 0 && nline > p.Limit {
-					return account, nil
+				out <- item{res: xlist.IPv4, format: xlistd.CIDR, name: ipnet.String()}
+				nitems++
+				if c.limited(nitems) {
+					return nil
 				}
 				continue
 			}
 		}
-		if p.checks(xlist.IPv6) {
-			ip, _, err := net.ParseCIDR(data)
+		if c.checks(xlist.IPv6) {
+			ip, ipnet, err := net.ParseCIDR(data)
 			if err == nil && ip.To4() == nil {
-				account[xlist.IPv6] = account[xlist.IPv6] + 1
-				fmt.Fprintf(out, "ip6,cidr,%s\n", data)
-				// check limits
-				if p.Limit > 0 && nline > p.Limit {
-					return account, nil
+				out <- item{res: xlist.IPv6, format: xlistd.CIDR, name: ipnet.String()}
+				nitems++
+				if c.limited(nitems) {
+					return nil
 				}
 				continue
 			}
@@ -95,60 +84,33 @@ func (p FlatConv) Convert(ctx context.Context, in io.Reader, out io.Writer) (map
 		// generic cases
 		valid := false
 		var rtype xlist.Resource
-		for _, r := range p.Resources {
-			if xlist.ValidResource(data, r) {
-				valid = true
+		for _, r := range c.resources {
+			data, valid = xlist.Canonicalize(data, r)
+			if valid {
 				rtype = r
 				break
 			}
 		}
 		if !valid {
-			p.logger.Warnf("line %v: not valid resource '%s'", nline, data)
+			logger.Warnf("line %v: not valid resource '%s'", nline, data)
 			continue
 		}
-		// apply opts
-		if rtype == xlist.Domain && p.Opts.MinDomain > 0 {
-			depth := len(strings.Split(data, "."))
-			if p.Opts.MinDomain > depth {
-				account[rtype] = account[rtype] + 1
-				fmt.Fprintf(out, "%s,sub,%s\n", rtype, data)
-				// check limits
-				if p.Limit > 0 && nline > p.Limit {
-					return account, nil
-				}
-				continue
-			}
-		}
-		if rtype == xlist.Domain && p.Opts.TLDPlusOne {
-			tldPlusOne, err := publicsuffix.EffectiveTLDPlusOne(data)
-			if err == nil && data == tldPlusOne {
-				account[rtype] = account[rtype] + 1
-				fmt.Fprintf(out, "%s,sub,%s\n", rtype, data)
-				//check limits
-				if p.Limit > 0 && nline > p.Limit {
-					return account, nil
-				}
-				continue
-			}
-		}
-		//generic
-		account[rtype] = account[rtype] + 1
-		fmt.Fprintf(out, "%s,plain,%s\n", rtype, data)
-
-		// check limits
-		if p.Limit > 0 && nline > p.Limit {
-			return account, nil
+		out <- item{res: rtype, format: xlistd.Plain, name: data}
+		nitems++
+		if c.limited(nitems) {
+			return nil
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return account, fmt.Errorf("scanning input: %v", err)
+		return fmt.Errorf("scanning input: %v", err)
 	}
-	return account, nil
+	return nil
 }
 
-func (p FlatConv) checks(r xlist.Resource) bool {
-	if len(p.Resources) == 0 {
-		return true
-	}
-	return r.InArray(p.Resources)
+func (c flatConv) checks(r xlist.Resource) bool {
+	return r.InArray(c.resources)
+}
+
+func (c flatConv) limited(nitems int) bool {
+	return c.limit > 0 && nitems > c.limit
 }

@@ -14,17 +14,14 @@ import (
 func (c *Client) doDownload(r *Response) error {
 	for _, source := range r.request.Sources {
 		c.logger.Debugf("downloading '%s'", source.URI)
-		var err error
-		switch {
-		case strings.HasPrefix(source.URI, "http://"):
-			err = c.doDownloadHTTP(r, source.URI, source.Filename)
-		case strings.HasPrefix(source.URI, "https://"):
-			err = c.doDownloadHTTP(r, source.URI, source.Filename)
-		case strings.HasPrefix(source.URI, "file://"):
-			err = c.doDownloadFile(r, source.URI)
-		default:
-			err = fmt.Errorf("invalid URI format '%s'", source.URI)
+		//gets downloader
+		u, _ := url.ParseRequestURI(source.URI)
+		d, err := getDownloader(u.Scheme)
+		if err != nil {
+			return err
 		}
+		// do download
+		err = d.download(r, source)
 		if err != nil {
 			return err
 		}
@@ -32,22 +29,59 @@ func (c *Client) doDownload(r *Response) error {
 	return nil
 }
 
-func (c *Client) doDownloadHTTP(r *Response, uri, filename string) error {
+type downloader interface {
+	download(r *Response, source Source) error
+}
+
+func getDownloader(scheme string) (downloader, error) {
+	switch scheme {
+	case "http":
+		return httpFiledown{httpclient: httpclient}, nil
+	case "https":
+		return httpFiledown{httpclient: httpclient}, nil
+	case "file":
+		return localFiledown{}, nil
+	}
+	return nil, fmt.Errorf("no downloader available for '%s' scheme", scheme)
+}
+
+type localFiledown struct{}
+
+func (d localFiledown) download(r *Response, s Source) error {
+	file := strings.TrimPrefix(s.URI, "file://")
+	_, err := os.Stat(file)
+	if err != nil {
+		return err
+	}
+	r.logger.Debugf("set '%s' as downloaded file", file)
+	//no copy file, only sets as downloaded
+	r.downloadFiles = append(r.downloadFiles, file)
+	return nil
+}
+
+type httpFiledown struct {
+	httpclient *grab.Client
+}
+
+func (h httpFiledown) download(r *Response, s Source) error {
+	uri, filename := s.URI, s.Filename
 	dst := r.tempDir
 	if filename != "" {
 		dst = dst + string(os.PathSeparator) + filename
 	}
 	//do download
+	r.logger.Debugf("downloading '%s' with grab", uri)
 	req, err := grab.NewRequest(dst, uri)
 	if err != nil {
 		return err
 	}
-	resp := c.httpclient.Do(req)
+	resp := h.httpclient.Do(req)
 	select {
 	case <-resp.Done:
 		if resp.Err() != nil {
 			return resp.Err()
 		}
+		r.logger.Debugf("set '%s' as downloaded file", resp.Filename)
 		r.downloadFiles = append(r.downloadFiles, resp.Filename)
 		return nil
 	case <-r.stop:
@@ -56,30 +90,14 @@ func (c *Client) doDownloadHTTP(r *Response, uri, filename string) error {
 	}
 }
 
-func (c *Client) doDownloadFile(r *Response, uri string) error {
-	file := strings.TrimPrefix(uri, "file://")
-	_, err := os.Stat(file)
-	if err != nil {
-		return err
-	}
-	//no copy file, only sets as downloaded
-	r.downloadFiles = append(r.downloadFiles, file)
-	return nil
+//singleton http client
+var httpclient *grab.Client
+
+// SetHTTPClient sets http client
+func SetHTTPClient(h *grab.Client) {
+	httpclient = h
 }
 
-//ValidURI returns true if is a valid uri for downloader
-func ValidURI(uri string) bool {
-	u, err := url.ParseRequestURI(uri)
-	if err != nil {
-		return false
-	}
-	switch u.Scheme {
-	case "http":
-		return true
-	case "https":
-		return true
-	case "file":
-		return true
-	}
-	return false
+func init() {
+	httpclient = grab.NewClient()
 }

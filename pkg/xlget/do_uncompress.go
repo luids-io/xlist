@@ -12,25 +12,17 @@ import (
 )
 
 func (c *Client) doUncompress(r *Response) error {
-	//request.Sources
 	for idx, compressed := range r.downloadFiles {
 		c.logger.Debugf("uncompressing '%s'", compressed)
 		if idx >= len(r.request.Sources) {
 			return fmt.Errorf("unbound index %v", idx)
 		}
 		format := r.request.Sources[idx].Compression
-
-		var err error
-		switch format {
-		case None:
-			err = c.doUncompressNone(r, compressed)
-		case Gzip:
-			err = c.doUncompressGzip(r, compressed)
-		case Zip:
-			err = c.doUncompressZip(r, compressed)
-		default:
-			err = fmt.Errorf("invalid Compression format '%v'", format)
+		u, err := getUncompressor(format)
+		if err != nil {
+			return err
 		}
+		err = u.uncompress(r, compressed)
 		if err != nil {
 			return err
 		}
@@ -38,7 +30,25 @@ func (c *Client) doUncompress(r *Response) error {
 	return nil
 }
 
-func (c *Client) doUncompressNone(r *Response, file string) error {
+type uncompressor interface {
+	uncompress(r *Response, file string) error
+}
+
+func getUncompressor(c Compression) (uncompressor, error) {
+	switch c {
+	case None:
+		return noneUncompressor{}, nil
+	case Gzip:
+		return gzipUncompressor{}, nil
+	case Zip:
+		return zipUncompressor{}, nil
+	}
+	return nil, fmt.Errorf("invalid Compression format '%v'", c)
+}
+
+type noneUncompressor struct{}
+
+func (u noneUncompressor) uncompress(r *Response, file string) error {
 	_, err := os.Stat(file)
 	if err != nil {
 		return err
@@ -48,7 +58,9 @@ func (c *Client) doUncompressNone(r *Response, file string) error {
 	return nil
 }
 
-func (c *Client) doUncompressGzip(r *Response, file string) error {
+type gzipUncompressor struct{}
+
+func (g gzipUncompressor) uncompress(r *Response, file string) error {
 	gzipfile, err := os.Open(file)
 	if err != nil {
 		return err
@@ -75,7 +87,9 @@ func (c *Client) doUncompressGzip(r *Response, file string) error {
 	return nil
 }
 
-func (c *Client) doUncompressZip(r *Response, file string) error {
+type zipUncompressor struct{}
+
+func (z zipUncompressor) uncompress(r *Response, file string) error {
 	dstfile := strings.TrimSuffix(file, ".zip")
 	if dstfile == file {
 		dstfile = fmt.Sprintf("%s-uncompressed", file)

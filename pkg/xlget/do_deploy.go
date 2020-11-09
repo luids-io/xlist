@@ -11,10 +11,10 @@ import (
 )
 
 func (c *Client) doDeploy(r *Response) (bool, error) {
-	c.logger.Debugf("deploying '%s'", r.request.Output)
+	c.logger.Debugf("deploying '%s'", r.Output)
 	if r.request.NoHash {
 		//deploy without hashing
-		err := os.Rename(r.converted, r.request.Output)
+		err := os.Rename(r.converted, r.Output)
 		if err != nil {
 			return false, fmt.Errorf("renaming file: %v", err)
 		}
@@ -28,21 +28,21 @@ func (c *Client) doDeploy(r *Response) (bool, error) {
 	}
 	r.Hash = hash
 	c.logger.Debugf("computed hash '%s'", hash)
-	md5file := fmt.Sprintf("%s.md5", r.request.Output)
+	md5file := fmt.Sprintf("%s.md5", r.Output)
 	if fileExists(md5file) {
 		storedhash, err := ioutil.ReadFile(md5file)
 		if err != nil {
 			os.Remove(r.converted)
 			return false, fmt.Errorf("comparing hash: %v", err)
 		}
-		if fileExists(r.request.Output) && hash == string(storedhash) {
+		if fileExists(r.Output) && hash == string(storedhash) {
 			c.logger.Debugf("md5 hashes match")
 			os.Remove(r.converted)
 			os.Chtimes(md5file, time.Now(), time.Now())
 			return false, nil
 		}
 	}
-	err = os.Rename(r.converted, r.request.Output)
+	err = os.Rename(r.converted, r.Output)
 	if err != nil {
 		return false, fmt.Errorf("renaming file: %v", err)
 	}

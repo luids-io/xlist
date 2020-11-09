@@ -36,16 +36,16 @@ func NewManager(outputDir, cacheDir string, opt ...Option) (*Manager, error) {
 	for _, o := range opt {
 		o(&opts)
 	}
-	if cacheDir == "" {
-		cacheDir = defaultCacheDir()
-	}
 	m := &Manager{
 		cacheDir:  cacheDir,
 		outputDir: outputDir,
 		logger:    opts.logger,
 		entries:   make([]Entry, 0),
 		ids:       make(map[string]bool),
-		c:         NewClient(outputDir, cacheDir, opts.logger),
+		c: NewClient(Config{
+			OutputDir: outputDir,
+			CacheDir:  cacheDir,
+			Logger:    opts.logger}),
 	}
 	return m, m.initDirs()
 }
@@ -57,9 +57,7 @@ type options struct {
 	logger yalogi.Logger
 }
 
-var defaultOptions = options{
-	logger: yalogi.LogNull,
-}
+var defaultOptions = options{logger: yalogi.LogNull}
 
 // SetLogger option allows set a custom logger
 func SetLogger(l yalogi.Logger) Option {
@@ -68,20 +66,12 @@ func SetLogger(l yalogi.Logger) Option {
 	}
 }
 
-func defaultCacheDir() string {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return ""
-	}
-	return pwd + string(os.PathSeparator) + ".cache"
-}
-
 // Add entries to manager
 func (m *Manager) Add(entries []Entry) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for _, e := range entries {
-		err := e.Validate()
+		err := ValidateEntry(e)
 		if err != nil {
 			return err
 		}
@@ -127,12 +117,8 @@ func (m *Manager) Update() (CancelFunc, <-chan struct{}, error) {
 	}
 	m.running = true
 
-	requests := make([]Request, 0, len(m.entries))
-	for _, e := range m.requiresUpdate() {
-		req, err := e.Request()
-		if err != nil {
-			return nil, nil, err
-		}
+	requests := make([]Entry, 0, len(m.entries))
+	for _, req := range m.requiresUpdate() {
 		requests = append(requests, req)
 	}
 	// async control
@@ -147,7 +133,7 @@ func (m *Manager) Update() (CancelFunc, <-chan struct{}, error) {
 	return stop, done, nil
 }
 
-func (m *Manager) updateRequests(requests []Request, closeCh <-chan struct{}, done chan<- struct{}) {
+func (m *Manager) updateRequests(requests []Entry, closeCh <-chan struct{}, done chan<- struct{}) {
 LOOPREQUESTS:
 	for _, req := range requests {
 		response, err := m.c.Do(req)
@@ -166,7 +152,7 @@ LOOPREQUESTS:
 			for _, r := range xlist.Resources {
 				summary = summary + " " + fmt.Sprintf("%v=%v", r, response.Account[r])
 			}
-			m.logger.Infof("%s\n", summary)
+			m.logger.Infof("%s", summary)
 		case <-closeCh:
 			response.Cancel()
 			response.Wait()
