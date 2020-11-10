@@ -337,6 +337,20 @@ create_data_dir() {
 		log "$VAR_DIR/$NAME already exists"
 	fi
 
+	if [ ! -d $VAR_DIR/$NAME/status ]; then
+		do_create_dir $VAR_DIR/$NAME/status $SVC_GROUP 1770
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$VAR_DIR/$NAME/status already exists"
+	fi
+
+	if [ ! -d $VAR_DIR/$NAME/local ]; then
+		do_create_dir $VAR_DIR/$NAME/local $SVC_GROUP 1770
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$VAR_DIR/$NAME/local already exists"
+	fi
+
 	step_ok
 }
 
@@ -419,7 +433,7 @@ EOF
 
 	if [ ! -f $ETC_DIR/$NAME/services.json ]; then
 		log "creating $ETC_DIR/$NAME/services.json"
-		echo '[{"id":"root","class":"mock"}]' > $ETC_DIR/$NAME/services.json 2>>$LOG_FILE
+		echo '[{"id":"root","class":"mem"}]' > $ETC_DIR/$NAME/services.json 2>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
 		log "$ETC_DIR/$NAME/services.json already exists"
@@ -431,6 +445,7 @@ EOF
 [xlget]
 outputdir = "${VAR_DIR}/${NAME}"
 cachedir  = "${CACHE_DIR}/${NAME}"
+statusdir = "${VAR_DIR}/${NAME}/status"
 
 [xlget.source]
 files     = [ "${ETC_DIR}/${NAME}/sources.json" ]

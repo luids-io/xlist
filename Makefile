@@ -43,8 +43,8 @@ clean:
 
 docker:
 	@echo "$(WHALE) $@"
-	DOCKER_BUILDKIT=1 docker build -t xlistd -f Dockerfile.xlistd .
-	DOCKER_BUILDKIT=1 docker build -t xlget -f Dockerfile.xlget .
+	DOCKER_BUILDKIT=1 docker build --progress=plain -t xlistd -f Dockerfile.xlistd .
+	DOCKER_BUILDKIT=1 docker build --progress=plain -t xlget -f Dockerfile.xlget .
 
 ## Targets for Makefile.release
 .PHONY: release

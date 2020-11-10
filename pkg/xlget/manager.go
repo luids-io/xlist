@@ -6,8 +6,10 @@
 package xlget
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"sync"
@@ -21,6 +23,7 @@ import (
 type Manager struct {
 	outputDir string
 	cacheDir  string
+	statusDir string
 	entries   []Entry
 	ids       map[string]bool
 	c         *Client
@@ -30,7 +33,7 @@ type Manager struct {
 }
 
 // NewManager creates a new manager
-func NewManager(outputDir, cacheDir string, opt ...Option) (*Manager, error) {
+func NewManager(outputDir, cacheDir, statusDir string, opt ...Option) (*Manager, error) {
 	//sets default options
 	opts := defaultOptions
 	for _, o := range opt {
@@ -39,6 +42,7 @@ func NewManager(outputDir, cacheDir string, opt ...Option) (*Manager, error) {
 	m := &Manager{
 		cacheDir:  cacheDir,
 		outputDir: outputDir,
+		statusDir: statusDir,
 		logger:    opts.logger,
 		entries:   make([]Entry, 0),
 		ids:       make(map[string]bool),
@@ -136,9 +140,24 @@ func (m *Manager) Update() (CancelFunc, <-chan struct{}, error) {
 func (m *Manager) updateRequests(requests []Entry, closeCh <-chan struct{}, done chan<- struct{}) {
 LOOPREQUESTS:
 	for _, req := range requests {
+		var status EntryStatus
+		if m.statusDir != "" {
+			var err error
+			status, err = m.getStatusFromEntry(req)
+			if err != nil {
+				m.logger.Errorf("can't get status file: %v", err)
+			}
+		}
 		response, err := m.c.Do(req)
 		if err != nil {
 			m.logger.Errorf("processing '%s': %v", req.ID, err)
+			if m.statusDir != "" {
+				status.setError(err)
+				err = m.writeEntryStatus(status)
+				if err != nil {
+					m.logger.Errorf("can't write status file: %v", err)
+				}
+			}
 			continue
 		}
 		select {
@@ -146,6 +165,13 @@ LOOPREQUESTS:
 			err = response.Err()
 			if err != nil {
 				m.logger.Errorf("in response from '%s': %v", req.ID, err)
+				if m.statusDir != "" {
+					status.setError(err)
+					err = m.writeEntryStatus(status)
+					if err != nil {
+						m.logger.Errorf("can't write status file: %v", err)
+					}
+				}
 				continue
 			}
 			summary := fmt.Sprintf("summary '%s': updated=%v", response.ID, response.Updated)
@@ -153,6 +179,13 @@ LOOPREQUESTS:
 				summary = summary + " " + fmt.Sprintf("%v=%v", r, response.Account[r])
 			}
 			m.logger.Infof("%s", summary)
+			if m.statusDir != "" {
+				status.setUpdate(response)
+				err = m.writeEntryStatus(status)
+				if err != nil {
+					m.logger.Errorf("can't write status file: %v", err)
+				}
+			}
 		case <-closeCh:
 			response.Cancel()
 			response.Wait()
@@ -161,6 +194,26 @@ LOOPREQUESTS:
 	}
 	m.running = false
 	close(done)
+}
+
+func (m *Manager) getStatusFromEntry(e Entry) (EntryStatus, error) {
+	file := m.statusDir + string(os.PathSeparator) + e.ID + ".status"
+	if fileExists(file) {
+		return EntryStatusFromFile(file)
+	}
+	return EntryStatus{ID: e.ID, First: time.Now()}, nil
+}
+
+func (m *Manager) writeEntryStatus(s EntryStatus) error {
+	if s.ID == "" {
+		return errors.New("status ID is empty")
+	}
+	file := m.statusDir + string(os.PathSeparator) + s.ID + ".status"
+	jsondata, err := json.MarshalIndent(s, "", "\t")
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(file, jsondata, 0644)
 }
 
 func (m *Manager) requiresUpdate() []Entry {
@@ -195,6 +248,18 @@ func (m *Manager) isUpdated(e Entry) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+	//if status enabled, checks if error in previous sync
+	if m.statusDir != "" {
+		status, err := m.getStatusFromEntry(e)
+		if err != nil {
+			m.logger.Errorf("can't get status from entry '%s': %v", e.ID, err)
+			return false
+		}
+		if !status.UpdatedOK {
+			return false
+		}
+	}
+
 	last := info.ModTime()
 
 	md5file := fmt.Sprintf("%s.md5", output)
@@ -220,6 +285,12 @@ func (m *Manager) initDirs() error {
 	}
 	if m.cacheDir != "" {
 		err := createDir(m.cacheDir)
+		if err != nil {
+			return err
+		}
+	}
+	if m.statusDir != "" {
+		err := createDir(m.statusDir)
 		if err != nil {
 			return err
 		}

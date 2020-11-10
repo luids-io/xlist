@@ -19,6 +19,7 @@ type XLGetCfg struct {
 	SourceFiles []string
 	OutputDir   string
 	CacheDir    string
+	StatusDir   string
 }
 
 // SetPFlags setups posix flags for commandline configuration
@@ -36,6 +37,7 @@ func (cfg *XLGetCfg) SetPFlags(short bool, prefix string) {
 	}
 	pflag.StringVar(&cfg.OutputDir, aprefix+"outputdir", cfg.OutputDir, "Output dir.")
 	pflag.StringVar(&cfg.CacheDir, aprefix+"cachedir", cfg.CacheDir, "Cache dir.")
+	pflag.StringVar(&cfg.CacheDir, aprefix+"statusdir", cfg.CacheDir, "Status dir.")
 }
 
 // BindViper setups posix flags for commandline configuration and bind to viper
@@ -48,6 +50,7 @@ func (cfg *XLGetCfg) BindViper(v *viper.Viper, prefix string) {
 	util.BindViper(v, aprefix+"source.files")
 	util.BindViper(v, aprefix+"outputdir")
 	util.BindViper(v, aprefix+"cachedir")
+	util.BindViper(v, aprefix+"statusdir")
 }
 
 // FromViper fill values from viper
@@ -60,6 +63,7 @@ func (cfg *XLGetCfg) FromViper(v *viper.Viper, prefix string) {
 	cfg.SourceFiles = v.GetStringSlice(aprefix + "source.files")
 	cfg.OutputDir = v.GetString(aprefix + "outputdir")
 	cfg.CacheDir = v.GetString(aprefix + "cachedir")
+	cfg.StatusDir = v.GetString(aprefix + "statusdir")
 }
 
 // Empty returns true if configuration is empty
@@ -99,6 +103,11 @@ func (cfg XLGetCfg) Validate() error {
 	if cfg.CacheDir != "" {
 		if !util.DirExists(cfg.CacheDir) {
 			return errors.New("cache dir doesn't exists")
+		}
+	}
+	if cfg.StatusDir != "" {
+		if !util.DirExists(cfg.StatusDir) {
+			return errors.New("status dir doesn't exists")
 		}
 	}
 	return nil

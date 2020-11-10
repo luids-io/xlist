@@ -25,7 +25,7 @@ func XLGet(cfg *config.XLGetCfg, logger yalogi.Logger) (*xlget.Manager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("loading dbfiles: %v", err)
 	}
-	manager, err := xlget.NewManager(cfg.OutputDir, cfg.CacheDir, xlget.SetLogger(logger))
+	manager, err := xlget.NewManager(cfg.OutputDir, cfg.CacheDir, cfg.StatusDir, xlget.SetLogger(logger))
 	if err != nil {
 		return nil, fmt.Errorf("creating manager: %v", err)
 	}

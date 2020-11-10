@@ -10,7 +10,8 @@ RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certi
 
 # create user for service
 RUN adduser -D -g 'luids' luxlist \
-    && mkdir -p /var/lib/luids/xlist \
+    && mkdir -p /var/lib/luids/xlist/status \
+    && mkdir -p /var/lib/luids/xlist/local \
     && mkdir -p /var/cache/luids/xlist \
     && touch /var/lib/luids/xlist/.keep \
     && touch /var/cache/luids/xlist/.keep \

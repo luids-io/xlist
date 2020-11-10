@@ -282,3 +282,80 @@ func ValidateEntry(e Entry) error {
 	}
 	return nil
 }
+
+// EntryStatus stores status information
+type EntryStatus struct {
+	ID string `json:"id"`
+	// First sync and last sync
+	First time.Time `json:"first"`
+	Last  time.Time `json:"last"`
+	// Updates stores only successful syncs
+	Updates    int        `json:"updates"`
+	LastUpdate *time.Time `json:"lastupdate,omitempty"`
+	// Changes stores changes in list (md5 changed)
+	Changes    int        `json:"changes"`
+	LastChange *time.Time `json:"lastchange,omitempty"`
+	// Errors stores number of sync errors (not errors in file)
+	Errors    int        `json:"errors"`
+	LastError *time.Time `json:"lasterror,omitempty"`
+	// Last sync state
+	UpdatedOK bool          `json:"updatedok"`
+	Account   []AccountItem `json:"account,omitempty"`
+	ErrorMsg  string        `json:"errormsg,omitempty"`
+}
+
+// AccountItem stores accounting info
+// I can't use a simple map[xlist.Resources] because this issue:
+// //https://github.com/golang/go/issues/29732
+type AccountItem struct {
+	Resource xlist.Resource `json:"resource"`
+	Count    int            `json:"count"`
+}
+
+func (s *EntryStatus) setError(err error) {
+	now := time.Now()
+	s.UpdatedOK = false
+	s.Last = now
+	s.LastError = &now
+	s.ErrorMsg = err.Error()
+	s.Errors++
+}
+
+func (s *EntryStatus) setUpdate(r *Response) {
+	now := time.Now()
+	s.UpdatedOK = true
+	s.ErrorMsg = ""
+	s.Last = now
+	s.LastUpdate = &now
+	s.Updates++
+	if r.Updated {
+		s.LastChange = &now
+		s.Changes++
+	}
+	s.Account = make([]AccountItem, 0, len(xlist.Resources))
+	for _, res := range xlist.Resources {
+		v, _ := r.Account[res]
+		if v > 0 {
+			s.Account = append(s.Account, AccountItem{Resource: res, Count: v})
+		}
+	}
+}
+
+// EntryStatusFromFile returns an EntryStatus
+func EntryStatusFromFile(path string) (EntryStatus, error) {
+	var entry EntryStatus
+	f, err := os.Open(path)
+	defer f.Close()
+	if err != nil {
+		return EntryStatus{}, fmt.Errorf("opening file %s: %v", path, err)
+	}
+	byteValue, err := ioutil.ReadAll(f)
+	if err != nil {
+		return EntryStatus{}, fmt.Errorf("reading file %s: %v", path, err)
+	}
+	err = json.Unmarshal(byteValue, &entry)
+	if err != nil {
+		return EntryStatus{}, fmt.Errorf("unmarshalling from json file %s: %v", path, err)
+	}
+	return entry, nil
+}
