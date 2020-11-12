@@ -347,6 +347,13 @@ create_data_dir() {
 	if [ ! -d $VAR_DIR/$NAME/local ]; then
 		do_create_dir $VAR_DIR/$NAME/local $SVC_GROUP 1770
 		[ $? -ne 0 ] && step_err && return 1
+		log "creating empty local blacklist and whitelist"
+		touch $VAR_DIR/$NAME/local/blacklist.xlist && \
+            chown $SVC_USER:$SVC_GROUP $VAR_DIR/$NAME/local/blacklist.xlist
+        [ $? -ne 0 ] && step_err && return 1
+		touch $VAR_DIR/$NAME/local/whitelist.xlist && \
+            chown $SVC_USER:$SVC_GROUP $VAR_DIR/$NAME/local/whitelist.xlist
+        [ $? -ne 0 ] && step_err && return 1
 	else
 		log "$VAR_DIR/$NAME/local already exists"
 	fi
@@ -433,7 +440,39 @@ EOF
 
 	if [ ! -f $ETC_DIR/$NAME/services.json ]; then
 		log "creating $ETC_DIR/$NAME/services.json"
-		echo '[{"id":"root","class":"mem"}]' > $ETC_DIR/$NAME/services.json 2>>$LOG_FILE
+		{ cat > $ETC_DIR/$NAME/services.json <<EOF
+[
+    {
+        "id": "root",
+        "class": "wbefore",
+        "resources": [ "ip4", "ip6", "domain" ],
+        "contains": [
+            {
+                "id": "local-whitelist",
+                "class": "file",
+                "resources": [ "ip4", "ip6", "domain" ],
+                "source": "local/whitelist.xlist",
+                "opts": {
+                    "autoreload": true,
+                    "reloadseconds": 5
+                }
+            },
+            {
+                "id": "local-blacklist",
+                "class": "file",
+                "resources": [ "ip4", "ip6", "domain" ],
+                "source": "local/blacklist.xlist",
+                "opts": {
+                    "autoreload": true,
+                    "reloadseconds": 5,
+                    "reason": "found in 'local-blacklist'"
+                }
+            }
+        ]
+    }
+]
+EOF
+		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
 	else
 		log "$ETC_DIR/$NAME/services.json already exists"
