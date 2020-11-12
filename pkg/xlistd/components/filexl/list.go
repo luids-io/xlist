@@ -113,11 +113,6 @@ func (l *List) Ping() error {
 	return l.err
 }
 
-// ReadOnly implements xlistd.List interface
-func (l *List) ReadOnly() bool {
-	return true
-}
-
 // Open loads file to memory
 func (l *List) Open() error {
 	l.logger.Debugf("%s: opening source '%s'", l.id, l.filename)
@@ -187,8 +182,8 @@ func (l *List) doReload() {
 			if err == nil && changed {
 				l.logger.Infof("source '%s' has changed", l.filename)
 				err = l.Reload()
+				l.setErr(err)
 			}
-			l.setErr(err)
 		}
 	}
 }
