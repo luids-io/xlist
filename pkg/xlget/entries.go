@@ -18,6 +18,8 @@ import (
 type Entry struct {
 	ID         string         `json:"id"`
 	Disabled   bool           `json:"disabled,omitempty"`
+	Removed    bool           `json:"removed,omitempty"`
+	Deprecated bool           `json:"deprecated,omitempty"`
 	Update     Duration       `json:"update"`
 	Sources    []Source       `json:"sources"`
 	Transforms *TransformOpts `json:"transforms,omitempty"`

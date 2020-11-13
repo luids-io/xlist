@@ -108,6 +108,32 @@ func (m *Manager) NeedsUpdate() []string {
 	return needs
 }
 
+// Removed returns an slice with ids removed
+func (m *Manager) Removed() []string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	removed := make([]string, 0, len(m.entries))
+	for _, e := range m.entries {
+		if !e.Disabled && e.Removed {
+			removed = append(removed, e.ID)
+		}
+	}
+	return removed
+}
+
+// Deprecated returns an slice with ids deprecated
+func (m *Manager) Deprecated() []string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	deprecated := make([]string, 0, len(m.entries))
+	for _, e := range m.entries {
+		if !e.Disabled && !e.Removed && e.Deprecated {
+			deprecated = append(deprecated, e.ID)
+		}
+	}
+	return deprecated
+}
+
 // CancelFunc defines a type for cancelation function
 type CancelFunc func()
 
@@ -147,6 +173,9 @@ LOOPREQUESTS:
 			if err != nil {
 				m.logger.Errorf("can't get status file: %v", err)
 			}
+		}
+		if req.Deprecated {
+			m.logger.Warnf("processing '%s': marked as deprecated", req.ID)
 		}
 		response, err := m.c.Do(req)
 		if err != nil {
@@ -219,7 +248,7 @@ func (m *Manager) writeEntryStatus(s EntryStatus) error {
 func (m *Manager) requiresUpdate() []Entry {
 	required := make([]Entry, 0, len(m.entries))
 	for _, e := range m.entries {
-		if e.Disabled {
+		if e.Disabled || e.Removed {
 			continue
 		}
 		if m.isUpdated(e) {

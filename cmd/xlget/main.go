@@ -82,8 +82,30 @@ func main() {
 
 	// dryrun mode
 	if dryRun {
-		updates := mgr.NeedsUpdate()
+		//checks if removed items, then bad config
+		removed := mgr.Removed()
+		if len(removed) > 0 {
+			summary := "removed:"
+			for _, e := range removed {
+				summary = fmt.Sprintf("%s '%s'", summary, e)
+			}
+			fmt.Println(summary)
+			fmt.Println("please update your configuration")
+			os.Exit(1)
+		}
+
 		fmt.Println("configuration ok")
+		//checks deprecated
+		deprecated := mgr.Deprecated()
+		if len(deprecated) > 0 {
+			summary := "deprecated:"
+			for _, e := range deprecated {
+				summary = fmt.Sprintf("%s '%s'", summary, e)
+			}
+			fmt.Println(summary)
+		}
+		//checks non updated
+		updates := mgr.NeedsUpdate()
 		if len(updates) == 0 {
 			fmt.Println("no entry needs to be updated")
 			os.Exit(0)
@@ -94,6 +116,14 @@ func main() {
 		}
 		fmt.Println(summary)
 		os.Exit(0)
+	}
+
+	// if removed items, show errors
+	issues := mgr.Removed()
+	if len(issues) > 0 {
+		for _, i := range issues {
+			logger.Errorf("found removed: '%s'", i)
+		}
 	}
 
 	// auto mode
