@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/luids-io/api/xlist"
+
 	"github.com/luids-io/core/apiservice"
 	"github.com/luids-io/core/yalogi"
 )
@@ -119,7 +121,21 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (List, error) {
 	//check if disabled
 	if def.Disabled {
 		return nil, fmt.Errorf("'%s' is disabled", def.ID)
-
+	}
+	// check if removed, returns a removedList instance
+	if def.Removed {
+		b.logger.Errorf("'%s' is marked as removed", def.ID)
+		bl := &removedList{
+			id:        def.ID,
+			resources: xlist.ClearResourceDups(def.Resources, true),
+		}
+		//register new created list
+		b.lists[def.ID] = bl
+		return bl, nil
+	}
+	// check if deprecated, prints a warning
+	if def.Deprecated {
+		b.logger.Warnf("'%s' is marked as deprecated", def.ID)
 	}
 	//check for recursion
 	for _, p := range parents {

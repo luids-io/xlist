@@ -21,7 +21,11 @@ type ListDef struct {
 	// Class stores the component type of the RBL
 	Class string `json:"class"`
 	// Disabled flag
-	Disabled bool `json:"disabled"`
+	Disabled bool `json:"disabled,omitempty"`
+	// Removed flag
+	Removed bool `json:"removed,omitempty"`
+	// Deprecated flag
+	Deprecated bool `json:"deprecated,omitempty"`
 	// Name or description of the list
 	Name string `json:"name,omitempty"`
 	// Category of the list
