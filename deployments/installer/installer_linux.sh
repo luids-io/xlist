@@ -10,6 +10,7 @@ BIN_DIR=/usr/local/bin
 ETC_DIR=/etc/luids
 VAR_DIR=/var/lib/luids
 CACHE_DIR=/var/cache/luids
+SHARE_DIR=/usr/local/share
 SYSTEMD_DIR=/etc/systemd/system
 
 ## Service variables
@@ -21,8 +22,8 @@ BINARIES="xlistd xlistc xlget"
 
 ## Download
 DOWNLOAD_BASE="https://github.com/luids-io/${NAME}/releases/download"
-DOWNLOAD_URI="${DOWNLOAD_BASE}/${RELEASE}/${NAME}_${RELEASE}_linux_${ARCH}.tgz"
-
+DOWNLOAD_URI="${DOWNLOAD_BASE}/v${RELEASE}/${NAME}_${RELEASE}_linux_${ARCH}.tgz"
+DATABASE_GIT="https://github.com/luids-io/xlist-database"
 ##
 
 die() { echo "error: $@" 1>&2 ; exit 1 ; }
@@ -65,6 +66,7 @@ show_actions() {
 	echo ". Create cache dirs in '${CACHE_DIR}'"
 	echo ". Create config dirs in '${ETC_DIR}'"
 	[ -d $SYSTEMD_DIR ] && echo ". Copy systemd configurations to '${SYSTEMD_DIR}'"
+	echo ". Install helper scripts in '${BIN_DIR}'"
 	echo ""
 }
 
@@ -295,6 +297,38 @@ EOF
 	} &>>$LOG_FILE
 	[ $? -ne 0 ] && step_err && return 1
 
+	log "creating ${BIN_DIR}/xlist_database"
+	{ cat > ${BIN_DIR}/xlist_database <<EOF
+#!/bin/bash
+
+EXECUSER=${SVC_USER}
+HOMEUSER=${VAR_DIR}/xlist
+GITREPO=${DATABASE_GIT}
+DBDIR=${SHARE_DIR}/xlist-database
+
+die() { echo "error: \$@" 1>&2 ; exit 1; }
+
+# some checks...
+which git &>/dev/null
+[ \$? -eq 0 ] || die "git not installed"
+getent passwd \$EXECUSER >/dev/null
+[ \$? -eq 0 ] || die "User \$EXECUSER doesn't exist!" 
+
+[[ \$EUID -eq 0 ]] || die "This script must be run as root"
+
+if [ ! -d \$DBDIR ]; then
+    mkdir -p \$DBDIR
+    chown \$EXECUSER \$DBDIR
+    su \$EXECUSER -p -c "HOME=\$HOMEUSER git clone \$GITREPO \$DBDIR"
+else
+    su \$EXECUSER -p -c "HOME=\$HOMEUSER git -C \$DBDIR pull"
+fi
+EOF
+	chown root:root ${BIN_DIR}/xlist_database
+	chmod 755 ${BIN_DIR}/xlist_database
+	} &>>$LOG_FILE
+	[ $? -ne 0 ] && step_err && return 1
+	
 	step_ok
 }
 
