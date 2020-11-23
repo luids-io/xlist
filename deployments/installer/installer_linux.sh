@@ -383,10 +383,10 @@ create_data_dir() {
 		[ $? -ne 0 ] && step_err && return 1
 		log "creating empty local blacklist and whitelist"
 		touch $VAR_DIR/$NAME/local/blacklist.xlist && \
-            chown $SVC_USER:$SVC_GROUP $VAR_DIR/$NAME/local/blacklist.xlist
+            chown root:$SVC_GROUP $VAR_DIR/$NAME/local/blacklist.xlist
         [ $? -ne 0 ] && step_err && return 1
 		touch $VAR_DIR/$NAME/local/whitelist.xlist && \
-            chown $SVC_USER:$SVC_GROUP $VAR_DIR/$NAME/local/whitelist.xlist
+            chown root:$SVC_GROUP $VAR_DIR/$NAME/local/whitelist.xlist
         [ $? -ne 0 ] && step_err && return 1
 	else
 		log "$VAR_DIR/$NAME/local already exists"
@@ -615,6 +615,46 @@ EOF
 	else
 		log "$SYSTEMD_DIR/luids-xlget.service already exists"
 	fi
+
+	if [ ! -f $SYSTEMD_DIR/luids-xlist-updatedb.service ]; then
+		log "creating $SYSTEMD_DIR/luids-xlist-updatedb.service"
+		{ cat > $SYSTEMD_DIR/luids-xlist-updatedb.service <<EOF
+[Unit]
+Description=Updates xlist database
+
+[Service]
+Type=oneshot
+User=luxlist
+WorkingDirectory=$SHARE_DIR/xlist-database
+ExecStart=git pull
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$SYSTEMD_DIR/luids-xlist-updatedb.service already exists"
+	fi
+
+	if [ ! -f $SYSTEMD_DIR/luids-xlist-updatedb.timer ]; then
+		log "creating $SYSTEMD_DIR/luids-xlist-updatedb.timer"
+		{ cat > $SYSTEMD_DIR/luids-xlist-updatedb.timer <<EOF
+[Unit]
+Description=Updates xlist database every day
+
+[Timer]
+OnCalendar=daily
+
+[Install]
+WantedBy=timers.target
+EOF
+		} &>>$LOG_FILE
+		[ $? -ne 0 ] && step_err && return 1
+	else
+		log "$SYSTEMD_DIR/luids-xlist-updatedb.timer already exists"
+	fi
+
+	log "running systemctl daemon-reload"
+	systemctl daemon-reload &>>$LOG_FILE
+	[ $? -ne 0 ] && step_err && return 1
 
 	step_ok
 }
