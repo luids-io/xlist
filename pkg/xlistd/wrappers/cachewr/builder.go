@@ -32,7 +32,7 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 		return dst, err
 	}
 	if ok {
-		if ttl <= 0 {
+		if ttl < xlist.NeverCache {
 			return dst, errors.New("invalid 'ttl'")
 		}
 		dst.TTL = ttl
@@ -43,10 +43,32 @@ func parseOptions(src Config, opts map[string]interface{}) (Config, error) {
 		return dst, err
 	}
 	if ok {
-		if negativettl <= 0 && negativettl != xlist.NeverCache {
+		if negativettl < xlist.NeverCache {
 			return dst, errors.New("invalid 'negativettl'")
 		}
 		dst.NegativeTTL = negativettl
+	}
+
+	minttl, ok, err := option.Int(opts, "minttl")
+	if err != nil {
+		return dst, err
+	}
+	if ok {
+		if minttl < 0 {
+			return dst, errors.New("invalid 'minttl'")
+		}
+		dst.MinTTL = minttl
+	}
+
+	maxttl, ok, err := option.Int(opts, "maxttl")
+	if err != nil {
+		return dst, err
+	}
+	if ok {
+		if maxttl < 0 {
+			return dst, errors.New("invalid 'maxttl'")
+		}
+		dst.MaxTTL = maxttl
 	}
 
 	return dst, nil

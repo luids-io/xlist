@@ -24,10 +24,8 @@ const WrapperClass = "cache"
 // DefaultConfig returns default configuration.
 func DefaultConfig() Config {
 	return Config{
-		TTL:           defaultCacheTTL,
 		Cleanups:      defaultCacheCleanups,
 		RandomSeconds: defaultRandomCache,
-		DoStats:       false,
 	}
 }
 
@@ -35,9 +33,9 @@ func DefaultConfig() Config {
 type Config struct {
 	TTL             int
 	NegativeTTL     int
+	MinTTL, MaxTTL  int
 	Cleanups        time.Duration
 	RandomSeconds   int
-	DoStats         bool
 	ForceValidation bool
 }
 
@@ -49,8 +47,7 @@ type Wrapper struct {
 }
 
 var (
-	defaultCacheTTL      = 300 //seconds
-	defaultCacheCleanups = 6 * time.Minute
+	defaultCacheCleanups = 1 * time.Minute
 	defaultRandomCache   = 60 //seconds to randomize
 )
 
@@ -58,12 +55,15 @@ var (
 func New(list xlistd.List, cfg Config) *Wrapper {
 	//randomize cache cleanups
 	rands := time.Duration(rand.Intn(cfg.RandomSeconds)) * time.Second
-	c := &Wrapper{
+	//checks if minttl is bigger than maxttl
+	if cfg.MinTTL > 0 && cfg.MaxTTL > 0 && cfg.MinTTL > cfg.MaxTTL {
+		cfg.MinTTL = cfg.MaxTTL
+	}
+	return &Wrapper{
 		cfg:   cfg,
 		cache: cacheimpl.New(time.Duration(cfg.TTL)*time.Second, cfg.Cleanups+rands),
 		list:  list,
 	}
-	return c
 }
 
 // ID implements xlistd.List interface.
@@ -128,18 +128,31 @@ func (c *Wrapper) get(name string, resource xlist.Resource) (xlist.Response, boo
 
 func (c *Wrapper) set(name string, resource xlist.Resource, r xlist.Response) xlist.Response {
 	//if don't cache
-	if (r.TTL == xlist.NeverCache) || (!r.Result && c.cfg.NegativeTTL == xlist.NeverCache) {
+	if r.TTL == xlist.NeverCache || (r.Result && c.cfg.TTL == xlist.NeverCache) ||
+		(!r.Result && c.cfg.NegativeTTL == xlist.NeverCache) {
 		return r
 	}
-	//sets cache
-	ttl := c.cfg.TTL
+	//now calculate ttl
+	ttl := r.TTL
+	//check if ttl it's fixed
+	if r.Result && c.cfg.TTL > 0 {
+		ttl = c.cfg.TTL
+	}
 	if !r.Result && c.cfg.NegativeTTL > 0 {
 		ttl = c.cfg.NegativeTTL
 	}
-	if r.TTL < ttl { //minor than cachettl
-		r.TTL = ttl //sets reponse to cachettl
+	//check bounds if set
+	if c.cfg.MaxTTL > 0 && ttl > c.cfg.MaxTTL {
+		ttl = c.cfg.MaxTTL
 	}
-	key := fmt.Sprintf("%s_%s", resource.String(), name)
-	c.cache.Set(key, r, time.Duration(r.TTL)*time.Second)
+	if c.cfg.MinTTL > 0 && ttl < c.cfg.MinTTL {
+		ttl = c.cfg.MinTTL
+	}
+	r.TTL = ttl
+	if r.TTL > 0 {
+		// sets cache
+		key := fmt.Sprintf("%s_%s", resource.String(), name)
+		c.cache.Set(key, r, time.Duration(r.TTL)*time.Second)
+	}
 	return r
 }
