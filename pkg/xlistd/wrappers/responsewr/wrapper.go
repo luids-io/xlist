@@ -25,6 +25,7 @@ type Config struct {
 	Reason       string
 	Preffix      string
 	TTL          int
+	NegativeTTL  int
 	UseThreshold bool
 	Score        int
 }
@@ -39,6 +40,9 @@ type Wrapper struct {
 func New(list xlistd.List, cfg Config) *Wrapper {
 	if cfg.TTL < xlist.NeverCache {
 		cfg.TTL = 0
+	}
+	if cfg.NegativeTTL < xlist.NeverCache {
+		cfg.NegativeTTL = 0
 	}
 	return &Wrapper{cfg: cfg, list: list}
 }
@@ -87,8 +91,11 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 		if resp.Result && w.cfg.Clean {
 			resp.Reason = reason.Clean(resp.Reason)
 		}
-		if w.cfg.TTL != 0 {
+		if resp.Result && w.cfg.TTL != 0 {
 			resp.TTL = w.cfg.TTL
+		}
+		if !resp.Result && w.cfg.NegativeTTL != 0 {
+			resp.TTL = w.cfg.NegativeTTL
 		}
 	}
 	return resp, err

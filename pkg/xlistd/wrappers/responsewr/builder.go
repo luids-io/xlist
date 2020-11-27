@@ -62,6 +62,14 @@ func parseOptions(src Config, opts map[string]interface{}, listID string) (Confi
 		dst.TTL = ttl
 	}
 
+	negativettl, ok, err := option.Int(opts, "negativettl")
+	if err != nil {
+		return dst, err
+	}
+	if ok && negativettl >= xlist.NeverCache {
+		dst.NegativeTTL = negativettl
+	}
+
 	reason, ok, err := option.String(opts, "reason")
 	if err != nil {
 		return dst, err

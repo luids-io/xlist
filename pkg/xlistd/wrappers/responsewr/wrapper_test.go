@@ -44,16 +44,17 @@ func TestWrapper_CheckTTL(t *testing.T) {
 	mockup := &mockxl.List{ResourceList: ip4, Results: []bool{true, false}, TTL: 600}
 
 	var tests = []struct {
-		ttl  int
-		want int
+		ttl         int
+		negativettl int
+		want        int
 	}{
-		{0, 600},                             //0
-		{10, 10},                             //1
-		{xlist.NeverCache, xlist.NeverCache}, //2
-		{-2, 600},                            //3
+		{0, 0, 600},                              //0 -> true
+		{50, 10, 10},                             //1 -> false
+		{xlist.NeverCache, 10, xlist.NeverCache}, //2 -> true
+		{-2, -2, 600},                            //3 -> false
 	}
 	for idx, test := range tests {
-		respwr := responsewr.New(mockup, responsewr.Config{TTL: test.ttl})
+		respwr := responsewr.New(mockup, responsewr.Config{TTL: test.ttl, NegativeTTL: test.negativettl})
 		resp, _ := respwr.Check(context.Background(), "10.10.10.10", xlist.IPv4)
 		if test.want != resp.TTL {
 			t.Errorf("idx[%v] respwr.Check(): want=%v got=%v", idx, test.want, resp.TTL)
