@@ -122,10 +122,10 @@ LOOPCHILDS:
 }
 
 // Resources implements xlist.Checker interface.
-func (l *List) Resources() []xlist.Resource {
+func (l *List) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(resources, l.resources)
-	return resources
+	return resources, nil
 }
 
 // pingResult is used for store pings
@@ -134,7 +134,7 @@ type pingResult struct {
 	err     error
 }
 
-// Ping implements interface xlist.Checker.
+// Ping implements interface xlistd.List.
 func (l *List) Ping() error {
 	errs := make([]pingResult, 0, len(l.childs))
 	for idx, child := range l.childs {

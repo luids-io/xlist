@@ -3,6 +3,7 @@
 package wbeforexl
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -21,7 +22,10 @@ func Builder(defaultCfg Config) xlistd.BuildListFn {
 		if err != nil {
 			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[0].ID, err)
 		}
-		whiteres := whitelist.Resources()
+		whiteres, err := whitelist.Resources(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[0].ID, err)
+		}
 		for _, r := range def.Resources {
 			if !r.InArray(whiteres) {
 				return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", def.Contains[0].ID, r)
@@ -31,7 +35,10 @@ func Builder(defaultCfg Config) xlistd.BuildListFn {
 		if err != nil {
 			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[1].ID, err)
 		}
-		blackres := blacklist.Resources()
+		blackres, err := blacklist.Resources(context.Background())
+		if err != nil {
+			return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[1].ID, err)
+		}
 		for _, r := range def.Resources {
 			if !r.InArray(blackres) {
 				return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", def.Contains[1].ID, r)

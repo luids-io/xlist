@@ -70,7 +70,7 @@ func (w *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 	return resp, err
 }
 
-// Ping implements xlist.Checker interface.
+// Ping implements xlistd.Ping interface.
 func (w *Wrapper) Ping() error {
 	err := w.list.Ping()
 	if err != nil {
@@ -82,8 +82,8 @@ func (w *Wrapper) Ping() error {
 }
 
 // Resources implements xlist.Checker interface.
-func (w *Wrapper) Resources() []xlist.Resource {
-	return w.list.Resources()
+func (w *Wrapper) Resources(ctx context.Context) ([]xlist.Resource, error) {
+	return w.list.Resources(ctx)
 }
 
 func init() {

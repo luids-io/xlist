@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/luids-io/api/xlist"
 	checkapi "github.com/luids-io/api/xlist/grpc/check"
 	"github.com/luids-io/core/grpctls"
 	"github.com/luids-io/xlist/pkg/xlistd"
@@ -30,12 +31,15 @@ func Builder() xlistd.BuildListFn {
 		if err != nil {
 			return nil, fmt.Errorf("creating rpcxl: %v", err)
 		}
-
 		//register hooks
 		b.OnShutdown(func() error {
 			return bl.Close()
 		})
-		return &grpclist{id: def.ID, Checker: bl}, nil
+		return &grpclist{
+			id:        def.ID,
+			checker:   bl,
+			resources: xlist.ClearResourceDups(def.Resources, true),
+		}, nil
 	}
 }
 

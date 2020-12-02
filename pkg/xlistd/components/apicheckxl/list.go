@@ -7,6 +7,8 @@
 package apicheckxl
 
 import (
+	"context"
+
 	"github.com/luids-io/api/xlist"
 )
 
@@ -16,7 +18,7 @@ const ComponentClass = "apicheck"
 type apicheckList struct {
 	id        string
 	resources []xlist.Resource
-	xlist.Checker
+	checker   xlist.Checker
 }
 
 func (l *apicheckList) ID() string {
@@ -27,9 +29,18 @@ func (l *apicheckList) Class() string {
 	return ComponentClass
 }
 
+func (l *apicheckList) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
+	return l.checker.Check(ctx, name, resource)
+}
+
 // Resources wrappes api, (it's required in construction).
-func (l *apicheckList) Resources() []xlist.Resource {
+func (l *apicheckList) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	ret := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(ret, l.resources)
-	return ret
+	return ret, nil
+}
+
+func (l *apicheckList) Ping() error {
+	_, err := l.checker.Resources(context.Background())
+	return err
 }

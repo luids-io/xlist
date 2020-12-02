@@ -46,7 +46,10 @@ func TestList_Check(t *testing.T) {
 		t.Errorf("selector.Check ip4 unexpected response: %v", resp)
 	}
 
-	resources := selector.Resources()
+	resources, err := selector.Resources(context.Background())
+	if err != nil {
+		t.Fatal("this should not happen")
+	}
 	if len(resources) != 2 {
 		t.Errorf("unexpected resources: %v", resources)
 	}
@@ -144,7 +147,7 @@ func TestList_Resources(t *testing.T) {
 	}
 	for idx, test := range tests {
 		slist := selectorxl.New("test", test.checkers, selectorxl.Config{})
-		got := slist.Resources()
+		got, _ := slist.Resources(context.Background())
 		if !cmpResourceSlice(got, test.want) {
 			t.Errorf("idx[%v] selector.Resources() got=%v want=%v", idx, got, test.want)
 		}

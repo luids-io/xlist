@@ -99,7 +99,7 @@ func (l *List) Check(ctx context.Context, name string, res xlist.Resource) (xlis
 	return resp, nil
 }
 
-// Ping implements xlist.Checker.
+// Ping implements xlistd.List.
 func (l *List) Ping() error {
 	if l.Fail {
 		return xlist.ErrUnavailable
@@ -108,8 +108,8 @@ func (l *List) Ping() error {
 }
 
 // Resources implements xlist.Checker.
-func (l *List) Resources() []xlist.Resource {
+func (l *List) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	ret := make([]xlist.Resource, len(l.ResourceList), len(l.ResourceList))
 	copy(ret, l.ResourceList)
-	return ret
+	return ret, nil
 }

@@ -151,10 +151,10 @@ RESULTLOOP:
 }
 
 // Resources implements xlist.Checker interface.
-func (l *List) Resources() []xlist.Resource {
+func (l *List) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(resources, l.resources)
-	return resources
+	return resources, nil
 }
 
 // pingResult is used for store pings
@@ -222,7 +222,7 @@ func workerCheck(ctx context.Context, wg *sync.WaitGroup, list xlist.Checker, li
 	return
 }
 
-func workerPing(wg *sync.WaitGroup, list xlist.Checker, listIdx int, results chan<- *pingResult) {
+func workerPing(wg *sync.WaitGroup, list xlistd.List, listIdx int, results chan<- *pingResult) {
 	defer wg.Done()
 	err := list.Ping()
 	results <- &pingResult{

@@ -33,14 +33,14 @@ func (d *removedList) Check(ctx context.Context, name string, res xlist.Resource
 	return xlist.Response{}, nil
 }
 
-// Ping implements xlist.Checker.
+// Ping implements xlistd.List.
 func (d *removedList) Ping() error {
 	return ErrListRemoved
 }
 
 // Resources implements xlist.Checker.
-func (d *removedList) Resources() []xlist.Resource {
+func (d *removedList) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	ret := make([]xlist.Resource, len(d.resources), len(d.resources))
 	copy(ret, d.resources)
-	return ret
+	return ret, nil
 }

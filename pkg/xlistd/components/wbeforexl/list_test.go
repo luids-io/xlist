@@ -120,7 +120,7 @@ func TestList_Resources(t *testing.T) {
 	}
 	for idx, test := range tests {
 		wblist := wbeforexl.New("test", &mockxl.List{}, &mockxl.List{}, test.in, wbeforexl.Config{})
-		got := wblist.Resources()
+		got, _ := wblist.Resources(context.Background())
 		if !cmpResourceSlice(got, test.want) {
 			t.Errorf("idx[%v] wbefore.Resources() got=%v want=%v", idx, got, test.want)
 		}

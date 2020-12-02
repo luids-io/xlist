@@ -3,6 +3,7 @@
 package selectorxl
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -32,8 +33,12 @@ func Builder(defaultCfg Config) xlistd.BuildListFn {
 			if err != nil {
 				return nil, fmt.Errorf("constructing child '%s': %v", def.Contains[idx].ID, err)
 			}
+			childres, err := sl.Resources(context.Background())
+			if err != nil {
+				return nil, fmt.Errorf("constructing child '%s': %v", childdef.ID, err)
+			}
 			resource := def.Resources[idx]
-			if !resource.InArray(sl.Resources()) {
+			if !resource.InArray(childres) {
 				return nil, fmt.Errorf("child '%s' doesn't checks resource '%s'", def.Contains[idx].ID, resource)
 			}
 			services[resource] = sl

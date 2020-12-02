@@ -24,10 +24,6 @@ func XListCheckAPI(cfg *config.XListCheckAPICfg, finder *xlistd.Builder, logger 
 	if !cfg.Log {
 		logger = yalogi.LogNull
 	}
-	svc := checkapi.NewService(list,
-		checkapi.DisclosureErrors(cfg.Disclosure),
-		checkapi.ExposePing(cfg.ExposePing),
-		checkapi.SetServiceLogger(logger),
-	)
+	svc := checkapi.NewService(list, checkapi.SetServiceLogger(logger))
 	return svc, nil
 }

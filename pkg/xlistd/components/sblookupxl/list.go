@@ -109,11 +109,11 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 }
 
 // Resources implements xlist.Checker interface.
-func (l *List) Resources() []xlist.Resource {
-	return []xlist.Resource{xlist.Domain}
+func (l *List) Resources(ctx context.Context) ([]xlist.Resource, error) {
+	return []xlist.Resource{xlist.Domain}, nil
 }
 
-// Ping implements xlist.Checker interface.
+// Ping implements xlistd.List interface.
 func (l *List) Ping() error {
 	if l.closed {
 		return errors.New("list is closed")

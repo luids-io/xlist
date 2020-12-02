@@ -94,11 +94,11 @@ func (c *Wrapper) Check(ctx context.Context, name string, resource xlist.Resourc
 }
 
 // Resources implements xlist.Checker interface.
-func (c *Wrapper) Resources() []xlist.Resource {
-	return c.list.Resources()
+func (c *Wrapper) Resources(ctx context.Context) ([]xlist.Resource, error) {
+	return c.list.Resources(ctx)
 }
 
-// Ping implements xlist.Checker interface.
+// Ping implements xlistd.List interface.
 func (c *Wrapper) Ping() error {
 	return c.list.Ping()
 }

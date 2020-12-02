@@ -99,13 +99,13 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 }
 
 // Resources implements xlist.Checker interface
-func (l *List) Resources() []xlist.Resource {
+func (l *List) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(resources, l.resources)
-	return resources
+	return resources, nil
 }
 
-// Ping implements xlist.Checker interface
+// Ping implements xlistd.Ping interface
 func (l *List) Ping() error {
 	if !l.started {
 		return errors.New("list is closed")

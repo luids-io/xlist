@@ -83,10 +83,10 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 }
 
 // Resources implements xlist.Checker interface.
-func (l *List) Resources() []xlist.Resource {
+func (l *List) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	ret := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(ret, l.resources)
-	return ret
+	return ret, nil
 }
 
 func (l *List) getList(r xlist.Resource) xlistd.List {
@@ -102,7 +102,7 @@ type pingResult struct {
 	err error
 }
 
-// Ping implements xlist.Checker interface.
+// Ping implements xlistd.List interface.
 func (l *List) Ping() error {
 	var wg sync.WaitGroup
 	results := make(chan *pingResult, len(l.resources))
@@ -137,7 +137,7 @@ func (l *List) Ping() error {
 	return nil
 }
 
-func workerPing(wg *sync.WaitGroup, list xlist.Checker, res xlist.Resource, results chan<- *pingResult) {
+func workerPing(wg *sync.WaitGroup, list xlistd.List, res xlist.Resource, results chan<- *pingResult) {
 	defer wg.Done()
 	err := list.Ping()
 	results <- &pingResult{

@@ -1,6 +1,7 @@
 package sequencexl
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/luids-io/core/option"
@@ -27,7 +28,10 @@ func Builder(defaultCfg Config) xlistd.BuildListFn {
 			if err != nil {
 				return nil, fmt.Errorf("constructing child '%s': %v", childDef.ID, err)
 			}
-			childres := child.Resources()
+			childres, err := child.Resources(context.Background())
+			if err != nil {
+				return nil, fmt.Errorf("constructing child '%s': %v", childDef.ID, err)
+			}
 			for _, r := range def.Resources {
 				if !r.InArray(childres) {
 					return nil, fmt.Errorf("child '%s' doesn't checks resource '%s': %v", childDef.ID, r, childDef)

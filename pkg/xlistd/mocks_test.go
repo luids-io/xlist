@@ -50,10 +50,10 @@ func (l mockList) Ping() error {
 	return nil
 }
 
-func (l mockList) Resources() []xlist.Resource {
+func (l mockList) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	ret := make([]xlist.Resource, len(l.resources), len(l.resources))
 	copy(ret, l.resources)
-	return ret
+	return ret, nil
 }
 
 func (l mockList) ReadOnly() bool {
@@ -105,10 +105,10 @@ func (c mockContainer) Ping() error {
 	return nil
 }
 
-func (c mockContainer) Resources() []xlist.Resource {
+func (c mockContainer) Resources(ctx context.Context) ([]xlist.Resource, error) {
 	var ret []xlist.Resource
 	copy(ret, c.resources)
-	return ret
+	return ret, nil
 }
 
 func (l mockContainer) ReadOnly() bool {
@@ -138,8 +138,8 @@ func (w mockWrapper) Ping() error {
 	return w.list.Ping()
 }
 
-func (w mockWrapper) Resources() []xlist.Resource {
-	return w.list.Resources()
+func (w mockWrapper) Resources(ctx context.Context) ([]xlist.Resource, error) {
+	return w.list.Resources(ctx)
 }
 
 func testBuilderList() xlistd.BuildListFn {

@@ -16,8 +16,6 @@ import (
 type XListCheckAPICfg struct {
 	Enable     bool
 	RootListID string
-	ExposePing bool
-	Disclosure bool
 	Log        bool
 }
 
@@ -29,8 +27,6 @@ func (cfg *XListCheckAPICfg) SetPFlags(short bool, prefix string) {
 	}
 	pflag.BoolVar(&cfg.Enable, aprefix+"enable", cfg.Enable, "Enable xlist api check.")
 	pflag.StringVar(&cfg.RootListID, aprefix+"rootid", cfg.RootListID, "Root list ID for check service.")
-	pflag.BoolVar(&cfg.ExposePing, aprefix+"exposeping", cfg.ExposePing, "Exposes internal ping in the service.")
-	pflag.BoolVar(&cfg.Disclosure, aprefix+"disclosure", cfg.Disclosure, "Disclosure internal errors.")
 	pflag.BoolVar(&cfg.Log, aprefix+"log", cfg.Log, "Enable log in service.")
 }
 
@@ -42,8 +38,6 @@ func (cfg *XListCheckAPICfg) BindViper(v *viper.Viper, prefix string) {
 	}
 	util.BindViper(v, aprefix+"enable")
 	util.BindViper(v, aprefix+"rootid")
-	util.BindViper(v, aprefix+"exposeping")
-	util.BindViper(v, aprefix+"disclosure")
 	util.BindViper(v, aprefix+"log")
 }
 
@@ -55,8 +49,6 @@ func (cfg *XListCheckAPICfg) FromViper(v *viper.Viper, prefix string) {
 	}
 	cfg.Enable = v.GetBool(aprefix + "enable")
 	cfg.RootListID = v.GetString(aprefix + "rootid")
-	cfg.ExposePing = v.GetBool(aprefix + "exposeping")
-	cfg.Disclosure = v.GetBool(aprefix + "disclosure")
 	cfg.Log = v.GetBool(aprefix + "log")
 }
 

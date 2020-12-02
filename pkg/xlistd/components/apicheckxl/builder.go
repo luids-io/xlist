@@ -18,9 +18,6 @@ func Builder() xlistd.BuildListFn {
 		}
 		service, ok := b.APIService(sname)
 		if !ok {
-			return nil, fmt.Errorf("can't find")
-		}
-		if !ok {
 			return nil, fmt.Errorf("can't find service '%s'", sname)
 		}
 		list, ok := service.(xlist.Checker)
@@ -29,7 +26,7 @@ func Builder() xlistd.BuildListFn {
 		}
 		return &apicheckList{
 			id:        def.ID,
-			Checker:   list,
+			checker:   list,
 			resources: xlist.ClearResourceDups(def.Resources, true),
 		}, nil
 	}

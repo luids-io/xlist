@@ -126,7 +126,10 @@ func ExampleList() {
 	}
 	fmt.Println("ping 2:", err)
 
-	resources := testlist.Resources()
+	resources, err := testlist.Resources(context.Background())
+	if err != nil {
+		log.Fatalln("this should not happen")
+	}
 	fmt.Println("resources:", resources)
 
 	resp, err := testlist.Check(context.Background(), "10.10.10.10", xlist.IPv4)

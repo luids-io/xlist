@@ -86,13 +86,19 @@ func main() {
 		if err != nil {
 			logger.Fatalf("test failed: %v", err)
 		}
-		resources := client.Resources()
+		resources, err := client.Resources(context.Background())
+		if err != nil {
+			logger.Fatalf("test failed: %v", err)
+		}
 		fmt.Fprintf(os.Stdout, "%v (%v)\n", resources, time.Since(startp))
 		return
 	}
 
 	//get resources and set guess order for arguments
-	resources := client.Resources()
+	resources, err := client.Resources(context.Background())
+	if err != nil {
+		logger.Fatalf("test failed: %v", err)
+	}
 	guessOrder := make([]xlist.Resource, 0, len(resources))
 	allOrdered := []xlist.Resource{xlist.IPv4, xlist.IPv6, xlist.MD5, xlist.SHA1, xlist.SHA256, xlist.Domain}
 	for _, r := range allOrdered {

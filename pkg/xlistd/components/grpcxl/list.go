@@ -7,6 +7,8 @@
 package grpcxl
 
 import (
+	"context"
+
 	"github.com/luids-io/api/xlist"
 )
 
@@ -15,8 +17,9 @@ const ComponentClass = "grpc"
 
 //TODO
 type grpclist struct {
-	id string
-	xlist.Checker
+	id        string
+	resources []xlist.Resource
+	checker   xlist.Checker
 }
 
 // ID implements xlistd.List interface.
@@ -27,4 +30,20 @@ func (l *grpclist) ID() string {
 // Class implements xlistd.List interface.
 func (l *grpclist) Class() string {
 	return ComponentClass
+}
+
+func (l *grpclist) Check(ctx context.Context, name string, resource xlist.Resource) (xlist.Response, error) {
+	return l.checker.Check(ctx, name, resource)
+}
+
+// Resources wrappes api, (it's required in construction).
+func (l *grpclist) Resources(ctx context.Context) ([]xlist.Resource, error) {
+	ret := make([]xlist.Resource, len(l.resources), len(l.resources))
+	copy(ret, l.resources)
+	return ret, nil
+}
+
+func (l *grpclist) Ping() error {
+	_, err := l.checker.Resources(context.Background())
+	return err
 }

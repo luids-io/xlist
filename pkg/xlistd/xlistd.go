@@ -13,5 +13,6 @@ import (
 type List interface {
 	ID() string
 	Class() string
+	Ping() error
 	xlist.Checker
 }

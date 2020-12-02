@@ -89,25 +89,24 @@ func New(id, zone string, resources []xlist.Resource, cfg Config, logger yalogi.
 		client.Timeout = cfg.Timeout
 	}
 	l := &List{
-		id:       id,
-		logger:   logger,
-		cfg:      cfg,
-		resolver: defaultResolver,
-		client:   client,
-		zone:     zone,
+		id:        id,
+		logger:    logger,
+		cfg:       cfg,
+		resolver:  defaultResolver,
+		client:    client,
+		zone:      zone,
+		resources: xlist.ClearResourceDups(resources, true),
+		provides:  make([]bool, len(xlist.Resources), len(xlist.Resources)),
 	}
 	if cfg.Resolver != nil {
 		l.resolver = cfg.Resolver
 	}
 	//set resource types that provides
-	l.provides = make([]bool, len(xlist.Resources), len(xlist.Resources))
-	l.resources = make([]xlist.Resource, 0, 3)
-	for _, r := range xlist.ClearResourceDups(resources, true) {
+	for _, r := range l.resources {
 		if r < xlist.IPv4 || r > xlist.Domain {
 			return nil, fmt.Errorf("resource '%v' not supported", r)
 		}
 		l.provides[int(r)] = true
-		l.resources = append(l.resources, r)
 	}
 	// set dns codes and error codes
 	if len(cfg.DNSCodes) > 0 {
@@ -182,23 +181,19 @@ func (l *List) Check(ctx context.Context, name string, resource xlist.Resource) 
 }
 
 // Resources implements xlist.Checker interface.
-func (l *List) Resources() []xlist.Resource {
-	resources := make([]xlist.Resource, 0, len(xlist.Resources))
-	for _, r := range xlist.Resources {
-		if l.provides[int(r)] {
-			resources = append(resources, r)
-		}
-	}
-	return resources
+func (l *List) Resources(ctx context.Context) ([]xlist.Resource, error) {
+	resources := make([]xlist.Resource, len(l.resources), len(l.resources))
+	copy(resources, l.resources)
+	return resources, nil
 }
 
-// Ping implements xlist.Checker interface.
+// Ping implements xlistd.List interface.
 func (l *List) Ping() error {
 	if l.cfg.PingDNS != "" {
 		return l.resolver.Ping(l.cfg.PingDNS)
 	}
 	server := l.resolver.Resolver()
-	for _, r := range l.Resources() {
+	for _, r := range l.resources {
 		err := l.pingRFC5782(r, server)
 		if err != nil {
 			return err

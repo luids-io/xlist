@@ -49,7 +49,7 @@ var testdatabase1 = []xlistd.ListDef{
 		Resources: onlyIPv4,
 		Wrappers: []xlistd.WrapperDef{
 			{Class: cachewr.WrapperClass,
-				Opts: map[string]interface{}{"ttl": -1}}}},
+				Opts: map[string]interface{}{"ttl": -2}}}},
 	{ID: "list6",
 		Class:     mockxl.ComponentClass,
 		Resources: onlyIPv4,
@@ -81,7 +81,7 @@ func TestBuild(t *testing.T) {
 		{"list1", ""},
 		{"list2", ""},
 		{"list3", "invalid 'ttl'"},
-		{"list4", "invalid 'ttl'"},
+		{"list4", ""},
 		{"list5", "invalid 'ttl'"},
 		{"list6", ""},
 		{"list7", ""},
