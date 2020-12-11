@@ -1,0 +1,30 @@
+[
+    {
+        "id": "root",
+        "class": "wbefore",
+        "resources": [ "ip4", "ip6", "domain" ],
+        "contains": [
+            {
+                "id": "local-whitelist",
+                "class": "file",
+                "resources": [ "ip4", "ip6", "domain" ],
+                "source": "local/whitelist.xlist",
+                "opts": {
+                    "autoreload": true,
+                    "reloadseconds": 5
+                }
+            },
+            {
+                "id": "local-blacklist",
+                "class": "file",
+                "resources": [ "ip4", "ip6", "domain" ],
+                "source": "local/blacklist.xlist",
+                "opts": {
+                    "autoreload": true,
+                    "reloadseconds": 5,
+                    "reason": "found in 'local-blacklist'"
+                }
+            }
+        ]
+    }
+]

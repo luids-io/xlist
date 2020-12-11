@@ -12,7 +12,9 @@ RUN apk update && apk add --no-cache git make ca-certificates && update-ca-certi
 RUN adduser -D -g 'luids' luxlist \
     && mkdir -p /var/lib/luids/xlist/status \
     && mkdir -p /var/lib/luids/xlist/local \
-    && touch /var/lib/luids/xlist/.keep \
+    && touch /var/lib/luids/xlist/status/.keep \
+    && touch /var/lib/luids/xlist/local/whitelist.xlist \
+    && touch /var/lib/luids/xlist/local/blacklist.xlist \
     && chown -R luxlist /var/lib/luids/xlist
 
 WORKDIR /app
@@ -36,7 +38,7 @@ COPY --from=build-env /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build-env /etc/passwd /etc/passwd
 
 COPY --from=build-env /app/bin/xlist? /bin/
-COPY --from=build-env /app/configs/docker/xlistd/*  /etc/luids/xlist/
+COPY --from=build-env /app/configs/docker/xlist/*  /etc/luids/xlist/
 COPY --from=build-env /var/lib/luids /var/lib/luids
 
 USER luxlist

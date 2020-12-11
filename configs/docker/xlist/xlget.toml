@@ -1,0 +1,7 @@
+[xlget]
+outputdir = "/var/lib/luids/xlist"
+cachedir  = "/var/cache/luids/xlist"
+statusdir = "/var/lib/luids/xlist/status"
+
+[xlget.source]
+files     = [ "/etc/luids/xlist/sources.json" ]
