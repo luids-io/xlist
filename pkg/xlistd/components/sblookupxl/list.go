@@ -156,7 +156,7 @@ func getThreatType(s string) (safebrowsing.ThreatType, error) {
 	switch s {
 	case "malware":
 		return safebrowsing.ThreatType_Malware, nil
-	case "phising":
+	case "phishing":
 		return safebrowsing.ThreatType_SocialEngineering, nil
 	case "social_engineering":
 		return safebrowsing.ThreatType_SocialEngineering, nil
