@@ -100,11 +100,11 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (List, error) {
 	if def.ID == "" {
 		return nil, errors.New("id field is required")
 	}
-	//check if is a reused list
-	bl, ok := b.lists[def.ID]
-	if ok {
-		if def.Class != "" {
-			return nil, fmt.Errorf("'%s' already exists", def.ID)
+	//check if is an alias
+	if def.Class == "" {
+		bl, ok := b.lists[def.ID]
+		if !ok {
+			return nil, fmt.Errorf("aliased '%s' not found", def.ID)
 		}
 		// if has wrappers
 		if def.Wrappers != nil && len(def.Wrappers) > 0 {
@@ -117,6 +117,11 @@ func (b *Builder) BuildChild(parents []string, def ListDef) (List, error) {
 			}
 		}
 		return bl, nil
+	}
+	//check if was constructed before
+	_, ok := b.lists[def.ID]
+	if ok {
+		return nil, fmt.Errorf("'%s' already exists", def.ID)
 	}
 	//check if disabled
 	if def.Disabled {
