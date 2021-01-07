@@ -465,6 +465,9 @@ datadir    = "${VAR_DIR}/${NAME}"
 [xlistd.service]
 files      = [ "${ETC_DIR}/${NAME}/services.json" ]
 
+[log]
+format = "log"
+
 EOF
 		} &>>$LOG_FILE
 		[ $? -ne 0 ] && step_err && return 1
@@ -522,6 +525,9 @@ statusdir = "${VAR_DIR}/${NAME}/status"
 
 [xlget.source]
 files     = [ "${ETC_DIR}/${NAME}/sources.json" ]
+
+[log]
+format = "log"
 
 EOF
 		} &>>$LOG_FILE
